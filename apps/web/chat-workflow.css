@@ -1,0 +1,75 @@
+.session-conversation,.review-proposal{width:100%;min-width:0;color:var(--ink);text-align:start}
+.chat-opening{font-size:clamp(18px,2vw,22px);font-weight:450;line-height:1.8;margin:12px 0 28px;max-width:40ch}
+.chat-log-wrap{position:relative}
+.chat-log{display:flex;flex-direction:column;gap:26px;max-height:54vh;min-height:90px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a8c2b7 transparent;padding:10px 4px 28px;scroll-padding-block:20px}
+.chat-message{max-width:min(93%,66ch);min-width:0;overflow-wrap:anywhere}
+.chat-message-user{align-self:flex-start;padding:16px 21px;background:#e5efea;border-radius:16px 3px 16px 16px}
+.chat-message-assistant{align-self:stretch;max-width:100%;padding:9px 4px 4px}
+.chat-message-byline{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;font-size:11px;color:#526e62;margin-bottom:9px}
+.chat-message-byline strong{font-weight:600}
+.chat-message-byline span{color:#657a70;font-size:10px}
+.chat-message p{font-size:16px;line-height:1.95;white-space:pre-wrap;margin:0;max-width:69ch}
+.chat-message-assistant p{font-size:18px;line-height:1.9}
+.chat-unread{position:absolute;bottom:10px;inset-inline-start:50%;transform:translateX(50%);padding:6px 13px;min-height:36px;border:1px solid #bfd4c9;background:#fff;border-radius:20px;font-size:12px;box-shadow:0 3px 10px #234d3520;white-space:nowrap}
+.chat-compose{background:#fff;border:1px solid #b8d1c6;border-radius:17px;box-shadow:0 6px 28px #234d3507;overflow:hidden;transition:border-color .15s ease,box-shadow .15s ease}
+.chat-compose:focus-within{border-color:#4d8c76;box-shadow:0 0 0 3px #4d8c7612}
+.chat-compose textarea{display:block;width:100%;border:0;outline:0;box-shadow:none;border-radius:0;resize:none;min-height:64px;max-height:230px;padding:20px 23px 8px;background:transparent;font-size:17px;line-height:1.85;overflow-y:auto}
+.chat-compose textarea:focus-visible{outline:0;box-shadow:none}
+.chat-compose textarea::placeholder{color:#6c8276}
+.chat-compose textarea:disabled{opacity:.7;color:var(--ink)}
+.chat-compose-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px 14px}
+.chat-keyboard{font-size:10px;color:#6c8176;line-height:1.7}
+.chat-send{min-height:42px;min-width:87px;border-radius:11px;padding:8px 14px;background:var(--teal);color:#fff;font-size:13px;gap:7px}
+.chat-send:disabled{opacity:1;background:#e2ece6;color:#789283}
+.chat-quiet-actions{display:flex;gap:7px 20px;align-items:center;flex-wrap:wrap;margin:8px 2px 0;min-height:42px}
+.chat-quiet-actions button,.chat-waiting button,.review-explain{font-size:12px;color:#547265;padding:8px 0;min-height:40px}
+.chat-explain{margin-inline-start:auto}
+.chat-waiting{display:flex;align-items:center;gap:9px;min-height:50px;font-size:12px;color:#526e62;flex-wrap:wrap}
+.chat-waiting button{margin-inline-start:auto;text-decoration:underline;text-underline-offset:4px}
+.chat-spinner{animation:chat-spin 1.2s linear infinite}
+@keyframes chat-spin{to{transform:rotate(360deg)}}
+.chat-length{font-size:11px;color:#765527;margin:2px 2px 0}
+.review-proposal{margin-top:38px;background:#fff;border:1px solid #d2e0d8;border-radius:15px;padding:28px 30px 16px}
+.review-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px 18px;margin-bottom:22px}
+.review-heading h2{font-size:25px;letter-spacing:-.5px;line-height:1.5}
+.review-heading>span{font-size:11px;color:#687c6f}
+.review-summary{font-size:16px;line-height:1.9;margin-bottom:24px;white-space:pre-wrap;overflow-wrap:anywhere}
+.review-note>h3,.review-destinations>h3,.review-reminders>h3,.review-followups>h3{font-size:14px;margin-bottom:13px;color:#426752}
+.review-note>.document-text{font-size:16px;line-height:1.9}
+.review-note>.document-text h3{font-size:17px}
+.review-small{color:#62766b;font-size:12px;line-height:1.85;margin:0 0 12px}
+.review-destinations{margin-top:28px;padding-top:24px;border-top:1px solid #e0e9e2}
+.review-destinations>.review-small{max-width:65ch;margin-bottom:12px}
+.review-destination{border-bottom:1px solid #e3ebe5}
+.review-destination>summary{display:flex;gap:12px;align-items:center;list-style:none;padding:14px 0;min-height:50px;cursor:pointer;font-size:14px}
+.review-destination>summary::-webkit-details-marker{display:none}
+.review-destination>summary>span{font-weight:500}
+.review-destination>summary>small{font-size:11px;color:#667e6e;margin-inline-start:auto}
+.review-destination>summary>svg{color:#55775f}
+.review-destination[open]>summary>svg{transform:rotate(180deg)}
+.review-destination-body{padding:8px 0 20px}
+.review-destination-body>.document-text{font-size:14px;max-height:480px;overflow-y:auto;overscroll-behavior:contain;padding-inline-end:8px}
+.review-sources,.review-previous,.review-fields{margin-top:15px;font-size:12px}
+.review-sources>summary,.review-previous>summary,.review-fields>summary,.review-reminders summary,.review-followups details>summary,.review-more>summary{cursor:pointer;min-height:42px;padding:10px 0;line-height:1.7;color:#4e7260;font-size:12px}
+.review-sources>article,.review-fields>article{padding:14px 16px;background:#f5f8f5;margin-block:10px;border-inline-start:2px solid #c2d8c9}
+.review-sources>article>strong{font-size:11px;font-weight:500;color:#5e7768}
+.review-sources p,.review-fields p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9;font-size:13px;margin:8px 0 0}
+.review-fields h4{font-size:13px;font-weight:600;margin:0 0 6px}
+.review-fields article>span{font-size:11px;color:#657b6c}
+.review-previous>.document-text{background:#f5f8f5;padding:16px;font-size:13px;max-height:350px;overflow:auto}
+.review-reminders{margin-top:22px;padding:18px 0 2px;border-top:1px solid #e0e9e2}
+.review-reminders p{font-size:14px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:9px}
+.review-stale{margin:22px 0 0;padding:14px 17px;border-inline-start:3px solid #ae935b;background:#f8f4e8;color:#735a31;font-size:13px;line-height:1.85}
+.review-approval{display:flex;gap:12px 22px;align-items:center;flex-wrap:wrap;padding:24px 0 12px}
+.review-approval>.primary{font-size:14px;min-height:48px}
+.review-approval>.text-button{font-size:12px}
+.review-optional{margin-top:10px;border-top:1px solid #e0e9e2;padding-top:8px}
+.review-followups{padding-top:15px}
+.review-followups>div{margin-bottom:17px}
+.review-followups p{font-size:14px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 4px}
+.review-followups>div>button{padding:6px 0;min-height:40px;color:var(--teal);font-size:12px;text-decoration:underline;text-underline-offset:4px}
+.review-goal-buttons{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0 14px}
+.review-goal-buttons button{border:1px solid #c8dcd0;border-radius:7px;min-height:42px;padding:8px 13px;font-size:12px}
+.review-explain{display:block;margin-inline-start:auto}
+@media(max-width:760px){.chat-opening{font-size:19px;margin-block:7px 23px}.chat-log{max-height:52vh;gap:22px;padding-bottom:22px}.chat-message{max-width:96%}.chat-message-user{padding:14px 16px}.chat-message-assistant{max-width:100%;padding-inline:1px}.chat-message p{font-size:15px}.chat-message-assistant p{font-size:17px}.chat-compose textarea{font-size:16px;padding:17px 17px 6px}.chat-compose-footer{padding:8px 12px 12px;gap:10px}.chat-keyboard{font-size:9px;max-width:160px}.chat-send{min-width:75px;padding-inline:11px}.chat-quiet-actions{gap:2px 16px}.chat-quiet-actions button{font-size:11px}.chat-waiting{font-size:11px}.review-proposal{margin-top:27px;padding:22px 19px 12px;border-radius:12px}.review-heading h2{font-size:23px}.review-heading{margin-bottom:18px}.review-summary{font-size:15px}.review-note>.document-text{font-size:15px}.review-approval{gap:7px;padding-top:22px}.review-approval>.primary{width:100%}.review-approval>.text-button{margin-inline:auto;min-height:44px}.review-destination>summary{gap:8px}.review-destination>summary>small{font-size:10px}.review-sources>article,.review-fields>article{padding:13px}.review-destination-body>.document-text{max-height:52vh}.review-goal-buttons{gap:7px}}
+@media(prefers-reduced-motion:reduce){.chat-compose{transition:none}.chat-spinner{animation:none}}

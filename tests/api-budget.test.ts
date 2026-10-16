@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { createDemoState } from '../fixtures/fictional';
-import { addUserMessage, buildContext, createSession } from '../packages/domain';
+import { addUserMessage, buildContext, compactModelContext, createSession } from '../packages/domain';
 import { buildSystemPrompt } from '../packages/prompts';
 import { getModels, prepareProviderRequest } from '../apps/api/provider';
 import { responseSchema, validateRequest } from '../apps/api/validation';
@@ -13,7 +13,7 @@ it.skipIf(process.env.API_BUDGET_LIVE !== '1')('fits all fictional fifth-session
     const branch = seed.branches.find(item => item.patientId === patient.id)!;
     const created = createSession(seed, patient.id, branch.id, 5);
     const state = addUserMessage(created.state, created.session.id, 'זוהי פגישת בדיקה בדיונית בלבד. חזרנו היום לנושא שהוזכר בפגישה הקודמת. המטפל תיאר הפסקה קצרה בשיחה וסיכם שימשיכו בבירור בפגישה הבאה. לא נמסר מידע נוסף.');
-    const context = buildContext(state, created.session.id, 'draft');
+    const context = compactModelContext(buildContext(state, created.session.id, 'draft'));
     validateRequest({ requestId: 'budget-test', model: models[0].id, context }, 'draft');
     for (const model of models) {
       expect(model.available).toBe(true);

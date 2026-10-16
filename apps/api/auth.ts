@@ -17,6 +17,12 @@ export function verifyCode(code: string, env: Environment) {
   secret(env);
   return safeEqual(digest(code), env.DEMO_ACCESS_CODE_HASH!.toLowerCase());
 }
+export function verifyCredentials(username: string, password: string, env: Environment) {
+  const passwordMatches = verifyCode(password, env);
+  const expectedUsername = (env.DEMO_USERNAME?.trim() || 'elad').toLowerCase();
+  const usernameMatches = safeEqual(digest(username.trim().toLowerCase()), digest(expectedUsername));
+  return usernameMatches && passwordMatches;
+}
 export interface SessionClaims { sub: string; sid: string; iat: number; exp: number }
 export function issueToken(env: Environment, now: number) {
   const claims: SessionClaims = { sub: digest(env.DEMO_ACCESS_CODE_HASH!).slice(0, 32), sid: randomBytes(16).toString('hex'), iat: Math.floor(now / 1000), exp: Math.floor(now / 1000) + 3600 };

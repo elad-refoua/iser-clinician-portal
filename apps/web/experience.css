@@ -1,0 +1,74 @@
+.case-welcome{--experience-soft:#edf4f1;--experience-deep:#173e38;color:var(--ink)}
+.welcome-intro{font-size:16px;max-width:66ch;margin-bottom:12px}
+.welcome-fiction{font-size:12px;color:var(--muted);line-height:1.8;padding-bottom:22px;border-bottom:1px solid var(--line)}
+.welcome-layout{display:grid;grid-template-columns:minmax(200px,.8fr) minmax(0,1.5fr);gap:30px;align-items:start;margin-top:24px}
+.welcome-patients{display:flex;flex-direction:column;gap:10px}
+.welcome-case{display:flex;flex-direction:column;align-items:stretch;text-align:right;gap:9px;border:1px solid var(--line);border-inline-start:3px solid transparent;border-radius:9px;padding:18px;background:#fff;min-width:0}
+.welcome-case.selected{background:var(--experience-soft);border-color:#b6d2c7;border-inline-start-color:var(--teal)}
+.welcome-case-name{font-size:15px;font-weight:650;line-height:1.7}
+.welcome-case-description{font-size:12px;line-height:1.8;color:var(--muted)}
+.welcome-case-status{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--teal);line-height:1.7}
+.welcome-new{font-size:12px;margin-top:5px;justify-content:flex-start;text-align:right}
+.welcome-detail{min-width:0;overflow-wrap:anywhere}
+.welcome-detail-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.welcome-detail-heading h3{font-size:21px}
+.welcome-detail-heading>span{white-space:nowrap;font-size:12px;color:var(--muted)}
+.welcome-detail>p{font-size:14px}
+.welcome-schedule{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.welcome-detail h4{display:flex;align-items:center;gap:8px;font-size:14px;margin:0 0 12px;font-weight:650}
+.welcome-materials{padding:19px 0;border-block:1px solid var(--line);margin:22px 0}
+.welcome-materials ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:7px 18px}
+.welcome-materials li{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted);padding:4px 0}
+.welcome-materials li.available>span:first-child{color:var(--ink);font-weight:550}
+.welcome-materials li>span:last-child{font-size:11px}
+.welcome-small{font-size:12px;color:var(--muted);line-height:1.9;margin-bottom:0}
+.welcome-materials .welcome-small{margin-top:13px}
+.welcome-history ol{list-style:none;margin:0;padding:0}
+.welcome-history li{border-inline-start:2px solid var(--line);padding:0 17px 20px;margin-inline-start:5px}
+.welcome-history li:last-child{padding-bottom:5px}
+.welcome-history li>div{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.welcome-history strong{font-size:12px}
+.welcome-history time{font-size:11px;color:var(--muted)}
+.welcome-history li p{font-size:13px;margin:0;line-height:1.9}
+.welcome-start{margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+.welcome-start p{font-size:13px;line-height:1.9}
+.welcome-start .primary{font-size:13px}
+.session-experience-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(285px,340px);gap:28px;align-items:start}
+.session-experience-grid>*{min-width:0}
+.response-explainer{border:1px solid #c4d9d0;border-radius:13px;background:#f8fbf9;padding:23px;min-width:0;overflow-wrap:anywhere}
+.explain-heading{display:flex;gap:11px;align-items:flex-start;margin-bottom:18px}
+.explain-heading-icon{padding-top:5px;color:var(--teal)}
+.explain-heading h2{font-size:21px;letter-spacing:-.4px}
+.explain-heading p{font-size:12px;color:var(--muted);line-height:1.8;margin:4px 0 0}
+.explain-progress{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.9;color:var(--teal);margin:0 0 15px}
+.explain-progress svg{margin-top:5px}
+.explain-picker{font-size:11px;margin-bottom:16px}
+.explain-picker select{font-size:12px;background:#fff;width:100%}
+.explain-origin{padding:13px 14px;background:#e7f1ec;border-radius:7px;margin-bottom:20px}
+.explain-origin.prepared,.explain-origin.policy{background:#f3f0e7}
+.explain-origin>strong{font-size:12px;font-weight:650}
+.explain-origin>p{font-size:11px;color:var(--muted);line-height:1.9;margin:5px 0 0}
+.explain-section{border-top:1px solid var(--line);padding-top:17px;margin-top:17px}
+.explain-section h3{font-size:14px;margin-bottom:9px}
+.explain-section p{font-size:13px;line-height:1.9}
+.explain-context-owner{margin-bottom:12px}
+.explain-input-list{padding:0;margin:0 0 11px;list-style:none}
+.explain-input-list li{display:flex;justify-content:space-between;gap:14px;font-size:11px;padding:5px 0;line-height:1.7}
+.explain-input-list strong{font-size:11px;white-space:nowrap;font-weight:600}
+.response-explainer .explain-small{font-size:11px;line-height:1.9;color:var(--muted);margin:8px 0 0}
+.response-explainer details{border-top:1px solid #dce7e1;margin-top:12px;padding-top:11px}
+.response-explainer summary{font-size:12px;font-weight:500;cursor:pointer;line-height:1.9;min-height:30px}
+.response-explainer details[open]>summary{margin-bottom:10px}
+.explain-sources details{border-inline-start:2px solid #cadfd3;padding-inline-start:12px;border-top:0}
+.explain-sources summary{font-size:11px}
+.response-explainer .explain-source-text{white-space:pre-wrap;font-size:12px;line-height:1.95}
+.explain-sources small{font-size:10px;color:var(--muted)}
+.explain-preferences{padding-inline-start:18px;margin:0;font-size:12px;line-height:1.9}
+.response-explainer .explain-rationale{font-size:14px;line-height:1.95;margin-bottom:0}
+.response-explainer h4{font-size:12px;margin:15px 0 6px;font-weight:600}
+.explain-field{padding-bottom:13px;border-bottom:1px solid var(--line)}
+.explain-field>span{font-size:10px;color:var(--teal)}
+.explain-field>p{margin-top:6px}
+.explain-backstage{font-size:11px;margin-top:20px;justify-content:flex-start;text-align:right;align-items:center;line-height:1.9;padding:8px 0}
+@media(max-width:1120px){.session-experience-grid{grid-template-columns:minmax(0,1fr)}.response-explainer{max-width:none}.explain-input-list{max-width:440px}}
+@media(max-width:680px){.welcome-layout{grid-template-columns:minmax(0,1fr);gap:24px}.welcome-patients{gap:8px}.welcome-case{padding:14px;gap:5px}.welcome-case-description{font-size:11px}.welcome-case-name{font-size:14px}.welcome-intro{font-size:14px}.welcome-fiction{font-size:11px}.welcome-detail-heading h3{font-size:19px}.welcome-materials{margin:18px 0}.welcome-history li{padding-inline-start:13px}.welcome-history li p{font-size:12px}.welcome-start .primary{width:100%}.response-explainer{padding:20px;margin-top:5px}.explain-heading h2{font-size:20px}.session-experience-grid{gap:22px}}

@@ -24,12 +24,17 @@ export function Modal({ title, children, onClose, wide = false }: { title: strin
   </dialog>;
 }
 
+function inlineDocumentText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => part.startsWith('**') && part.endsWith('**')
+    ? <strong key={index}>{part.slice(2, -2)}</strong> : part);
+}
+
 export function DocumentText({ text }: { text: string }) {
   if (!text.trim()) return <p className="empty-copy">עדיין אין תוכן במסמך הזה.</p>;
   return <div className="document-text">{text.split('\n').map((line, index) => {
-    if (/^#{1,3}\s/.test(line)) return <h3 key={index}>{line.replace(/^#{1,3}\s+/, '')}</h3>;
-    if (/^[-*]\s/.test(line)) return <p className="document-bullet" key={index}>{line.replace(/^[-*]\s+/, '')}</p>;
-    return <p key={index}>{line || '\u00a0'}</p>;
+    if (/^#{1,3}\s/.test(line)) return <h3 key={index}>{inlineDocumentText(line.replace(/^#{1,3}\s+/, ''))}</h3>;
+    if (/^[-*]\s/.test(line)) return <p className="document-bullet" key={index}>{inlineDocumentText(line.replace(/^[-*]\s+/, ''))}</p>;
+    return <p key={index}>{inlineDocumentText(line || '\u00a0')}</p>;
   })}</div>;
 }
 

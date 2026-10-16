@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { PROMPT_VERSION, buildSystemPrompt } from '../../packages/prompts/index.js';
-import { DEFAULT_MODEL, type ModelResponse, type DraftResult, type TurnResult } from '../../packages/contracts/index.js';
-import { authConfigured, authenticate, digest, issueToken, verifyCode } from './auth.js';
+import { DEFAULT_MODEL, MAX_MODEL_REQUEST_BYTES, type ModelResponse, type DraftResult, type TurnResult } from '../../packages/contracts/index.js';
+import { authConfigured, authenticate, digest, issueToken, verifyCredentials } from './auth.js';
 import { ApiError, type Environment } from './errors.js';
 import { RedisQuotaStore, redisConfigured, type QuotaStore, type Reservation } from './quota.js';
 import { callProvider, getModels, prepareProviderRequest, ProviderError } from './provider.js';
@@ -9,15 +9,15 @@ import { normalizeWireResult, responseSchema, shouldFinish, validateRequest, val
 
 export type Route = 'access' | 'models' | 'turn' | 'draft';
 export interface Dependencies { env?: Environment; fetcher?: typeof fetch; quota?: QuotaStore; now?: () => number }
-const accessSchema = z.object({ code: z.string().min(8).max(256) }).strict();
+const accessSchema = z.object({ username: z.string().trim().min(1).max(200), password: z.string().min(8).max(256) }).strict();
 
-async function readBody(request: Request) {
+async function readBody(request: Request, maxBytes = 100_000) {
   if (!(request.headers.get('content-type') ?? '').toLowerCase().startsWith('application/json')) throw new ApiError(415, 'json_required');
-  if (Number(request.headers.get('content-length') ?? 0) > 100_000) throw new ApiError(413, 'request_too_large');
+  if (Number(request.headers.get('content-length') ?? 0) > maxBytes) throw new ApiError(413, 'request_too_large');
   if (!request.body) throw new ApiError(400, 'invalid_json');
   const reader = request.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
   try {
-    while (true) { const { done, value } = await reader.read(); if (done) break; size += value.length; if (size > 100_000) throw new ApiError(413, 'request_too_large'); chunks.push(value); }
+    while (true) { const { done, value } = await reader.read(); if (done) break; size += value.length; if (size > maxBytes) throw new ApiError(413, 'request_too_large'); chunks.push(value); }
     try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new ApiError(400, 'invalid_json'); }
   } finally { await reader.cancel().catch(() => undefined); }
 }
@@ -56,12 +56,12 @@ export async function handle(request: Request, route: Route, dependencies: Depen
       const ip = request.headers.get('x-vercel-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'local';
       await quota.accessAttempt(digest(`${env.SESSION_SECRET ?? ''}:${ip}`), now());
       const input = accessSchema.safeParse(await readBody(request));
-      if (!input.success || !verifyCode(input.data.code, env)) throw new ApiError(401, 'invalid_access_code');
+      if (!input.success || !verifyCredentials(input.data.username, input.data.password, env)) throw new ApiError(401, 'invalid_credentials');
       return Response.json(issueToken(env, now()), { headers });
     }
     const claims = authenticate(request, env, now());
     if (!env.OPENROUTER_API_KEY) throw new ApiError(503, 'provider_not_configured');
-    const input = validateRequest(await readBody(request), route);
+    const input = validateRequest(await readBody(request, MAX_MODEL_REQUEST_BYTES), route);
     const models = await getModels(fetcher, now());
     const approved = models.find(m => m.id === input.model);
     if (!approved?.available || !approved.catalog) throw new ApiError(503, 'model_unavailable');
@@ -81,7 +81,7 @@ export async function handle(request: Request, route: Route, dependencies: Depen
         actualCost = 0;
         response = { result: { action: 'draft', utterance: 'נעבור לטיוטה עם מה שכבר נמסר.', topic: '', rationale: 'התשאול הסתיים לפי בקשת המטפל או מכסת השאלות.', fieldUpdates: [], preferenceUpdates: [] }, prompt, promptVersion: PROMPT_VERSION, model: 'server-policy', elapsedMs: 0, usage: { input: 0, output: 0, cost: 0 } };
       } else {
-        const finalRequest = prepareProviderRequest(approved.catalog, route, prompt, c, schema);
+        const finalRequest = prepareProviderRequest(approved.catalog, route, prompt, c, schema, prepared.outputTokens);
         if (finalRequest.micros > prepared.micros) throw new ApiError(400, 'reservation_insufficient');
         providerSent = true;
         const reply = await callProvider(env.OPENROUTER_API_KEY, finalRequest.body, approved.catalog, fetcher);
@@ -91,7 +91,7 @@ export async function handle(request: Request, route: Route, dependencies: Depen
       }
       const asked = 'action' in response.result && response.result.action === 'question' ? c.stage === 'intake' ? 'intake' : 'main' : null;
       await quota.finalize(reservation, { costMicros: actualCost, status: 'done', asked, revision: c.baseRevision });
-      return Response.json(response, { headers });
+      return Response.json({ ...response, effectiveContext: c }, { headers });
     } catch (error) {
       if (error instanceof ProviderError && error.costMicros !== undefined) actualCost = error.costMicros;
       await finalizeFailure(quota, reservation, providerSent, actualCost, c.baseRevision);

@@ -25,3 +25,53 @@
 .cloud-notice{max-width:1140px;margin:18px auto 0;padding:16px 22px;background:#fff7e8;border:1px solid #e5d9bb;border-radius:12px;font-size:14px}
 .cloud-notice p{margin:0 0 10px}
 @media(max-width:760px){.storage-actions{justify-content:center;gap:6px 14px}.demo-strip{flex-wrap:wrap;gap:6px}.cloud-notice{margin:14px 18px 0}.storage-connect{font-size:11px}}
+
+/* Live conversation and its companion explanation. */
+.workspace.workspace-session{max-width:1540px;grid-template-columns:180px minmax(0,1fr);gap:32px;padding-inline:28px}
+.workspace-session .session-heading{max-width:760px}
+.workspace-session .session-heading h1{font-size:clamp(29px,3vw,43px)}
+.chat-paper .conversation{display:flex;flex-direction:column;gap:18px;max-height:62vh;overflow:auto;overscroll-behavior:contain;padding:24px;scrollbar-gutter:stable}
+.chat-paper .message{max-width:94%;margin:0;overflow-wrap:anywhere;padding:16px 18px;border-radius:13px}
+.chat-paper .message-user{align-self:flex-start;background:#f1f5f3;border:1px solid #e0e9e3}
+.chat-paper .message-assistant{align-self:flex-end;background:#e8f2ed;border:1px solid #cfe3d6}
+.chat-paper .message p{font-size:15px;line-height:1.95;margin:8px 0 0}
+.chat-paper .message-label{font-size:11px;flex-wrap:wrap}
+.chat-paper .composer{padding:23px}
+.chat-paper .composer textarea{min-height:135px;font-size:16px;line-height:1.9}
+.chat-paper .flow-actions{padding:18px 23px;border-top:1px solid var(--line)}
+.chat-paper .flow-actions .secondary{font-size:12px;padding:10px 14px}
+.dossier-with-ai{min-width:0}
+.dossier-ai-actions{padding:20px 24px;margin-bottom:30px;border:1px solid var(--line);border-radius:12px;background:#e9f2ed;display:flex;gap:24px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.dossier-ai-actions strong{font-size:16px}.dossier-ai-actions p{font-size:13px;max-width:65ch;margin:7px 0 0;line-height:1.9}
+@media(max-width:1120px){.workspace.workspace-session{grid-template-columns:170px minmax(0,1fr);gap:28px}.nav-wrap{flex-wrap:wrap;gap:0 15px}.mode-badge{margin:5px 0}.main-nav{flex-wrap:wrap}}
+@media(max-width:800px){.workspace.workspace-session{grid-template-columns:minmax(0,1fr);padding:28px 18px 55px}.workspace-session .context-rail{display:none}.chat-paper .conversation{padding:18px;max-height:60vh}.chat-paper .message{max-width:100%;padding:14px}.chat-paper .composer{padding:18px}.chat-paper .flow-actions{padding:16px 18px}.chat-paper .message p{font-size:15px}.dossier-ai-actions{padding:18px}.dossier-ai-actions .button-row{flex-wrap:wrap}}
+
+/* Quiet conversation and full patient portal */
+.workspace-session { display: block; max-width: 1000px; }
+.quiet-session { width: 100%; }
+.quiet-session-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--muted); font-size: .86rem; margin-bottom: 20px; }
+.quiet-session-meta > div { display: flex; gap: 14px; }
+.quiet-save-note { text-align: center; font-size: .8rem; color: var(--muted); margin: 24px 0; }
+.approved-summary { display: flex; align-items: center; gap: 16px; margin-top: 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); padding: 24px; }
+.approved-summary p { margin: 4px 0 0; color: var(--muted); }
+.saved-note { margin-top: 24px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; }
+@media(max-width:640px) {
+  .quiet-session-meta { align-items: flex-start; flex-direction: column; }
+  .approved-summary { flex-wrap: wrap; }
+  .header-inner { padding-block: 14px; gap: 16px; }
+  .brand small { display: none; }
+  .brand strong { font-size: 28px; }
+  .brand-symbol { width: 40px; height: 40px; }
+  .main-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; width: 100%; }
+  .main-nav button { min-height: 44px; justify-content: flex-start; font-size: 12px; }
+  .nav-wrap { gap: 4px; padding-bottom: 8px; }
+  .mode-badge { margin: 0; }
+}
+
+.system-overview { max-width: 900px; margin: auto; line-height: 1.85; }
+.architecture-flow { padding-inline-start: 25px; }
+.architecture-flow li { padding: 8px 10px; }
+.architecture-flow li p { margin: 4px 0 12px; }
+.architecture-locations { display: grid; grid-template-columns: 180px 1fr; gap: 14px 24px; }
+.architecture-locations dt { font-weight: 600; } .architecture-locations dd { margin: 0; }
+@media(max-width:640px) { .architecture-locations { grid-template-columns: 1fr; gap: 6px; } .architecture-locations dd { margin-bottom: 15px; } }

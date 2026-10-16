@@ -1,28 +1,28 @@
 {
-  "version": "2026-10-16.2",
-  "promptVersion": "2026-10-16.4",
-  "sourceSha256": "045d7824e65a069a9dee2d639d09f529135717e02780904dfb55ef110015fbf6",
-  "generatedAt": "2026-10-16T09:59:54.460Z",
+  "version": "2026-10-16.4",
+  "promptVersion": "2026-10-16.9",
+  "sourceSha256": "f7242eb7634088a3e3851f87c13a4ff6bc78d273128cba507dbb5ae36c387f40",
+  "generatedAt": "2026-10-16T12:03:57.961Z",
   "sourceFiles": [
     {
       "path": "docs/handbook/2026-10-16/handbook.md",
-      "sha256": "66f0da8d6a214342719b5568cff1e01795694797083735bc2687091965129e57"
+      "sha256": "642c2191e05a97d43dd4ed8a59c522a1fb8d67ee2e789ddf188c59ecf78ea93b"
     },
     {
       "path": "docs/handbook/2026-10-16/metadata.json",
-      "sha256": "34092e5679a8c0662e684af56d33bfdedd15b3cc6e58ff0732890ad7c74983e3"
+      "sha256": "d80f23a953f282d563fdb27d9cba24533bd9593e73d881cccc0de242b7270cc8"
     },
     {
       "path": "docs/handbook/2026-10-16/release-evidence.md",
-      "sha256": "6ed964c0e04898bee7bae3898ac34d27066a7ca96b431ce3f54adddbb35f9536"
+      "sha256": "f08a76c82a9212fa34e264597497b74ae9d45d5f403109fc5bcbd36164090ab1"
     },
     {
       "path": "docs/handbook/2026-10-16/handbook.css",
-      "sha256": "29715eb5910208a3db9bc130f05c2819bfca132ec687be03caaffb9dc6e0dd22"
+      "sha256": "b10fb8e13469ed3708f502d27a60cfe166913d4b85b5016085a97ec5d449f55f"
     },
     {
       "path": "packages/prompts/index.ts",
-      "sha256": "2e1dfbc67b1bdcc6143919d36df8ec0ed2c049a2e786fba611640f1bbc9ff6fd"
+      "sha256": "336ce82afa2753ab4badfbd6914bf9d3d125625e3420007aeef48a242c8bd1cb"
     },
     {
       "path": "packages/prompts/intake-schema.ts",
@@ -30,43 +30,139 @@
     },
     {
       "path": "packages/contracts/index.ts",
-      "sha256": "a79fad738fc3fa74102d2b468b93492d711b747ddf452288e71678a07c0018e8"
+      "sha256": "90b2c053621e065c5139e61b052ff1b4ae521e469c41619941eef63fdb252e34"
     },
     {
       "path": "packages/domain/index.ts",
-      "sha256": "c93a7e2a6394ee5a8e50f68ea17b0a21c1dccd83658b03a9bf1dda2fcde21df1"
+      "sha256": "4c4568190d36c549f386806ee07d924d39d3d1e6602b557ba828959b56673e6d"
     },
     {
       "path": "packages/domain/storage.ts",
-      "sha256": "4e9ee7f843853fc0d40ca95b8f49e6ab2321c4b925769e2257494ba7687066bf"
+      "sha256": "e0381e401e615ea745237ddc51f1e0e18c47aa1e36d10e091f8ca05a080876eb"
     },
     {
       "path": "packages/domain/intake-report.ts",
-      "sha256": "6530d5d78a9e886c5c8bf7038029bf8eed5c168d6d91d14db40187c7b47d6795"
+      "sha256": "682619deac233f6c1e432fde9458a16d2fed846187b3ee5d7166110fbb6e26bd"
+    },
+    {
+      "path": "packages/domain/recovery-storage.ts",
+      "sha256": "eacbecb6bc0c49d4db71db65570a99ff4dd28f3f853c03aa74b395a47d98560c"
     },
     {
       "path": "apps/web/App.tsx",
-      "sha256": "80331dbf1575f001ddb44737c6ae549130a4321b03f58387ffba507c22d88d51"
+      "sha256": "c914a381090c1c4bda261878d75edcfbc0c12626875dc4ff3b0a95c36e83e74c"
     },
     {
       "path": "apps/web/Documents.tsx",
-      "sha256": "4b6dd20df121bd7f1136168748134638c1e271595bc838f2c9ad9431fa8cfce4"
+      "sha256": "4f8f819c3f7f2d55a9e15f4904f321fd1327184a419d74ecba4c7a0b10e40b38"
     },
     {
       "path": "apps/web/Backstage.tsx",
-      "sha256": "e7a4e163b0078ef9f99c4c5c87530f07e5813bcdc64394fc41d9c54b2f86d552"
+      "sha256": "d58e5caeb41abc7d71a9cf35269d1d8c198adc85bc457ee96be50049bcc2593c"
     },
     {
       "path": "apps/web/ui.tsx",
-      "sha256": "e016f6b8ddf15ac8d3d97deac9a1e212e6b3daab5a91062b4ce7c5a645305146"
+      "sha256": "c157fad5c112be090606d8dffe6cd69af6dd9332378c52908920443d88081058"
+    },
+    {
+      "path": "apps/web/NewPatient.tsx",
+      "sha256": "416876dfcd492e2bde2338b8261cacb79d5860e598123f5c9bc65a3f8f9605d3"
+    },
+    {
+      "path": "apps/web/workspace-sync.ts",
+      "sha256": "cdadf9ac33ff7f93f28d63dcb51d77d7aae2d6252a60b6d50000e96c45bc5fe7"
+    },
+    {
+      "path": "apps/web/workspace-choice.ts",
+      "sha256": "1ed4dc5a5d5ee2aa73358d442611fa6f34fd968bc44c0f6edb157242dd4774e3"
+    },
+    {
+      "path": "apps/web/RecoveryCopies.tsx",
+      "sha256": "8ffcba6f93f6b1efa164ff111065a5cfee2200684c7cd2a29e29c2d8cd579d03"
+    },
+    {
+      "path": "apps/web/LoginScreen.tsx",
+      "sha256": "d98801ba8a040a7c1d946d53af50285a7f026af84bac7294631e52a700d74740"
+    },
+    {
+      "path": "apps/web/CaseWelcome.tsx",
+      "sha256": "60b16b3b638352fa97a0cce15e335e6fc65c2ccc8194fb9e6c6b3d76b21797b0"
+    },
+    {
+      "path": "apps/web/ResponseExplainer.tsx",
+      "sha256": "c94afe8ab2651f370b6d755330d519b23e96ffbb76b771ab1b351b3b660eea42"
+    },
+    {
+      "path": "apps/web/experience-model.ts",
+      "sha256": "098055d02261d923d8e2c24062e67a7ce58571589849aeaece76c80922a9e36a"
+    },
+    {
+      "path": "apps/web/SessionConversation.tsx",
+      "sha256": "c4ed70b6663ceb051e996befd816900cdbaa0126074e069c78ef49899f88454a"
+    },
+    {
+      "path": "apps/web/ReviewProposal.tsx",
+      "sha256": "7d795ccc89e0d4d9303acace4602db4893f8652be2674ee9189721729fb5fe9d"
+    },
+    {
+      "path": "apps/web/workflow-guards.ts",
+      "sha256": "7b9f270e104e9e69ebf8e51e6dadfbbf75fe279ca80157d60519ffa6b4d4c51c"
+    },
+    {
+      "path": "apps/web/api-errors.ts",
+      "sha256": "81775d6d999c72b8d84c09395724a586bbdaa0814ece2ca9c97e36012325bfa2"
+    },
+    {
+      "path": "apps/web/chat-workflow.css",
+      "sha256": "bced33b5317fe086fc9c3bef00a59d17183f0c8988f7e747eccdb28d87cf31eb"
+    },
+    {
+      "path": "apps/web/patient-portal.css",
+      "sha256": "2f587aff77295976e46e8ddfe7682a6c944f85fda80fb5c538b0b8d1a9e480f6"
+    },
+    {
+      "path": "tests/staged-records.test.ts",
+      "sha256": "82789de4a9cbc65c032b09fe6f1efa1ffb29a68c4e00699a44583184984d631e"
+    },
+    {
+      "path": "tests/context-budget.test.ts",
+      "sha256": "f1cbe986da8c6e41af6b01fc051979709b89626a20ea1128edc1964998e03c0d"
+    },
+    {
+      "path": "tests/workflow-guards.test.ts",
+      "sha256": "7801b580ac7160879ea07b4fc69cc5f0bc04914fd997ee64414907a64b240d69"
+    },
+    {
+      "path": "apps/web/login.css",
+      "sha256": "971f272abb35da1aa6d05d1a28ab498bf6b6dcd77c3f3d1020eef7e41c11c867"
+    },
+    {
+      "path": "apps/web/experience.css",
+      "sha256": "9cb60ed4baf425f7b3b706972775d094114d0a1b844a76dde20862c60ed5c55f"
+    },
+    {
+      "path": "apps/web/styles.css",
+      "sha256": "f03537fdd1a3e2ca5990d7f81ad18ab397d94be8e658efe153d87a5971194d82"
+    },
+    {
+      "path": "tests/api.test.ts",
+      "sha256": "a78750c87234761940f003081200a83e42671ae3293dd9d0493d2f36a81c5f68"
+    },
+    {
+      "path": "tests/experience-model.test.ts",
+      "sha256": "1bd01a1d0b76417672b17869be0417327da8329ab47bd8bc4ed66e38878b6495"
+    },
+    {
+      "path": "tests/prompt-behavior.test.ts",
+      "sha256": "67527174c0da7b955264c99dc7abc50b2c452581add2684e96613648643ee406"
     },
     {
       "path": "apps/api/handler.ts",
-      "sha256": "6481ac2cfb7e8a7e1857047a01ea9b1370224522dc19a79e6602d13a2beaf7f4"
+      "sha256": "616223e3862e3b9b4c365f218a7dd126980fe8e92e8fc1977cc02e53990365dc"
     },
     {
       "path": "apps/api/auth.ts",
-      "sha256": "b16109b39f920afef7726c026aa64ebab2dff50baee7d799113f037da4e91d36"
+      "sha256": "757339b27c6a834eb8fd45498af0446e0348852f8564a66dacb8a5e464b82f3e"
     },
     {
       "path": "apps/api/quota.ts",
@@ -74,11 +170,23 @@
     },
     {
       "path": "apps/api/provider.ts",
-      "sha256": "d3af6b01aca285e0a9e1f06a65eadc3910d3774c369b1925c11bbaeab7040c97"
+      "sha256": "066f2ca41b66709117ac5248a6a178aeffe5d09bfc57ad40883a7097a78c46e3"
     },
     {
       "path": "apps/api/validation.ts",
-      "sha256": "1ab7a17d589119e79026523d3f1aa1db76730acb424f4bf120980201388a0c35"
+      "sha256": "5e11970cb76595024fb2773f965422f9c412c63fce6accd668e66632aa56f0d1"
+    },
+    {
+      "path": "apps/api/workspace.ts",
+      "sha256": "3c0b141db20f09140c3fd24868e53b9dfacaeded2cbdc7493be2d156b5f85772"
+    },
+    {
+      "path": "apps/api/workspace-store.ts",
+      "sha256": "a79d04ad1433f8f42e118cc80ba3a155abae229f7256fd94baf782b99e171fdf"
+    },
+    {
+      "path": "api/workspace.ts",
+      "sha256": "81ffef68f7424c10acf82cc6221f13ec74e1d066230914fdc6e01be5793e06ee"
     },
     {
       "path": "vercel.json",
@@ -98,31 +206,35 @@
     },
     {
       "path": "package.json",
-      "sha256": "973ea2ca69b9d4bf73d83a0645abbd748f18611c9d900ce4f02135a998d35042"
+      "sha256": "96c355dcbd2aaf53ceeb18153a7d26e03a7416fa35efa68369dbf31c0d3bc2c3"
     },
     {
       "path": "package-lock.json",
-      "sha256": "64ee8b9b7707406d4097ee1427a1b5a76acf08d48fa6c791fee6b4fec6a444fc"
+      "sha256": "21c399439def288b44215d647bd016f5f3e19e6fa37ebb37ec27cc515f42accc"
+    },
+    {
+      "path": ".env.example",
+      "sha256": "7a59b24eb9b09cf43029aad5e7232cae9cbdd83ae65262294585785b2e8da520"
     },
     {
       "path": "README.md",
-      "sha256": "1a48e23ec6d04f3a19cd585f1c614b2a5dbd62cdfafc4e8f9703c9b23b20a61c"
+      "sha256": "a4df8ff1c51459da326a1ca4a02c9554b20436696e259feabf55f67b04fdc21a"
     },
     {
       "path": "apps/api/README.md",
-      "sha256": "1571d47cc49d6db5658c0eae7739be5f144e3925a0a84285b15d233488654550"
+      "sha256": "43e8b2a74210eb1a2805bbd627793b5a371b0f74a31b353218abce5b79a72eff"
     },
     {
       "path": "apps/web/README.md",
-      "sha256": "7ccc1b89d9764daea91b70e918ab535c64ed7efeaaabe64852a703236e205a9f"
+      "sha256": "bafc2242bcde54cdf8b3a112c3b70e6bac664f0de9ae9f2de892133ebc939b61"
     },
     {
       "path": "packages/prompts/README.md",
-      "sha256": "b6134786e28c979a42bf624bb12d02c94c9f5b0e6f5bc806882754e645cd4535"
+      "sha256": "29b42d902bdf28ca39683508bf1d63edf65ba61779d97ff0d2d29a2111d8b2f1"
     },
     {
       "path": "scripts/build-handbook.ts",
-      "sha256": "9e0a5ffe9c27c30fde359be436d2d8d01deabb00b632e7994cd062628ea1e370"
+      "sha256": "95e2cc051153a77e1df8ddf66d49c325a616c755c39f50bc31f87aa3de1c72e0"
     },
     {
       "path": "docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf",
@@ -132,11 +244,11 @@
   "outputs": [
     {
       "path": "apps/web/public/handbook.html",
-      "sha256": "331fc6cccbd1dab6169d5ef06d627a9ec8d9270eecdc6f2d67f43fb45ef22aa0"
+      "sha256": "cebcd72308872ca3c803d942efee81d9b025577356b9b550fe1a6dfaa4a4c3d2"
     },
     {
       "path": "apps/web/public/handbook.pdf",
-      "sha256": "fbeb0ef556f6cad0a23fda70dfba94ed4c8c454de121ee2a86e858e4c8e458e7"
+      "sha256": "e3cb0bff2460777836180538d076ebfee4a81257289a140fe8ecf14bc02b68a1"
     }
   ],
   "localArtifactChecks": {

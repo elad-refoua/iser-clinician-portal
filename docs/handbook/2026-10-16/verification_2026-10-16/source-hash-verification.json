@@ -1,0 +1,252 @@
+{
+  "sourceSha256": "f7242eb7634088a3e3851f87c13a4ff6bc78d273128cba507dbb5ae36c387f40",
+  "sources": 59,
+  "outputs": 2,
+  "allMatch": true,
+  "checks": [
+    {
+      "path": "docs/handbook/2026-10-16/handbook.md",
+      "matches": true
+    },
+    {
+      "path": "docs/handbook/2026-10-16/metadata.json",
+      "matches": true
+    },
+    {
+      "path": "docs/handbook/2026-10-16/release-evidence.md",
+      "matches": true
+    },
+    {
+      "path": "docs/handbook/2026-10-16/handbook.css",
+      "matches": true
+    },
+    {
+      "path": "packages/prompts/index.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/prompts/intake-schema.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/contracts/index.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/domain/index.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/domain/storage.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/domain/intake-report.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/domain/recovery-storage.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/App.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/Documents.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/Backstage.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/ui.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/NewPatient.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/workspace-sync.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/workspace-choice.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/RecoveryCopies.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/LoginScreen.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/CaseWelcome.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/ResponseExplainer.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/experience-model.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/SessionConversation.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/ReviewProposal.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/workflow-guards.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/api-errors.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/chat-workflow.css",
+      "matches": true
+    },
+    {
+      "path": "apps/web/patient-portal.css",
+      "matches": true
+    },
+    {
+      "path": "tests/staged-records.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/context-budget.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/workflow-guards.test.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/login.css",
+      "matches": true
+    },
+    {
+      "path": "apps/web/experience.css",
+      "matches": true
+    },
+    {
+      "path": "apps/web/styles.css",
+      "matches": true
+    },
+    {
+      "path": "tests/api.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/experience-model.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/prompt-behavior.test.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/handler.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/auth.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/quota.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/provider.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/validation.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/workspace.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/workspace-store.ts",
+      "matches": true
+    },
+    {
+      "path": "api/workspace.ts",
+      "matches": true
+    },
+    {
+      "path": "vercel.json",
+      "matches": true
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "matches": true
+    },
+    {
+      "path": "vite.config.ts",
+      "matches": true
+    },
+    {
+      "path": "vitest.config.ts",
+      "matches": true
+    },
+    {
+      "path": "package.json",
+      "matches": true
+    },
+    {
+      "path": "package-lock.json",
+      "matches": true
+    },
+    {
+      "path": ".env.example",
+      "matches": true
+    },
+    {
+      "path": "README.md",
+      "matches": true
+    },
+    {
+      "path": "apps/api/README.md",
+      "matches": true
+    },
+    {
+      "path": "apps/web/README.md",
+      "matches": true
+    },
+    {
+      "path": "packages/prompts/README.md",
+      "matches": true
+    },
+    {
+      "path": "scripts/build-handbook.ts",
+      "matches": true
+    },
+    {
+      "path": "docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf",
+      "matches": true
+    },
+    {
+      "path": "apps/web/public/handbook.html",
+      "matches": true
+    },
+    {
+      "path": "apps/web/public/handbook.pdf",
+      "matches": true
+    }
+  ]
+}

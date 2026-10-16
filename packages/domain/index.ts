@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Branch, ContextPacket, DocumentVersion, DraftResult, FieldUpdate, Goal, IntakeField, Patient, PortalState, Preference, PreferenceCancellation, Session, Source, TurnResult } from '../contracts';
+import type { Branch, ContextPacket, DocumentVersion, DraftFollowUp, DraftResult, FieldUpdate, Goal, IntakeField, Patient, PendingDraft, PortalState, Preference, PreferenceCancellation, Session, Source, TurnResult } from '../contracts';
 import { emptyIntakeFields, renderIntake } from '../prompts/intake-schema.js';
 import { renderIntakeReport } from './intake-report.js';
 export { emptyIntakeFields, renderIntake, intakeFields, intakeSections, fieldStatusLabels } from '../prompts/intake-schema.js';
@@ -145,6 +145,10 @@ export function currentVersion(state: PortalState, patientId: string, branchId: 
   return latest(eligibleVersions(state, patientId, branchId).filter(v => v.kind === kind && (kind !== 'note' || !sessionId || v.sessionId === sessionId)));
 }
 
+export function documentHistory(state: PortalState, patientId: string, branchId: string, kind: Goal, sessionId?: string): DocumentVersion[] {
+  return eligibleVersions(state, patientId, branchId).filter(version => version.kind === kind && (kind !== 'note' || version.sessionId === sessionId));
+}
+
 export function buildContext(state: PortalState, sessionId: string, stage?: ContextPacket['stage']): ContextPacket {
   const s = sessionOf(state, sessionId);
   const asOf = temporalBoundary(state, s);
@@ -162,7 +166,40 @@ export function buildContext(state: PortalState, sessionId: string, stage?: Cont
     return version ? [{ kind, versionId: version.id, content: version.content, sourceIds: version.sourceIds, ...(version.fields ? { fields: structuredClone(version.fields) } : {}) }] : [];
   });
   const preferences = preferencesAt(state, s.patientId, s.branchId, s.number, asOf, s.id, !nextSession(state, s) && s.status !== 'approved');
-  return { patientId: s.patientId, patientName: state.patients.find(p => p.id === s.patientId)!.name, branchId: s.branchId, sessionId: s.id, sessionNumber: s.number, baseRevision: s.revision, asOf, stage: stage ?? (s.intakeActive ? 'intake' : 'main'), questionCount: s.questionCount, intakeCount: s.intakeCount, intakeRound: s.intakeRound ?? 0, branchScope: scope, sources, documents, messages: structuredClone(s.messages.filter(m => atOrBefore(m.at, asOf))), skippedTopics: [...s.skippedTopics], preferences };
+  const pending = (s.pendingFields ?? []).filter(f => f.sourceIds.every(id => ids.has(id)));
+  const workingDraft = s.pendingDraft && atOrBefore(s.pendingDraft.createdAt, asOf)
+    && s.pendingDraft.result.documents.every(d => d.sourceIds.every(id => ids.has(id)))
+    && s.pendingDraft.result.fieldUpdates.every(f => f.sourceIds.every(id => ids.has(id))) ? structuredClone(s.pendingDraft.result) : undefined;
+  return { patientId: s.patientId, patientName: state.patients.find(p => p.id === s.patientId)!.name, branchId: s.branchId, sessionId: s.id, sessionNumber: s.number, baseRevision: s.revision, asOf, stage: stage ?? (s.intakeActive ? 'intake' : 'main'), questionCount: s.questionCount, intakeCount: s.intakeCount, intakeRound: s.intakeRound ?? 0, branchScope: scope, sources, documents, messages: structuredClone(s.messages.filter(m => atOrBefore(m.at, asOf))), skippedTopics: [...s.skippedTopics], preferences,
+    ...(s.focusGoal ? { focusGoal: s.focusGoal } : {}), ...(s.focusSelection ? { focusSelection: structuredClone(s.focusSelection) } : {}), ...(workingDraft ? { workingDraft } : {}),
+    ...(pending.length ? { pendingIntakeFields: mergeFields(documents.find(d => d.kind === 'intake')?.fields ?? emptyIntakeFields(), pending) } : {}) };
+}
+
+function compactIntakeText(content: string, fields: IntakeField[] | undefined, preferences: Preference[]): string {
+  if (!fields || fields.length !== 32 || new Set(fields.map(field => field.id)).size !== 32) return content;
+  // Remove only an exact renderer-produced suffix. Any independently authored text stays.
+  for (const rendered of [renderIntake(fields), renderIntakeReport(fields, preferences)]) {
+    if (content.endsWith(rendered)) return `${content.slice(0, -rendered.length)}פרטי האינטייק המלאים, מצבם ומקורותיהם מופיעים בשדות המובנים בחבילת ההקשר.`;
+  }
+  return content;
+}
+
+/** A lossless request projection: source text and stored records are never changed. */
+export function compactModelContext(context: ContextPacket): ContextPacket {
+  const compact = structuredClone(context);
+  compact.documents = compact.documents.map(document => document.kind === 'intake'
+    ? { ...document, content: compactIntakeText(document.content, document.fields, compact.preferences) } : document);
+  if (compact.workingDraft) {
+    const fields = compact.pendingIntakeFields ?? compact.documents.find(document => document.kind === 'intake')?.fields;
+    compact.workingDraft.documents = compact.workingDraft.documents.map(document => document.kind === 'intake'
+      ? { ...document, content: compactIntakeText(document.content, fields, compact.preferences) } : document);
+    if (compact.pendingIntakeFields) {
+      const sameField = (left: IntakeField, right: IntakeField) => left.id === right.id && left.value === right.value && left.status === right.status
+        && (left.remaining ?? '') === (right.remaining ?? '') && JSON.stringify(left.sourceIds) === JSON.stringify(right.sourceIds);
+      compact.workingDraft.fieldUpdates = compact.workingDraft.fieldUpdates.filter(update => !compact.pendingIntakeFields!.some(field => sameField(field, update)));
+    }
+  }
+  return compact;
 }
 
 export function cancelPreference(state: PortalState, sessionId: string, preferenceId: string): PortalState {
@@ -180,19 +217,29 @@ function mergeFields(base: IntakeField[], updates: FieldUpdate[]): IntakeField[]
 }
 function checkUpdates(context: ContextPacket, updates: FieldUpdate[]) {
   const ids = new Set(context.sources.map(s => s.id));
-  if (new Set(updates.map(f => f.id)).size !== updates.length || updates.some(f => f.id < 1 || f.id > 32 || !f.sourceIds.every(id => ids.has(id)) || (f.status !== 'unknown' && f.sourceIds.length === 0))) throw new Error('העדכון מכיל שדה או מקור שאינו שייך להקשר הנוכחי.');
+  if (new Set(updates.map(f => f.id)).size !== updates.length || updates.some(f => !Number.isInteger(f.id) || f.id < 1 || f.id > 32 || new Set(f.sourceIds).size !== f.sourceIds.length || !f.sourceIds.every(id => ids.has(id)) || (f.status !== 'unknown' && f.sourceIds.length === 0) || (f.status === 'unknown' && f.value.trim()))) throw new Error('העדכון מכיל שדה או מקור שאינו שייך להקשר הנוכחי.');
 }
-function assistantVersion(state: PortalState, s: Session, context: ContextPacket, kind: Goal, content: string, sourceIds: string[], fields?: IntakeField[]): PortalState {
-  const previous = state.versions.find(v => v.id === context.documents.find(d => d.kind === kind)?.versionId);
-  if (previous?.content === content && JSON.stringify(previous.fields) === JSON.stringify(fields)) return state;
-  const version: DocumentVersion = { id: uid('version'), patientId: s.patientId, branchId: s.branchId, kind, sessionId: s.id, sessionNumber: s.number, content, sourceIds: distinct(sourceIds), ...(fields ? { fields } : {}), createdAt: now(), author: 'assistant', approved: false, reason: `טיוטה שנוצרה בתיעוד פגישה ${s.number}`, ...(previous ? { baseVersionId: previous.id } : {}), ...(previous?.author === 'clinician' || previous?.approved && previous?.author === 'assistant' ? { proposal: true } : {}) };
-  return { ...state, versions: [...state.versions, version] };
+function accumulateUpdates(previous: FieldUpdate[], updates: FieldUpdate[]): FieldUpdate[] {
+  const fields = new Map(previous.map(field => [field.id, structuredClone(field)]));
+  for (const field of updates) fields.set(field.id, structuredClone(field));
+  return [...fields.values()].sort((a, b) => a.id - b.id);
 }
-function intakeBase(state: PortalState, s: Session, context: ContextPacket) {
-  const current = context.documents.find(d => d.kind === 'intake');
-  const allowedIds = new Set(context.sources.map(source => source.id));
-  const proposal = latest(state.versions.filter(v => v.patientId === s.patientId && v.branchId === s.branchId && v.sessionId === s.id && v.kind === 'intake' && v.proposal && !v.rejected && v.baseVersionId === current?.versionId && atOrBefore(v.createdAt, context.asOf) && v.sourceIds.every(id => allowedIds.has(id)) && v.fields?.every(f => f.sourceIds.every(id => allowedIds.has(id)))));
-  return proposal?.fields ?? current?.fields ?? emptyIntakeFields();
+function preferenceSignature(preferences: Preference[]) {
+  return JSON.stringify([...preferences].sort((a, b) => a.id.localeCompare(b.id)).map(p => [p.id, p.topic, p.goal ?? null, p.action, p.scope, p.sessionId ?? null, p.patientId ?? null, p.branchId ?? null, p.recordedAt ?? null]));
+}
+function checkDraft(context: ContextPacket, result: DraftResult) {
+  checkUpdates(context, result.fieldUpdates);
+  if (result.documents.length !== 5 || new Set(result.documents.map(d => d.kind)).size !== 5 || result.documents.some(d => !goals.includes(d.kind))) throw new Error('הטיוטה אינה כוללת את כל סוגי המסמכים.');
+  const ids = new Set(context.sources.map(source => source.id));
+  if (result.documents.some(d => new Set(d.sourceIds).size !== d.sourceIds.length || !d.sourceIds.every(id => ids.has(id)))) throw new Error('נמצא מקור שאינו שייך להקשר הנוכחי.');
+}
+export function startExpansion(state: PortalState, sessionId: string, goal: Goal, selection?: DraftFollowUp): PortalState {
+  const s = sessionOf(state, sessionId);
+  assertCurrentSession(state, s);
+  if (!goals.includes(goal)) throw new Error('נושא ההרחבה אינו מוכר.');
+  if (selection && (selection.goal !== goal || selection.kind !== 'expand' || !s.pendingDraft?.result.followUps?.some(item => JSON.stringify(item) === JSON.stringify(selection)))) throw new Error('הצעת ההרחבה אינה שייכת לסיכום הנוכחי.');
+  if ((s.intakeRound ?? 0) >= 10) throw new Error('הגענו למספר ההרחבות לפגישה. אפשר לערוך את המסמכים ישירות.');
+  return updateSession(state, { ...s, revision: s.revision + 1, closedAt: undefined, status: 'asking', intakeActive: true, focusGoal: goal, focusSelection: selection ? structuredClone(selection) : undefined, intakeCount: 0, intakeRound: (s.intakeRound ?? 0) + 1 });
 }
 export function applyTurn(state: PortalState, sessionId: string, baseRevision: number, result: TurnResult): PortalState {
   const s = checkRevision(state, sessionId, baseRevision); const context = buildContext(state, sessionId);
@@ -200,24 +247,21 @@ export function applyTurn(state: PortalState, sessionId: string, baseRevision: n
   checkUpdates(context, result.fieldUpdates);
   if (result.action === 'question' && (s.intakeActive ? s.intakeCount >= 2 : s.questionCount >= 3)) throw new Error('הגענו למספר השאלות שנבחר. אפשר לעבור לטיוטה.');
   const preferences = result.preferenceUpdates.map(p => ({ ...p, id: uid('preference'), patientId: s.patientId, branchId: s.branchId, sessionId: s.id, recordedAt: now() }));
-  let next = { ...state, preferences: [...state.preferences, ...preferences] };
-  if (result.fieldUpdates.length) {
-    const fields = mergeFields(intakeBase(state, s, context), result.fieldUpdates);
-    next = assistantVersion(next, s, context, 'intake', renderIntakeReport(fields, [...context.preferences, ...preferences]), fields.flatMap(f => f.sourceIds), fields);
-  }
-  return updateSession(next, { ...s, revision: s.revision + 1, closedAt: undefined, status: result.action === 'question' ? 'asking' : 'draft', messages: [...s.messages, { id: uid('message'), role: 'assistant', text: result.utterance, at: now() }], questionCount: s.questionCount + (result.action === 'question' && !s.intakeActive ? 1 : 0), intakeCount: s.intakeCount + (result.action === 'question' && s.intakeActive ? 1 : 0) });
+  const next = { ...state, preferences: [...state.preferences, ...preferences] };
+  return updateSession(next, { ...s, pendingFields: accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates), revision: s.revision + 1, closedAt: undefined, status: result.action === 'question' ? 'asking' : 'draft', messages: [...s.messages, { id: uid('message'), role: 'assistant', text: result.utterance, at: now() }], questionCount: s.questionCount + (result.action === 'question' && !s.intakeActive ? 1 : 0), intakeCount: s.intakeCount + (result.action === 'question' && s.intakeActive ? 1 : 0) });
 }
 export function saveDraft(state: PortalState, sessionId: string, baseRevision: number, result: DraftResult): PortalState {
   const s = checkRevision(state, sessionId, baseRevision); const context = buildContext(state, sessionId, 'draft');
   assertCurrentSession(state, s);
-  checkUpdates(context, result.fieldUpdates);
-  if (result.documents.length !== 5 || new Set(result.documents.map(d => d.kind)).size !== 5) throw new Error('הטיוטה אינה כוללת את כל סוגי המסמכים.');
-  const ids = new Set(context.sources.map(source => source.id));
-  if (result.documents.some(d => !d.sourceIds.every(id => ids.has(id)))) throw new Error('נמצא מקור שאינו שייך להקשר הנוכחי.');
-  const fields = mergeFields(intakeBase(state, s, context), result.fieldUpdates);
-  let next = state;
-  for (const doc of result.documents) next = assistantVersion(next, s, context, doc.kind, doc.kind === 'intake' ? `# אינטייק — עד פגישה ${s.number}\n\nמבנה הדוח מלא. מידע חסר נשאר גלוי.\n\n${renderIntakeReport(fields, context.preferences)}` : doc.content, doc.kind === 'intake' ? fields.flatMap(f => f.sourceIds) : doc.sourceIds, doc.kind === 'intake' ? fields : undefined);
-  return updateSession(next, { ...s, revision: s.revision + 1, closedAt: undefined, status: 'draft', intakeActive: false });
+  checkDraft(context, result);
+  if ((s.draftHistory?.length ?? 0) + (s.pendingDraft ? 1 : 0) >= 100) throw new Error('הגענו למגבלת גרסאות הטיוטה בפגישה. יש לייצא גיבוי לפני המשך העבודה.');
+  const pendingFields = accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates);
+  const fields = mergeFields(context.documents.find(d => d.kind === 'intake')?.fields ?? emptyIntakeFields(), pendingFields);
+  const reviewResult = structuredClone(result);
+  // The structured ledger renders the intake so missing information stays explicit.
+  reviewResult.documents = reviewResult.documents.map(doc => doc.kind === 'intake' ? { ...doc, content: `# אינטייק — עד פגישה ${s.number}\n\nמבנה הדוח מלא. מידע חסר נשאר גלוי.\n\n${renderIntakeReport(fields, context.preferences)}`, sourceIds: distinct(fields.flatMap(f => f.sourceIds)) } : doc);
+  const pendingDraft: PendingDraft = { id: uid('draft'), createdAt: now(), baseVersionIds: Object.fromEntries(context.documents.map(doc => [doc.kind, doc.versionId])), result: reviewResult, fields: structuredClone(fields), reviewRevision: s.revision + 1, preferenceSnapshot: structuredClone(context.preferences) };
+  return updateSession(state, { ...s, revision: s.revision + 1, closedAt: undefined, status: 'draft', intakeActive: false, focusGoal: undefined, focusSelection: undefined, pendingFields, pendingDraft, draftHistory: [...(s.draftHistory ?? []), ...(s.pendingDraft ? [s.pendingDraft] : [])] });
 }
 
 export function editDocument(state: PortalState, patientId: string, branchId: string, kind: Goal, content: string, fields?: IntakeField[], sessionId?: string): PortalState {
@@ -235,7 +279,10 @@ export function editDocument(state: PortalState, patientId: string, branchId: st
   const rendered = kind === 'intake' && normalized ? renderIntakeReport(normalized, preferencesAt(state, patientId, branchId, 1000, at, reportSessionId)) : content;
   const source: Source = { id: sourceId, patientId, branchId, ...(session ? { sessionId: session.id, sessionNumber: session.number } : {}), text: `עריכה ישירה של המטפל — ${kind}\n\n${rawContent}`, recordedAt: at, kind: 'manual' };
   const version: DocumentVersion = { id: uid('version'), patientId, branchId, kind, ...(session ? { sessionId: session.id, sessionNumber: session.number } : {}), content: rendered, ...(normalized ? { fields: normalized } : {}), sourceIds: distinct([...(normalized ? normalized.flatMap(f => f.sourceIds) : []), sourceId]), createdAt: at, author: 'clinician', reason: 'עריכה ישירה של המטפל', approved: false, ...(previous ? { baseVersionId: previous.id } : {}) };
-  const edited = invalidate({ ...state, sources: [...state.sources, source], versions: [...state.versions, version] }, patientId, branchId);
+  const manuallyChangedFields = new Set(normalized?.filter(field => field.sourceIds.includes(sourceId)).map(field => field.id) ?? []);
+  const edited = invalidate({ ...state, sources: [...state.sources, source], versions: [...state.versions, version],
+    sessions: state.sessions.map(s => kind === 'intake' && s.patientId === patientId && s.branchId === branchId && s.pendingFields
+      ? { ...s, pendingFields: s.pendingFields.filter(field => !manuallyChangedFields.has(field.id)) } : s) }, patientId, branchId);
   return kind === 'note' && session ? reopenNote(edited, session.id) : edited;
 }
 
@@ -259,8 +306,31 @@ export function acceptProposal(state: PortalState, versionId: string): PortalSta
 export function rejectProposal(state: PortalState, versionId: string): PortalState {
   return { ...state, versions: state.versions.map(v => v.id === versionId && v.proposal ? { ...v, rejected: true } : v) };
 }
-export function approveSession(state: PortalState, sessionId: string): PortalState {
+export function pendingDraftIsCurrent(state: PortalState, sessionId: string): boolean {
+  const s = sessionOf(state, sessionId); const pending = s.pendingDraft;
+  return Boolean(pending && !nextSession(state, s) && pending.reviewRevision === s.revision && pending.preferenceSnapshot
+    && preferenceSignature(pending.preferenceSnapshot) === preferenceSignature(buildContext(state, sessionId).preferences)
+    && goals.every(goal => currentVersion(state, s.patientId, s.branchId, goal, goal === 'note' ? sessionId : undefined)?.id === pending.baseVersionIds[goal]));
+}
+export function approveSession(state: PortalState, sessionId: string, expectedDraftId?: string): PortalState {
   const s = sessionOf(state, sessionId); const at = now();
+  if (s.pendingDraft) {
+    assertCurrentSession(state, s);
+    const pending = s.pendingDraft;
+    if ((expectedDraftId && expectedDraftId !== pending.id) || pending.reviewRevision !== s.revision) throw new Error('הטיוטה השתנתה או שנוסף מידע מאז הכנתה. יש להכין סיכום מעודכן לפני האישור.');
+    if (!pending.preferenceSnapshot || preferenceSignature(pending.preferenceSnapshot) !== preferenceSignature(buildContext(state, sessionId).preferences)) throw new Error('העדפות התיעוד השתנו או שלא נשמרו עם הטיוטה. יש להכין סיכום מעודכן לפני האישור.');
+    for (const goal of goals) {
+      if (currentVersion(state, s.patientId, s.branchId, goal, goal === 'note' ? sessionId : undefined)?.id !== pending.baseVersionIds[goal]) throw new Error('אחד המסמכים נערך מאז הכנת הטיוטה. יש להכין סיכום מול הגרסה המעודכנת; העריכה שלך נשמרה.');
+    }
+    checkDraft(buildContext(state, sessionId, 'draft'), pending.result);
+    if (state.versions.length + goals.length > 10000) throw new Error('הגענו למגבלת גרסאות המסמכים. יש לייצא גיבוי לפני המשך העבודה.');
+    const approved: DocumentVersion[] = pending.result.documents.map(doc => ({ id: uid('version'), patientId: s.patientId, branchId: s.branchId, kind: doc.kind,
+      sessionId, sessionNumber: s.number, content: doc.content, sourceIds: distinct(doc.sourceIds), ...(doc.kind === 'intake' ? { fields: structuredClone(pending.fields) } : {}), createdAt: at,
+      author: 'assistant', approved: true, reason: 'סיכום שהוכן בידי העוזר ונשמר לאחר אישור המטפל', ...(pending.baseVersionIds[doc.kind] ? { baseVersionId: pending.baseVersionIds[doc.kind] } : {}) }));
+    return updateSession({ ...state, versions: [...state.versions, ...approved] }, { ...s, revision: s.revision + 1, status: 'approved', closedAt: at, intakeActive: false, focusGoal: undefined, focusSelection: undefined, pendingFields: [], pendingDraft: undefined, draftHistory: [...(s.draftHistory ?? []), { ...pending, approvedAt: at, approvedVersionIds: approved.map(version => version.id) }] });
+  }
+  if (expectedDraftId) throw new Error('הטיוטה שאושרה אינה זמינה עוד. יש לבדוק את הרשומה העדכנית.');
+  if (s.pendingFields?.length) throw new Error('נאסף מידע שטרם נכלל בסיכום לעיון. יש להכין סיכום מעודכן לפני האישור.');
   const latestDocs = goals.map(kind => currentVersion(state, s.patientId, s.branchId, kind, kind === 'note' ? sessionId : undefined)).filter((v): v is DocumentVersion => Boolean(v && v.sessionId === sessionId));
   if (!latestDocs.some(v => v.kind === 'note')) throw new Error('יש ליצור או לערוך רשומה לפני האישור.');
   const approved = latestDocs.map(v => ({ ...structuredClone(v), id: uid('version'), createdAt: at, approved: true, author: 'clinician' as const, baseVersionId: v.id, reason: 'אישור המטפל לפגישת התיעוד' }));
@@ -277,15 +347,23 @@ const identifier = z.string().min(1).max(160);
 const date = z.string().datetime({ offset: true });
 const kind = z.enum(['note', 'formulation', 'intake', 'gold', 'supervision']);
 const fieldSchema = z.object({ id: z.number().int().min(1).max(32), value: z.string().max(30000), status: z.enum(['documented', 'partial', 'unknown', 'not_assessed', 'not_recalled', 'conflict', 'not_applicable']), sourceIds: z.array(identifier).max(200), remaining: z.string().max(5000).optional() }).strict();
+const preferenceSchema = z.object({ id: identifier, topic: z.string().max(200), goal: kind.optional(), action: z.enum(['less', 'block', 'exclude']), scope: z.enum(['session', 'patient']), sessionId: identifier.optional(), patientId: identifier.optional(), branchId: identifier.optional(), recordedAt: date.optional() }).strict();
+const focusSelectionSchema = z.object({ goal: kind, text: z.string().min(1).max(1200), kind: z.literal('expand'), fieldIds: z.array(z.number().int().min(1).max(32)).max(32) }).strict().refine(value => new Set(value.fieldIds).size === value.fieldIds.length);
+const draftResultSchema = z.object({
+  documents: z.array(z.object({ kind, content: z.string().max(100000), sourceIds: z.array(identifier).max(10000) }).strict()).length(5),
+  fieldUpdates: z.array(fieldSchema.extend({ remaining: z.string().max(5000) })).max(32), rationale: z.string().max(10000), summary: z.string().max(1600).optional(),
+  followUps: z.array(z.object({ goal: kind, text: z.string().max(1200), kind: z.enum(['expand', 'next_session']), fieldIds: z.array(z.number().int().min(1).max(32)).max(32) }).strict()).max(3).optional(),
+}).strict();
+const pendingDraftSchema = z.object({ id: identifier, createdAt: date, baseVersionIds: z.object({ note: identifier.optional(), formulation: identifier.optional(), intake: identifier.optional(), gold: identifier.optional(), supervision: identifier.optional() }).strict(), result: draftResultSchema, fields: z.array(fieldSchema).length(32), reviewRevision: z.number().int().min(0), preferenceSnapshot: z.array(preferenceSchema).max(1000).optional(), approvedAt: date.optional(), approvedVersionIds: z.array(identifier).length(5).optional() }).strict();
 const archiveSchema = z.object({
   schemaVersion: z.literal(1),
   patients: z.array(z.object({ id: identifier, name: patientNameSchema, age: z.number().int().min(18).max(120).optional(), schedule: patientScheduleSchema.optional(), description: z.string().max(2000), fictional: z.literal(true) }).strict()).min(1).max(archiveLimits.patients),
   branches: z.array(z.object({ id: identifier, patientId: identifier, name: z.string().max(200), parentId: identifier.optional(), forkSession: z.number().int().min(1).max(1000).optional(), cutoffAt: date.optional() }).strict()).max(archiveLimits.branches),
   sources: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, sessionId: identifier.optional(), sessionNumber: z.number().int().min(1).max(1000).optional(), text: z.string().max(100000), recordedAt: date, kind: z.enum(['clinician', 'manual', 'seed']) }).strict()).max(archiveLimits.sources),
   versions: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, kind, sessionId: identifier.optional(), sessionNumber: z.number().int().min(1).max(1000).optional(), content: z.string().max(100000), fields: z.array(fieldSchema).max(32).optional(), sourceIds: z.array(identifier).max(10000), createdAt: date, author: z.enum(['clinician', 'assistant', 'seed']), reason: z.string().max(2000), baseVersionId: identifier.optional(), approved: z.boolean(), proposal: z.boolean().optional(), rejected: z.boolean().optional() }).strict()).max(10000),
-  preferences: z.array(z.object({ id: identifier, topic: z.string().max(200), goal: kind.optional(), action: z.enum(['less', 'block', 'exclude']), scope: z.enum(['session', 'patient']), sessionId: identifier.optional(), patientId: identifier.optional(), branchId: identifier.optional(), recordedAt: date.optional() }).strict()).max(1000),
+  preferences: z.array(preferenceSchema).max(1000),
   preferenceCancellations: z.array(z.object({ id: identifier, preferenceId: identifier, patientId: identifier, branchId: identifier, sessionId: identifier, recordedAt: date }).strict()).max(1000).optional(),
-  sessions: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, number: z.number().int().min(1).max(1000), startedAt: date, closedAt: date.optional(), revision: z.number().int().min(0), status: z.enum(['writing', 'asking', 'draft', 'approved']), messages: z.array(z.object({ id: identifier, role: z.enum(['user', 'assistant']), text: z.string().max(100000), sourceId: identifier.optional(), at: date }).strict()).max(500), composer: z.string().max(100000), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), intakeActive: z.boolean(), skippedTopics: z.array(z.string().max(200)).max(100), traces: z.array(z.unknown()).max(200) }).strict()).max(archiveLimits.sessions),
+  sessions: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, number: z.number().int().min(1).max(1000), startedAt: date, closedAt: date.optional(), revision: z.number().int().min(0), status: z.enum(['writing', 'asking', 'draft', 'approved']), messages: z.array(z.object({ id: identifier, role: z.enum(['user', 'assistant']), text: z.string().max(100000), sourceId: identifier.optional(), at: date }).strict()).max(500), composer: z.string().max(100000), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), intakeActive: z.boolean(), focusGoal: kind.optional(), focusSelection: focusSelectionSchema.optional(), pendingFields: z.array(fieldSchema.extend({ remaining: z.string().max(5000) })).max(32).optional(), pendingDraft: pendingDraftSchema.optional(), draftHistory: z.array(pendingDraftSchema).max(100).optional(), skippedTopics: z.array(z.string().max(200)).max(100), traces: z.array(z.unknown()).max(200) }).strict()).max(archiveLimits.sessions),
 }).strict();
 
 export function importState(json: string): PortalState {
@@ -311,6 +389,7 @@ export function importState(json: string): PortalState {
   for (const s of state.sessions) {
     const b = state.branches.find(b => b.id === s.branchId)!;
     if ((b.parentId && s.number <= b.forkSession!) || (s.closedAt && Date.parse(s.closedAt) < Date.parse(s.startedAt))) throw new Error('זמן הפגישה או מיקומה ברצף אינם תקינים.');
+    if (s.focusSelection && (s.focusSelection.goal !== s.focusGoal || !s.intakeActive || !s.pendingDraft?.result.followUps?.some(item => JSON.stringify(item) === JSON.stringify(s.focusSelection)))) throw new Error('בחירת ההרחבה בגיבוי אינה תואמת לפגישה.');
   }
   for (const item of [...state.sources, ...state.versions]) {
     const owner = state.sessions.find(s => s.id === item.sessionId);
@@ -320,6 +399,50 @@ export function importState(json: string): PortalState {
     const access = inScope(source, scope);
     return source.patientId === patientId && access && Date.parse(source.recordedAt) <= Date.parse(at) && (!access.cutoffAt || Date.parse(source.recordedAt) <= Date.parse(access.cutoffAt));
   };
+  for (const session of state.sessions) {
+    const scope = scopeFor(state, session.branchId, session.number);
+    const following = nextSession(state, session);
+    const lastTime = following ? new Date(Date.parse(following.startedAt) - 1).toISOString() : '9999-12-31T23:59:59.999Z';
+    const allowedFields = (fields: IntakeField[], at: string) => new Set(fields.map(f => f.id)).size === fields.length
+      && fields.every(f => new Set(f.sourceIds).size === f.sourceIds.length && (f.status === 'unknown' || f.sourceIds.length > 0)
+        && f.sourceIds.every(id => state.sources.some(source => source.id === id && sourceAllowed(source, session.patientId, scope, at))));
+    if (session.pendingFields && !allowedFields(session.pendingFields, lastTime)) throw new Error('מקור של מידע ממתין אינו שייך לפגישה, לתיק או לרצף המותרים.');
+    const drafts = [...(session.draftHistory ?? []), ...(session.pendingDraft ? [session.pendingDraft] : [])];
+    if (new Set(drafts.map(d => d.id)).size !== drafts.length || (session.status === 'approved' && (session.pendingDraft || session.pendingFields?.length)) || session.pendingDraft?.approvedAt || session.pendingDraft?.approvedVersionIds) throw new Error('מצב הטיוטות הממתינות אינו תקין.');
+    for (const draft of drafts) {
+      if (!atOrBefore(session.startedAt, draft.createdAt) || !atOrBefore(draft.createdAt, lastTime) || draft.reviewRevision > session.revision
+        || !allowedFields(draft.fields, draft.createdAt) || !allowedFields(draft.result.fieldUpdates, draft.createdAt)
+        || new Set(draft.result.documents.map(d => d.kind)).size !== 5
+        || draft.result.documents.some(doc => new Set(doc.sourceIds).size !== doc.sourceIds.length || doc.sourceIds.some(id => !state.sources.some(source => source.id === id && sourceAllowed(source, session.patientId, scope, draft.createdAt))))
+        || draft.result.followUps?.some(item => new Set(item.fieldIds).size !== item.fieldIds.length)) throw new Error('מקור או מבנה של טיוטה ממתינה אינו תקין.');
+      if (draft.preferenceSnapshot && (new Set(draft.preferenceSnapshot.map(p => p.id)).size !== draft.preferenceSnapshot.length || draft.preferenceSnapshot.some(p => {
+        const origin = state.sessions.find(s => s.id === p.sessionId);
+        const access = p.branchId ? inScope({ branchId: p.branchId, sessionNumber: origin?.number }, scope) : undefined;
+        return p.patientId !== session.patientId || !access || (p.scope === 'session' && p.sessionId !== session.id)
+          || (p.recordedAt && (!atOrBefore(p.recordedAt, draft.createdAt) || (access.cutoffAt && !atOrBefore(p.recordedAt, access.cutoffAt))))
+          || !state.preferences.some(saved => saved.id === p.id && preferenceSignature([saved]) === preferenceSignature([p]));
+      }))) throw new Error('העדפות הטיוטה אינן שייכות להקשר השמור.');
+      for (const [goal, versionId] of Object.entries(draft.baseVersionIds)) {
+        if (!state.versions.some(version => {
+          const access = inScope(version, scope);
+          return version.id === versionId && version.patientId === session.patientId && version.kind === goal && access && atOrBefore(version.createdAt, draft.createdAt)
+            && (!access.cutoffAt || atOrBefore(version.createdAt, access.cutoffAt)) && (goal !== 'note' || version.sessionId === session.id);
+        })) throw new Error('גרסת המקור של הטיוטה הממתינה אינה תקינה.');
+      }
+      if (Boolean(draft.approvedAt) !== Boolean(draft.approvedVersionIds)) throw new Error('סימון אישור הטיוטה אינו שלם.');
+      if (draft.approvedAt && draft.approvedVersionIds) {
+        const approvedAt = draft.approvedAt;
+        const versions = draft.approvedVersionIds.map(id => state.versions.find(version => version.id === id));
+        if (!atOrBefore(draft.createdAt, approvedAt) || !atOrBefore(approvedAt, lastTime) || new Set(draft.approvedVersionIds).size !== 5 || new Set(versions.map(version => version?.kind)).size !== 5
+          || versions.some(version => {
+            const document = draft.result.documents.find(doc => doc.kind === version?.kind);
+            return !version || !document || !version.approved || version.proposal || version.rejected || version.patientId !== session.patientId || version.branchId !== session.branchId || version.sessionId !== session.id
+              || version.createdAt !== approvedAt || version.content !== document.content || JSON.stringify(version.sourceIds) !== JSON.stringify(document.sourceIds)
+              || version.baseVersionId !== draft.baseVersionIds[version.kind] || (version.kind === 'intake' && JSON.stringify(version.fields) !== JSON.stringify(draft.fields));
+          })) throw new Error('המסמכים שאושרו אינם תואמים לטיוטה השמורה.');
+      }
+    }
+  }
   for (const v of state.versions) {
     const scope = scopeFor(state, v.branchId, v.sessionNumber ?? 1000);
     if ([...v.sourceIds, ...(v.fields?.flatMap(f => f.sourceIds) ?? [])].some(id => !state.sources.some(s => s.id === id && sourceAllowed(s, v.patientId, scope, v.createdAt)))) throw new Error('מקור חסר או מחוץ לתיק, לרצף או לזמן המותרים בגיבוי.');
@@ -345,14 +468,14 @@ export function importState(json: string): PortalState {
   // Traces are diagnostic snapshots, never executable. Validate their structure before the UI reads them.
   const traceDocument = z.object({ kind, versionId: identifier, content: z.string().max(100000), sourceIds: z.array(identifier).max(10000), fields: z.array(fieldSchema).max(32).optional() }).strict();
   const preferenceUpdate = z.object({ topic: z.string().max(200), goal: kind.optional(), action: z.enum(['less', 'block', 'exclude']), scope: z.enum(['session', 'patient']) }).strict();
-  const traceSchema = z.object({ id: identifier, at: date, mode: z.enum(['prepared', 'live']), model: z.string().max(200), promptVersion: z.string().max(200), prompt: z.string().max(100000), context: z.object({
+  const traceSchema = z.object({ id: identifier, at: date, mode: z.enum(['prepared', 'live']), model: z.string().max(200), promptVersion: z.string().max(200), prompt: z.string().max(100000), contextOrigin: z.enum(['server', 'client']).optional(), context: z.object({
     patientId: identifier, patientName: z.string().max(200), branchId: identifier, sessionId: identifier, sessionNumber: z.number().int().min(1).max(1000),
-    baseRevision: z.number().int().min(0), asOf: date, stage: z.enum(['main', 'intake', 'draft']), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(),
+    baseRevision: z.number().int().min(0), asOf: date, stage: z.enum(['main', 'intake', 'draft']), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), focusGoal: kind.optional(), focusSelection: focusSelectionSchema.optional(), workingDraft: draftResultSchema.optional(), pendingIntakeFields: z.array(fieldSchema).max(32).optional(),
     sources: archiveSchema.shape.sources, documents: z.array(traceDocument).max(5), messages: archiveSchema.shape.sessions.element.shape.messages, preferences: archiveSchema.shape.preferences,
     skippedTopics: z.array(z.string().max(200)).max(100), branchScope: z.array(z.object({ branchId: identifier, throughSession: z.number().int().min(1).max(1000), cutoffAt: date.optional() }).strict()).min(1).max(300),
   }).strict(), response: z.union([
     z.object({ action: z.enum(['question', 'draft']), utterance: z.string().max(100000), topic: z.string().max(200), rationale: z.string().max(10000), fieldUpdates: z.array(fieldSchema).max(32), preferenceUpdates: z.array(preferenceUpdate).max(1000) }).strict(),
-    z.object({ documents: z.array(z.object({ kind, content: z.string().max(100000), sourceIds: z.array(identifier).max(10000) }).strict()).length(5), fieldUpdates: z.array(fieldSchema).max(32), rationale: z.string().max(10000) }).strict(),
+    draftResultSchema,
   ]), elapsedMs: z.number().min(0), usage: z.object({ input: z.number().min(0), output: z.number().min(0), cost: z.number().min(0).optional() }).strict().optional() }).strict();
   for (const s of state.sessions) for (const trace of s.traces) {
     const check = traceSchema.safeParse(trace);
@@ -366,7 +489,8 @@ export function importState(json: string): PortalState {
       || context.sources.some(source => !sourceAllowed(source, s.patientId, scope, context.asOf) || !state.sources.some(saved => saved.id === source.id && JSON.stringify(saved) === JSON.stringify(source)))
       || context.documents.some(doc => !doc.sourceIds.every(id => ids.has(id)) || (doc.fields && !validFields(doc.fields)) || !state.versions.some(v => {
         const access = inScope(v, scope);
-        return v.id === doc.versionId && v.patientId === s.patientId && v.kind === doc.kind && v.content === doc.content && JSON.stringify(v.fields) === JSON.stringify(doc.fields) && access && atOrBefore(v.createdAt, context.asOf) && (!access.cutoffAt || atOrBefore(v.createdAt, access.cutoffAt));
+        const sameContent = v.content === doc.content || (v.kind === 'intake' && compactIntakeText(v.content, v.fields, context.preferences) === doc.content);
+        return v.id === doc.versionId && v.patientId === s.patientId && v.kind === doc.kind && sameContent && JSON.stringify(v.fields) === JSON.stringify(doc.fields) && access && atOrBefore(v.createdAt, context.asOf) && (!access.cutoffAt || atOrBefore(v.createdAt, access.cutoffAt));
       }))
       || context.messages.some(m => m.sourceId && !context.sources.some(source => source.id === m.sourceId && source.sessionId === s.id && source.text === m.text))
       || context.preferences.some(p => {
@@ -374,6 +498,9 @@ export function importState(json: string): PortalState {
         const access = p.branchId ? inScope({ branchId: p.branchId, sessionNumber: origin?.number }, scope) : undefined;
         return p.patientId !== s.patientId || !access || (p.scope === 'session' && p.sessionId !== s.id) || (p.recordedAt && (!atOrBefore(p.recordedAt, context.asOf) || (access.cutoffAt && !atOrBefore(p.recordedAt, access.cutoffAt))));
       }) || !validFields(check.data.response.fieldUpdates)
+      || (context.pendingIntakeFields && !validFields(context.pendingIntakeFields))
+      || (context.focusSelection && context.focusSelection.goal !== context.focusGoal)
+      || (context.workingDraft && (!validFields(context.workingDraft.fieldUpdates) || new Set(context.workingDraft.documents.map(d => d.kind)).size !== 5 || context.workingDraft.documents.some(d => d.sourceIds.some(id => !ids.has(id)))))
       || ('documents' in check.data.response && (new Set(check.data.response.documents.map(d => d.kind)).size !== 5 || check.data.response.documents.some(d => d.sourceIds.some(id => !ids.has(id)))))) throw new Error('רישום הפעולה בגיבוי אינו תקין.');
   }
   return state;

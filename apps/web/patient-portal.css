@@ -1,0 +1,64 @@
+.patient-portal{min-width:0}
+.portal-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:28px}
+.portal-heading h1{font-size:clamp(28px,3vw,38px);line-height:1.5;letter-spacing:-.8px}
+.portal-heading p{font-size:14px;color:var(--muted);line-height:1.8;margin:8px 0 0;max-width:60ch}
+.portal-heading>.secondary{flex-shrink:0;margin-top:8px;font-size:12px}
+.portal-patient-details{display:flex;align-items:center;gap:10px 20px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:#557061}
+.portal-patient-details:empty{display:none}
+.portal-patient-details>span{display:flex;align-items:center;gap:7px}
+.portal-pending{display:flex;justify-content:space-between;gap:24px;align-items:center;padding:20px 23px;background:#e7f0e9;border:1px solid #cadfd0;border-radius:10px;margin-bottom:22px}
+.portal-pending h2{font-size:17px;letter-spacing:0;margin:0 0 6px}
+.portal-pending p{font-size:12px;line-height:1.8;max-width:64ch;margin:0;color:#567061}
+.portal-pending-actions{display:flex;flex-direction:column;align-items:stretch;gap:9px;flex-shrink:0}
+.portal-pending-actions button{font-size:12px;background:#fbfdfb}
+.portal-session-history{border-block:1px solid #cedfd4;margin-bottom:28px}
+.portal-session-history>summary{cursor:pointer;display:flex;align-items:center;gap:10px;min-height:58px;list-style:none;font-size:14px;font-weight:500}
+.portal-session-history>summary::-webkit-details-marker{display:none}
+.portal-session-history>summary>small{margin-inline-start:auto;font-weight:400;color:#67816f;font-size:11px}
+.portal-session-history[open]>summary>svg:last-child{transform:rotate(180deg)}
+.portal-session-history ol{list-style:none;padding:0;margin:0 0 20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.portal-session-history li{padding:17px 19px;background:#fff;border:1px solid #d9e5dc;border-radius:8px;min-width:0;display:flex;flex-direction:column}
+.portal-session-row{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.portal-session-row h3{font-size:15px;font-weight:600;line-height:1.5;margin:0 0 4px}
+.portal-session-row time{font-size:10px;color:#718576}
+.portal-session-status{font-size:10px;line-height:1.6;color:#7b673f;background:#f7f3e8;border-radius:4px;padding:4px 7px;max-width:128px;text-align:center}
+.portal-session-status.approved{color:#3b7153;background:#eaf3ec}
+.portal-session-excerpt{font-size:12px;line-height:1.85;color:#577261;overflow-wrap:anywhere;margin:13px 0 10px}
+.portal-session-actions{display:flex;align-items:center;flex-wrap:wrap;gap:4px 17px;margin-top:auto}
+.portal-session-actions button{font-size:11px;min-height:38px;padding:4px 0;color:#34684d;gap:5px}
+.portal-unsaved{display:flex;align-items:flex-start;gap:12px;padding:16px 19px;margin-bottom:22px;background:#faf5e8;border:1px solid #e3d7b7;border-radius:8px;color:#725d35;font-size:12px}
+.portal-unsaved>svg{margin-top:3px}
+.portal-unsaved strong{font-size:13px;font-weight:600}
+.portal-unsaved p{font-size:12px;line-height:1.8;margin:5px 0 3px}
+.portal-unsaved button{color:inherit;text-decoration:underline;text-underline-offset:3px;min-height:38px;font-size:12px;padding:4px 0;margin-inline-end:16px}
+.portal-document-tabs{margin-bottom:21px;gap:4px}
+.portal-document-tabs button{padding:11px 16px;font-size:14px}
+.portal-note-picker{margin-bottom:21px;align-items:flex-end}
+.portal-note-picker label{font-size:12px;max-width:440px;min-width:0}
+.portal-note-picker select{font-size:13px;width:100%}
+.portal-note-actions{display:flex;align-items:center;gap:4px 16px;flex-wrap:wrap}
+.portal-note-actions button{font-size:12px;white-space:nowrap}
+.portal-document-paper{padding:28px 32px}
+.portal-document-paper .document-toolbar h2{font-size:23px}
+.portal-draft-archive>p{font-size:13px;color:var(--muted);line-height:1.85;margin-bottom:20px;max-width:75ch}
+.portal-archive-picker{font-size:12px;margin-bottom:20px;max-width:600px}
+.portal-archive-picker select{font-size:13px}
+.portal-archive-status{padding:15px 18px;border-inline-start:3px solid #b59d64;background:#faf6ec;margin-bottom:22px;font-size:13px}
+.portal-archive-status.approved{border-color:#6e9c7b;background:#edf5ee}
+.portal-archive-status strong{font-size:13px;font-weight:600}
+.portal-archive-status p{font-size:12px;line-height:1.85;margin:5px 0 0;color:#617365}
+.portal-archive-status button{font-size:12px;margin-top:5px}
+.portal-archive-summary{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.9;margin-bottom:22px}
+.portal-archive-document{border-top:1px solid #dbe7de;padding-bottom:10px}
+.portal-archive-document>summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;min-height:54px;font-size:15px;font-weight:500;list-style:none;gap:16px}
+.portal-archive-document>summary::-webkit-details-marker{display:none}
+.portal-archive-document[open]>summary>svg{transform:rotate(180deg)}
+.portal-archive-document>.document-text{padding:6px 0 16px;font-size:14px}
+.portal-archive-sources,.portal-archive-fields,.portal-archive-followups{font-size:12px;margin:8px 0}
+.portal-archive-sources>summary,.portal-archive-fields>summary,.portal-archive-followups>summary{cursor:pointer;min-height:42px;padding:10px 0;color:#4f705a;line-height:1.8}
+.portal-archive-sources article,.portal-archive-fields article,.portal-archive-followups article{padding:13px 16px;margin:8px 0;background:#f5f8f5;border-inline-start:2px solid #c6d9cb}
+.portal-archive-sources strong,.portal-archive-followups strong{font-weight:500;font-size:11px;color:#5d7966}
+.portal-archive-sources p,.portal-archive-fields p,.portal-archive-followups p{font-size:13px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0 0}
+.portal-archive-fields h4{margin:0 0 6px;font-size:13px;font-weight:600}
+.portal-archive-fields span{font-size:11px;color:#6c806f}
+@media(max-width:760px){.portal-heading{display:block;margin-bottom:24px}.portal-heading h1{font-size:29px}.portal-heading p{font-size:13px}.portal-heading>.secondary{margin-top:17px}.portal-patient-details{font-size:11px;margin-top:11px}.portal-pending{display:block;padding:17px 18px}.portal-pending-actions{margin-top:13px;align-items:flex-start}.portal-pending h2{font-size:16px}.portal-pending p{font-size:12px}.portal-session-history{margin-bottom:23px}.portal-session-history ol{grid-template-columns:minmax(0,1fr);gap:9px}.portal-session-history li{padding:16px}.portal-session-history>summary{font-size:13px;gap:8px}.portal-session-history>summary>small{font-size:10px}.portal-document-tabs button{font-size:12px;padding:10px 13px}.portal-note-picker{display:block}.portal-note-picker label{max-width:none}.portal-note-actions{margin-top:8px;gap:5px 20px}.portal-note-actions button{font-size:11px}.portal-document-paper{padding:22px 19px}.portal-document-paper .document-toolbar h2{font-size:21px}.portal-unsaved{padding:14px 15px}.portal-unsaved button{font-size:11px}.portal-archive-picker select{font-size:12px}.portal-archive-status{padding:13px 15px}.portal-archive-document>.document-text{font-size:13px}}

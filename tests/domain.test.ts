@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { createDemoState } from '../fixtures/fictional';
 import { preparedDraft } from '../fixtures/fictional/prepared';
-import { acceptProposal, addUserMessage, applyTurn, approveSession, buildContext, cancelPreference, createPatient, createSession, currentVersion, editDocument, emptyIntakeFields, exportState, forkBranch, importState, renderIntakeReport, restoreVersion, saveDraft } from '../packages/domain';
+import { addUserMessage, applyTurn, approveSession, buildContext, cancelPreference, createPatient, createSession, currentVersion, editDocument, emptyIntakeFields, exportState, forkBranch, importState, renderIntakeReport, restoreVersion, saveDraft } from '../packages/domain';
 import type { PortalState, TurnResult } from '../packages/contracts';
 
 const patient = 'fictional-tamar'; const branch = `${patient}-main`;
@@ -144,7 +144,7 @@ describe('time, case and branch context', () => {
   });
 });
 describe('version integrity and bounded flow', () => {
-  it('makes manual edits a protected base and requires explicit proposal acceptance', () => {
+  it('makes manual edits a protected base and requires explicit review approval', () => {
     let { state, session } = active();
     state = editDocument(state, patient, branch, 'formulation', 'הנוסח שהמטפל בחר');
     state = addUserMessage(state, session.id, 'פרט חדש מהפגישה');
@@ -152,12 +152,12 @@ describe('version integrity and bounded flow', () => {
     const result = preparedDraft(context); result.documents.find(d => d.kind === 'formulation')!.content = 'הצעת עדכון חדשה';
     state = saveDraft(state, session.id, context.baseRevision, result);
     expect(currentVersion(state, patient, branch, 'formulation')?.content).toBe('הנוסח שהמטפל בחר');
-    const proposal = state.versions.find(v => v.kind === 'formulation' && v.proposal)!;
+    const proposal = state.sessions.find(s => s.id === session.id)!.pendingDraft;
     expect(proposal).toBeDefined();
     const before = state.versions.length;
-    state = acceptProposal(state, proposal.id);
+    state = approveSession(state, session.id, proposal!.id);
     expect(currentVersion(state, patient, branch, 'formulation')?.content).toBe('הצעת עדכון חדשה');
-    expect(state.versions).toHaveLength(before + 1);
+    expect(state.versions).toHaveLength(before + 5);
   });
   it('rejects stale model replies after direct editing', () => {
     let { state, session } = active(); const context = buildContext(state, session.id);
@@ -183,8 +183,8 @@ describe('version integrity and bounded flow', () => {
   it('produces all32 intake fields at5 and approval creates new versions', () => {
     let { state, session } = active(); state = addUserMessage(state, session.id, 'הפגישה הסתיימה.');
     const context = buildContext(state, session.id, 'draft'); state = saveDraft(state, session.id, context.baseRevision, preparedDraft(context));
-    expect(currentVersion(state, patient, branch, 'intake')?.fields).toHaveLength(32);
-    expect(currentVersion(state, patient, branch, 'intake')?.content).toContain('מידע חסר');
+    expect(state.sessions.find(s => s.id === session.id)?.pendingDraft?.fields).toHaveLength(32);
+    expect(state.sessions.find(s => s.id === session.id)?.pendingDraft?.result.documents.find(d => d.kind === 'intake')?.content).toContain('מידע חסר');
     const count = state.versions.length; state = approveSession(state, session.id);
     expect(state.versions.length).toBeGreaterThan(count);
     expect(state.sessions.find(s => s.id === session.id)?.status).toBe('approved');
@@ -237,7 +237,8 @@ describe('completed session and preference boundaries', () => {
     clock('10:05'); state = editDocument(state, patient, branch, 'formulation', 'Future between-session edit');
     const historical = buildContext(state, session.id);
     expect(historical.asOf).toBe('2026-10-16T10:03:59.999Z');
-    expect(historical.documents.find(d => d.kind === 'note')?.content).toContain('Earlier unfinished content');
+    expect(historical.documents.find(d => d.kind === 'note')).toBeUndefined();
+    expect(historical.workingDraft?.documents.find(d => d.kind === 'note')?.content).toContain('Earlier unfinished content');
     expect(JSON.stringify(historical)).not.toContain('Future between-session edit');
   });
   it('blocks AI mutation of historical sessions without importing future intake fields', () => {
@@ -296,15 +297,15 @@ describe('intake report exclusions preserve the structured ledger', () => {
     const context = buildContext(state, session.id); const result = preparedDraft(context);
     const prepared = result.documents.find(d => d.kind === 'intake')!.content;
     state = saveDraft(state, session.id, context.baseRevision, result);
-    const saved = state.versions.filter(v => v.kind === 'intake' && v.sessionId === session.id).at(-1)!;
-    for (const report of [prepared, saved.content]) {
+    const saved = state.sessions.find(s => s.id === session.id)!.pendingDraft!;
+    for (const report of [prepared, saved.result.documents.find(d => d.kind === 'intake')!.content]) {
       expect(report).not.toContain('Unique family'); expect(report).not.toContain('private marker'); expect(report).not.toContain('Keep source value');
       expect((report.match(/^### /gm) ?? []).length).toBe(32);
     }
     expect(saved.fields).toHaveLength(32);
     expect(saved.fields!.find(f => f.id === 13)?.value).toBe('Unique family detail');
     expect(saved.fields!.find(f => f.id === 5)?.remaining).toBe('private marker pending');
-    expect(saved.proposal).toBe(true);
+    expect(state.versions.some(v => v.kind === 'intake' && v.sessionId === session.id)).toBe(false);
     expect(currentVersion(state, patient, branch, 'intake')!.author).toBe('clinician');
   });
   it('does not infer excluded topics from incidental word fragments', () => {
@@ -321,7 +322,8 @@ describe('intake report exclusions preserve the structured ledger', () => {
     });
     const intake = currentVersion(state, patient, branch, 'intake')!;
     expect(intake.content).not.toContain('private marker');
-    expect(intake.fields!.find(f => f.id === 5)?.value).toBe('private marker');
+    expect(intake.fields!.find(f => f.id === 5)?.value).not.toBe('private marker');
+    expect(buildContext(state, session.id).pendingIntakeFields!.find(f => f.id === 5)?.value).toBe('private marker');
   });
 });
 

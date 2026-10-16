@@ -32,19 +32,30 @@ export async function getModels(fetcher: typeof fetch = fetch, now = Date.now())
   return entries;
 }
 
-export function prepareProviderRequest(model: CatalogModel, task: 'turn' | 'draft', prompt: string, context: unknown, schema: unknown) {
-  const outputTokens = task === 'draft' ? 6000 : 2500;
-  if (model.top_provider?.max_completion_tokens && model.top_provider.max_completion_tokens < outputTokens) throw new ApiError(503, 'model_output_limit');
+export function prepareProviderRequest(model: CatalogModel, task: 'turn' | 'draft', prompt: string, context: unknown, schema: unknown, outputTokenLimit?: number) {
+  const targetOutputTokens = task === 'draft' ? 6000 : 2500;
+  const minimumOutputTokens = task === 'draft' ? 3500 : 1500;
   const messages = [{ role: 'system', content: prompt }, { role: 'user', content: JSON.stringify(context) }];
   // UTF-8 bytes conservatively bound text token counts; include schema and framing margin.
   const inputBound = Buffer.byteLength(JSON.stringify({ messages, schema }), 'utf8') + 4096;
-  if (inputBound + outputTokens * 2 > model.context_length) throw new ApiError(400, 'model_context_limit');
   let promptPrice = model.pricing.prompt;
   let outputPrice = Math.max(model.pricing.completion, model.pricing.internal_reasoning ?? 0);
   for (const tier of model.pricing.overrides ?? []) if (inputBound >= tier.min_prompt_tokens) {
     promptPrice = Math.max(promptPrice, tier.prompt ?? 0);
     outputPrice = Math.max(outputPrice, tier.completion ?? 0);
   }
+  const providerLimit = model.top_provider?.max_completion_tokens ?? targetOutputTokens;
+  if (providerLimit < minimumOutputTokens) throw new ApiError(503, 'model_output_limit');
+  const contextLimit = Math.floor((model.context_length - inputBound) / 2);
+  if (contextLimit < minimumOutputTokens) throw new ApiError(400, 'model_context_limit');
+  // Keep the full input. Adapt output capacity within the fixed request cap, retaining
+  // enough room for the five concise documents and changed intake fields.
+  const inputCost = inputBound * promptPrice + (model.pricing.request ?? 0);
+  const remainingBudget = LIMITS.requestMicros / 1e6 - inputCost - 0.0001;
+  const budgetLimit = outputPrice > 0 ? Math.floor(remainingBudget / (2 * outputPrice)) : Infinity;
+  if (remainingBudget < 0 || budgetLimit < minimumOutputTokens) throw new ApiError(400, 'request_budget_exceeded');
+  const outputTokens = Math.min(targetOutputTokens, providerLimit, contextLimit, budgetLimit, outputTokenLimit ?? targetOutputTokens);
+  if (outputTokens < minimumOutputTokens) throw new ApiError(400, 'request_budget_exceeded');
   // Some providers count reasoning separately. Reserve a second complete output budget.
   const micros = Math.ceil((inputBound * promptPrice + outputTokens * 2 * outputPrice + (model.pricing.request ?? 0)) * 1e6);
   if (micros > LIMITS.requestMicros) throw new ApiError(400, 'request_budget_exceeded');
@@ -57,7 +68,7 @@ export function prepareProviderRequest(model: CatalogModel, task: 'turn' | 'draf
     body.reasoning = { effort: model.reasoning?.supported_efforts?.includes('low') ? 'low' : 'minimal', exclude: true };
   }
   if (model.supported_parameters.includes('temperature')) body.temperature = 0.2;
-  return { body, micros, inputBound };
+  return { body, micros, inputBound, outputTokens };
 }
 
 const envelopeSchema = z.object({

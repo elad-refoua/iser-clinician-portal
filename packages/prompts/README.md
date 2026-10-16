@@ -1,63 +1,39 @@
 # Documentation assistant prompts
 
-Updated: 2026-10-16. Prompt version: `2026-10-16.1`.
+Prompt version: 2026-10-16.9. This assistant supports documentation after each adult session. It is not a patient simulation, clinical supervisor, assessment instrument or treatment recommender. Hebrew and clinician-attributed interpretation are explicit requirements.
 
-This module supports documentation **after each session**. It is not a patient simulation, clinical supervisor, assessment instrument, or treatment recommender. The interface is Hebrew; clinician-authored interpretations remain explicitly attributed to the clinician.
+## Composition
 
-## Exports and integration
+index.ts exports PROMPT_VERSION, readable PROMPT_SECTIONS and buildSystemPrompt(context, task). The builder combines fixed sections, request-control metadata and the exact output contract. Source/message/document/preference prose travels separately as JSON data. The handbook imports the actual active instructions and generated contracts.
 
-- `index.ts`: `PROMPT_VERSION`, `PROMPT_SECTIONS: Array<{id,title,content}>`, and `buildSystemPrompt(context: ContextPacket, task: 'turn' | 'draft'): string`.
-- `intake-schema.ts`: the canonical 32 field labels, nine section mappings, `fieldStatusLabels`, `emptyIntakeFields()`, and `renderIntake(fields)`.
-- Domain code may re-export the intake metadata. Prompts never import domain code, preventing a runtime dependency cycle.
-- The API sends the returned prompt as system instructions and the complete `ContextPacket` separately as JSON data. `buildSystemPrompt` includes only control metadata from the context; it does not interpolate source, message, document, or preference prose into the system instruction.
-- The API owns the strict runtime/response schema. A turn has exactly the `TurnResult` fields. A draft has exactly `documents`, `fieldUpdates`, and `rationale`. The draft includes all five kinds once, with the session note first.
-- `fieldUpdates` are **sparse patches**, zero to 32 unique fields; they are not a complete snapshot. The full intake document uses the existing fields plus any valid patches and always displays all nine sections. Domain code owns persistence, snapshots, conflict validation, proposal handling, and manual-edit precedence.
+intake-schema.ts owns 32 fields, nine sections, statuses and the report renderer. Domain code owns scope, provenance, staging, approval, versions and import validation. Prompt code does not import domain code.
 
-## Behavioral design
+## Behavior
 
-The seven readable prompt sections cover role, interviewing, evidence, preferences, five outputs, intake statuses, and fictional acceptance examples. They can be displayed in the backstage view.
+Each contribution receives a real model response. A useful follow-up resolves one concrete documentation gap in the latest contribution, with permitted history. It is one open question, not a generic request to repeat what matters, a checklist, a leading interpretation or clinical advice. Prior assistant text provides conversational context, never proof that its premise occurred.
 
-After free sharing, a live turn asks zero to three main follow-up questions. Each question requests one piece of information and is open rather than leading. Stopping, lack of time, and exhausted allowance immediately lead to a draft. The separately selected intake round permits at most two questions. A missing field does not by itself justify another question.
+The main flow permits zero to three questions; the ceiling is not a target. Stop/lack of time/draft requests move to drafting. Explicit expansion uses focusGoal and at most two questions. A new round does not override blocked/skipped topics. If no question is grounded, leave the field missing rather than inventing a connection.
 
-The session note is primary. Cumulative formulation, intake, learning material, and supervision material are secondary outputs. The assistant may organize clinician-supplied hypotheses but cannot create new clinical explanations, diagnoses, interventions, or recommendations. Supervision reflections are not automatically copied into the note.
+The note is primary. Formulation organizes the clinician's hypotheses; intake accumulates sourced fields; learning retains moments the clinician identified; supervision organizes stated uncertainties without answering them. No diagnosis, intervention, agreement, signature or negative risk finding is invented.
 
-Evidence is limited to the active patient, allowed `branchScope` ancestry, session-number limits, and historical cutoffs. New input from the active session is an explicit exception to the historical `asOf` cutoff. Derived assistant text is not an independent clinical source. Direct clinician wording and uncertainty remain visible; conflicting reports are not silently reconciled.
+less, block and exclude reduce question priority, prevent questions and omit material from a specified output respectively. None deletes sources. Session preference is the default; persistence requires explicit intent. Code checks structural and lexical parts; meaning still requires review.
 
-`less`, `block`, and `exclude` have different effects. A question block also applies to synonymous topics and voluntary intake rounds; it does not delete previously documented material. Report exclusions continue to apply when drafts are regenerated. Ambiguous references are clarified within the available question allowance or held outside the unapproved output.
+## Working memory and output
 
-The intake schema distinguishes documented, partial, unmentioned, explicitly not assessed, not recalled, conflicting, and explicitly not applicable information. Empty fields never become a negative clinical finding. The full report structure is available from the start and remains mandatory at session five even with missing information. No signature is generated.
+documents contains saved versions, workingDraft the unapproved proposal, and pendingIntakeFields the working ledger. Rewriting uses the latest proposal plus sources. Style commands are not clinical events. The assistant cannot claim to save or approve documents.
 
-`rationale` is a brief, observable explanation for backstage review, not a request for hidden reasoning. Raw source identifiers belong in structured `sourceIds` and source-inspection views; ordinary document prose uses readable source labels.
+Turn output contains action, utterance, topic, rationale, fieldUpdates and preferenceUpdates. Draft output contains five distinct documents, sparse fieldUpdates, rationale, summary and zero to three followUps. These are optional invitations/reminders, not required questions.
 
-## Prepared versus live
+The model returns empty intake document content/citations and only changed fields. The domain merges existing, pending and new fields, derives sources and renders all nine sections. Session 4 may receive a short reminder of actual gaps; session 5 always gets the full structure, without falsely declaring unknown information complete. A lack-of-time request receives no expansion invitations.
 
-`fixtures/fictional/prepared.ts` is an explicitly labeled, deterministic demonstration. It uses these contracts but does not run these instructions through a model. It offers a small bank of open questions, quotes new clinician text verbatim, and retains supplied field snapshots. It never pretends to extract diagnoses or intake fields from arbitrary input.
+Context projection removes exact duplicated report rendering only when the structured ledger retains the information. Raw sources and messages are not truncated. All source timestamps, including current-session sources, must fit asOf; there is no current-session cutoff exception. Citations must cover every factual contribution to a field.
 
-Consequently, passing the prepared-mode tests does **not** establish live model quality, clinical validity, reliability of topic interpretation, or gentle Hebrew phrasing in every interaction. Live fictional test runs and participant-view browser verification are separate integration obligations. The application must enforce counters, source IDs, branch/time boundaries, and revision checks; a prompt alone is not enforcement.
+rationale explains the observable relation between input and result in one or two sentences. It is not hidden reasoning or proof of fidelity. The interface exposes it on request alongside exact context and citations.
 
-## Verification and change history
+## Verification and maintenance
 
-Focused suite: `npm exec vitest run -- --root . tests/prompts.test.ts`.
+Relevant suites: prompts.test.ts, prompt-behavior.test.ts, staged-records.test.ts, context-budget.test.ts and API tests. The historical prepared fixture remains for compatibility/tests; new chat never calls it. Passing deterministic tests is not live-model verification.
 
-On 2026-10-16, 23 tests passed covering sparse fixtures and explicit source support, independent resets, exact field coverage, prompt/data separation, stop and question limits, blocked topics, report exclusions, manual wording, nonduplication on regeneration, future/patient isolation, ancestor cutoffs, new voluntary intake rounds after a previous stop, and exclusion of a mistakenly supplied past-session note. Browser and live-provider behavior were not assessed by this suite. The full workspace TypeScript check also passed during integration.
+Review fictional conversations covering sparse input, a concrete event, attributed hypotheses, correction, stop, forgotten detail, blocked topic, contradiction and incomplete session-five intake. Record actual results and limits. Behavioral changes require a prompt-version update, tests and regeneration of both handbook formats. Development history belongs in Implementation_2026-10-16/progress.md; this document describes the current system.
 
-Initial version decisions:
-
-1. Adapted CPE static/dynamic/context architecture to documentation; omitted simulated inner worlds, body-language invention, participant scoring, and clinical direction.
-2. Added sparse update semantics and always-complete intake structure.
-3. Added branch-scope ancestry and current-session cutoff exception after contract review.
-4. Removed opaque source IDs from normal rendered prose; retained structured provenance.
-5. Made repeated prepared regeneration preserve existing content without recursively nesting the same draft or quoting the same source again.
-6. Treated a newly selected optional intake round as new authorization after an earlier stop, retaining topic blocks and skipped topics.
-7. Added a defensive check so a past-session note cannot be reused as the current session note even if accidentally included in the context.
-
-When behavior changes, update `PROMPT_VERSION`, relevant acceptance tests, this change history, and the implementation ledger. Review the same fictional contexts before and after the change. Do not claim a model run merely from deterministic fixture results.
-
-## Design sources
-
-- `Planning_2026-10-16/MASTER_PLAN_HE.md`, especially sections 4–11 and the exact 32-field list.
-- `Planning_2026-10-16/PROMPT_ACCEPTANCE_HE.md`: single-information questions, no inferred mental state, stop behavior, family-topic block, contradictions, and incomplete fifth-session intake.
-- `packages/contracts/index.ts`: authoritative request/result structures.
-- `therapeutic-bot` CPE skill: static architecture, dynamic process, context-sensitive pacing. Applied only where consistent with the approved documentation purpose.
-
-No real patient, client, or participant material was read or used for this module.
+The design adapts CPE's fixed behavior, dynamic process and context layers without simulated hidden mental states, participant scoring or clinical direction. Sources are the approved master plan, contextual-question examples, contracts and actual code. No real patient/client/participant material is used.

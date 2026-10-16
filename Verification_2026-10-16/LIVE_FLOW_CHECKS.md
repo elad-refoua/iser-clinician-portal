@@ -1,0 +1,32 @@
+# Live conversation release verification — 2026-10-16
+
+## Scope and candidate
+Fictional cases only. Chrome participant-facing interaction; credentials never included in output. Current candidate dpl_GsUfcShUwideMzFBB18LcMVaoKZb, READY: https://iser-clinician-rbdkcadiu-elad-refouas-projects.vercel.app . Prompt 2026-10-16.9. Canonical book/public publication still undergoing final checks at this checkpoint.
+
+## Automated evidence
+173 tests passed, including the opt-in public model catalogue budget check (no inference). TypeScript and production build passed. The >500kB bundle warning remains; it is not a failed build. Regression coverage includes patient/time/branch isolation, pending fields, atomic five-document approval, stale proposal/version guards, JSON import, exact selected expansion, lossless deterministic intake-rendering compaction and budget reservations.
+
+## Observed live scenarios
+- Noa5: real Sonnet question referred to the moment she opened the supervisor's message. The response attributed an impression to Noa, retained the agreed continuation, and honored a stop request. A real Flash proposal was reviewed. Before approval the portal contained no new note version; approval created all five document versions and retained an approved proposal with timestamp/version links. A separate deployment origin recovered the approved records from Neon.
+- Tamar5: real Sonnet proposal retained the single-evening limitation, did not invent forgotten exact wording, and distinguished earlier context. Opening session6 was blocked while the proposal was pending. An open direct editor blocked approval even after navigation back to chat; cancelling it restored approval. After approval, session6 opened with a quiet invitation. Another origin recovered session5 and the empty session6.
+- Eitan5: real Sonnet draft kept the therapist's personal wish to see progress in supervision and out of the note. An expansion in prompt .7 failed output validation and was not applied; the rejected provider text was not retained, so the precise cause is unknown. Separately, inspection identified lost selection when multiple invitations shared a goal; focusSelection now preserves the exact invitation and field IDs through context/API/import.
+- Eitan5 with prompt .8: choosing the morning invitation produced “מה תיאר איתן על הבוקר שבו נשאר בבית, מעבר לכך שנשאר בבית?” The fictional reply described coffee/newspaper and uncertainty about other mornings, followed by a stop request. Real Sonnet produced a revised proposal, preserved that uncertainty, offered no further expansion and kept supervision separate. Approval succeeded and the portal exposed two versions.
+- Adi1 with prompt .8: created from a display name and optional Monday17:30 only, with no borrowed clinical history. Real turn/draft honored the no-time request. Review identified a meaning-changing summary abbreviation and editorial time metadata in the note. Prompt .9 explicitly preserves negation/action relationships, omits workflow metadata and redundant status headings, and avoids unnecessary absence statements. The original unapproved proposal remains in history; a live recheck is required below.
+
+## UI and persistence
+- Automatic workspace opening follows username/password authentication. Successful cross-origin reload demonstrates database persistence, not a second physical device test.
+- Patient portal exposes all five products, intake32fields/9sections, direct edits, full version comparison/restore, raw sources, previous sessions/chats and proposal archive.
+- At390px, the document width did not exceed the viewport. Tabs scroll within their own container. Header compacting and direct manual-note approval are included in the final candidate and require the final observations below.
+- Earlier persistence-release checks cover stale-write409 rejection, preservation of a local recovery copy and valid JSON export; see PERSISTENCE_CHECKS.md. These are not silently relabeled as new tests.
+
+## Review attribution and limits
+Independent code review completed and two workflow findings were repaired. The context reviewer implemented capacity/budget repairs, but its final review and the clinician-agent final review were interrupted by an account usage limit. Root continued direct clinical-language/context checks. There are not three completed independent reviews. See INDEPENDENT_CODE_REVIEW.md and CONTEXT_AND_CLINICIAN_REVIEW.md.
+
+No clinical validation is claimed. GPT was exercised in the earlier release, not reevaluated with .9. Live responses remain reviewable proposals; schema validity and source IDs do not prove semantic fidelity. Existing spending/operation caps were not raised.
+
+## Final observations and publication
+- Prompt .9 re-generation removed editorial timing and the false absence-of-response statement, but retained the erroneous short summary from the previous proposal. Explicit correction in chat produced a faithful summary and a one-paragraph note, with no header or missing-item list. That corrected proposal was approved. This is a successful revision workflow, not evidence that prompts eliminate semantic errors.
+- Eitan5 direct edit removed the redundant draft heading. Save created version3; manual approval created version4 without LLM use. Restore of version3 created version5; subsequent manual approval created version6. The comparison retained all earlier versions.
+-390px viewport: document width375px, header153px, no page overflow. Approved state and compact controls visible. Screenshot live-mobile-approved.png. Viewport reset afterwards.
+- Backstage for Adi exposed actual prompt2026-10-16.9, five live traces and a context of three sources (administrative creation, session report, correction), zero pre-existing documents, zero interview questions. No other patient's sources appeared.
+- Remaining publication gate: matching handbook/PDF and manifest; stable Vercel/Pages publication and public browser checks.

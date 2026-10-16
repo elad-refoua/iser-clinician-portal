@@ -77,16 +77,53 @@ async function json(response: Response) { return await response.json() as Record
 describe('API boundaries', () => {
   it('issues a short-lived signed token, rejects tampering and expires it', async () => {
     const quota = new TestQuota();
-    const response = await handle(request('access', { code: 'fictional-test-access' }), 'access', { env, quota, now: () => now });
+    const response = await handle(request('access', { username: 'elad', password: 'fictional-test-access' }), 'access', { env, quota, now: () => now });
     expect(response.status).toBe(200);
     const data = await json(response); expect(data.token).not.toContain('fictional-test-access');
     expect(authenticate(request('turn', {}, data.token), env, now).exp).toBe(now / 1000 + 3600);
     expect(() => authenticate(request('turn', {}, `${data.token}x`), env, now)).toThrow('invalid_session');
     expect(() => authenticate(request('turn', {}, data.token), env, now + 3600001)).toThrow('session_expired');
   });
+  it('normalizes usernames and supports an explicitly configured login name', async () => {
+    const defaultLogin = await handle(request('access', { username: '  ELAD  ', password: 'fictional-test-access' }), 'access', { env, quota: new TestQuota(), now: () => now });
+    expect(defaultLogin.status).toBe(200);
+    const customEnv = { ...env, DEMO_USERNAME: '  DemoOwner  ' };
+    const configuredLogin = await handle(request('access', { username: ' demoOWNER ', password: 'fictional-test-access' }), 'access', { env: customEnv, quota: new TestQuota(), now: () => now });
+    expect(configuredLogin.status).toBe(200);
+    const oldName = await handle(request('access', { username: 'elad', password: 'fictional-test-access' }), 'access', { env: customEnv, quota: new TestQuota(), now: () => now });
+    expect(oldName.status).toBe(401);
+  });
+  it('returns the same generic failure for wrong username, password, missing credentials and old code payload', async () => {
+    const quota = new TestQuota();
+    for (const body of [
+      { username: 'unknown', password: 'fictional-test-access' },
+      { username: 'elad', password: 'incorrect-password' },
+      { username: 'elad', password: ' fictional-test-access ' },
+      { username: 'elad' },
+      { password: 'fictional-test-access' },
+      { code: 'fictional-test-access' },
+      { username: 'elad', password: 'fictional-test-access', code: 'extra' },
+    ]) {
+      const response = await handle(request('access', body), 'access', { env, quota, now: () => now });
+      expect(response.status).toBe(401);
+      expect(await json(response)).toEqual({ error: 'invalid_credentials' });
+      expect(response.headers.get('Cache-Control')).toBe('no-store');
+    }
+    expect(quota.attempts).toBe(7);
+  });
+  it('verifies the password exactly without trimming or changing its case', async () => {
+    const password = ' Fictional-PassPhrase ';
+    const exactEnv = { ...env, DEMO_ACCESS_CODE_HASH: digest(password) };
+    const accepted = await handle(request('access', { username: 'elad', password }), 'access', { env: exactEnv, quota: new TestQuota(), now: () => now });
+    expect(accepted.status).toBe(200);
+    for (const changed of [password.trim(), password.toLowerCase()]) {
+      const response = await handle(request('access', { username: 'elad', password: changed }), 'access', { env: exactEnv, quota: new TestQuota(), now: () => now });
+      expect(response.status).toBe(401);
+    }
+  });
   it('throttles incorrect access attempts before verification', async () => {
     const quota = new TestQuota(); let response: Response | undefined;
-    for (let i = 0; i < 11; i++) response = await handle(request('access', { code: 'incorrect-test-code' }), 'access', { env, quota, now: () => now });
+    for (let i = 0; i < 11; i++) response = await handle(request('access', { username: 'elad', password: 'incorrect-password' }), 'access', { env, quota, now: () => now });
     expect(response!.status).toBe(429); expect(quota.attempts).toBe(11);
   });
   it('enforces exact CORS with preflight and no wildcard', async () => {
@@ -102,7 +139,7 @@ describe('API boundaries', () => {
   });
   it('rejects oversized and malformed input before provider call', async () => {
     const p = provider(); const deps = { env, quota: new TestQuota(), fetcher: p.fetcher, now: () => now };
-    const oversized = requestBody(); oversized.context.sources[0].text = 'x'.repeat(100001);
+    const oversized = requestBody(); oversized.context.sources[0].text = 'x'.repeat(600001);
     expect((await handle(request('turn', oversized), 'turn', deps)).status).toBe(413);
     const malformed = new Request('https://demo.vercel.app/api/turn', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${issueToken(env, now).token}` }, body: '{' });
     expect((await handle(malformed, 'turn', deps)).status).toBe(400); expect(p.count()).toBe(0);
@@ -124,7 +161,7 @@ describe('API boundaries', () => {
     c.sources[0].recordedAt = '2026-10-15T13:00:00Z'; expect(() => validateRequest(requestBody(c), 'turn')).toThrow('source_outside_context');
   });
   it('returns all five document kinds and accepts sparse valid field patches', () => {
-    const result: DraftResult = { documents: ['note', 'formulation', 'intake', 'gold', 'supervision'].map(kind => ({ kind: kind as any, content: 'לא נמסר מידע נוסף.', sourceIds: [] })), fieldUpdates: [], rationale: 'חומר מוגבל.' };
+    const result: DraftResult = { documents: ['note', 'formulation', 'intake', 'gold', 'supervision'].map(kind => ({ kind: kind as any, content: 'לא נמסר מידע נוסף.', sourceIds: [] })), fieldUpdates: [], rationale: 'חומר מוגבל.', summary: 'הטיוטה מרכזת את המידע שנמסר.', followUps: [] };
     expect(validateResult(result, 'draft', context())).toEqual(result);
     result.documents[4].kind = 'note'; expect(() => validateResult(result, 'draft', context())).toThrow('missing_document_kind');
   });
@@ -183,7 +220,21 @@ describe('API boundaries', () => {
   it('honors durable counters even when a client sends zero', async () => {
     const quota = new TestQuota(); quota.questions = 3; const p = provider();
     const response = await handle(request('turn', requestBody()), 'turn', { env, quota, fetcher: p.fetcher, now: () => now });
-    expect((await json(response)).result.action).toBe('draft'); expect(p.count()).toBe(0); expect(quota.total).toBe(0);
+    const data = await json(response);
+    expect(data.result.action).toBe('draft'); expect(p.count()).toBe(0); expect(quota.total).toBe(0);
+    expect(data.effectiveContext).toEqual({ ...context(), questionCount: 3 });
+  });
+  it('returns the exact context sent to the provider after durable counters replace the client counters', async () => {
+    const quota = new TestQuota(); quota.questions = 1; const p = provider();
+    const response = await handle(request('turn', requestBody()), 'turn', { env, quota, fetcher: p.fetcher, now: () => now });
+    expect(response.status).toBe(200);
+    const data = await json(response);
+    const messages = p.bodies[0].messages as Array<{ role: string; content: string }>;
+    const providerContext = JSON.parse(messages.find(message => message.role === 'user')!.content);
+    expect(providerContext.questionCount).toBe(1);
+    expect(data.effectiveContext).toEqual(providerContext);
+    expect(data.effectiveContext).toEqual({ ...context(), questionCount: 1 });
+    expect(p.count()).toBe(1);
   });
   it('enforces quota boundaries before paid work and exposes readiness', async () => {
     for (const field of ['total', 'daily', 'calls'] as const) {
