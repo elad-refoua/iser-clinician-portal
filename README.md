@@ -9,7 +9,7 @@
 - אתר: [מרווח בגיטהאב](https://elad-refoua.github.io/iser-clinician-portal/)
 - שרת וגרסת אירוח נוספת: [Vercel](https://iser-clinician-api.vercel.app/)
 - ספר הפעלה: [מדריך באתר](https://elad-refoua.github.io/iser-clinician-portal/handbook.html), [PDF](https://elad-refoua.github.io/iser-clinician-portal/handbook.pdf)
-- מצב מימוש ובדיקות מתעדכן ב־[יומן העבודה](Implementation_2026-10-16/progress.md). קישור כאן אינו כשלעצמו אישור שבדיקת המסירה הושלמה.
+- תוצאות בדיקות המסירה וגבולותיהן מתועדות ב־[ראיות השחרור](Verification_2026-10-16/RELEASE_CHECKS.md); מצב המימוש והמשך העבודה מתעדכנים ב־[יומן העבודה](Implementation_2026-10-16/progress.md).
 
 ## הפעלה מקומית
 

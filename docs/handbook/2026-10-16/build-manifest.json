@@ -1,28 +1,28 @@
 {
-  "version": "2026-10-16.1",
-  "promptVersion": "2026-10-16.2",
-  "sourceSha256": "7426c72803b90084df8509770eaadf4b3e75f4e3c0fc7fe4b3a8220e220bfe46",
-  "generatedAt": "2026-10-16T09:23:36.753Z",
+  "version": "2026-10-16.2",
+  "promptVersion": "2026-10-16.4",
+  "sourceSha256": "045d7824e65a069a9dee2d639d09f529135717e02780904dfb55ef110015fbf6",
+  "generatedAt": "2026-10-16T09:59:54.460Z",
   "sourceFiles": [
     {
       "path": "docs/handbook/2026-10-16/handbook.md",
-      "sha256": "fcfe5268846380eec13f7801c0c7a0c47ebc291b05b1c606f646abb58548fabe"
+      "sha256": "66f0da8d6a214342719b5568cff1e01795694797083735bc2687091965129e57"
     },
     {
       "path": "docs/handbook/2026-10-16/metadata.json",
-      "sha256": "b40ac181a93157682da6da818ffc9157f946ec9403a507419bd3c10eb3bb22e3"
+      "sha256": "34092e5679a8c0662e684af56d33bfdedd15b3cc6e58ff0732890ad7c74983e3"
     },
     {
       "path": "docs/handbook/2026-10-16/release-evidence.md",
-      "sha256": "734a958c5b87f44c485e5a3bdfab3c814d01601b80dc4c6db7055381e8be0626"
+      "sha256": "6ed964c0e04898bee7bae3898ac34d27066a7ca96b431ce3f54adddbb35f9536"
     },
     {
       "path": "docs/handbook/2026-10-16/handbook.css",
-      "sha256": "72056da5b4cdad0b9604e8ec8f7161f7c868dc512f18d92bf5543ead7ec4c141"
+      "sha256": "29715eb5910208a3db9bc130f05c2819bfca132ec687be03caaffb9dc6e0dd22"
     },
     {
       "path": "packages/prompts/index.ts",
-      "sha256": "c7e818dad1d742743fea6d4852e63863d2ecfcaa289d46f7901c75015e4a26d8"
+      "sha256": "2e1dfbc67b1bdcc6143919d36df8ec0ed2c049a2e786fba611640f1bbc9ff6fd"
     },
     {
       "path": "packages/prompts/intake-schema.ts",
@@ -30,11 +30,11 @@
     },
     {
       "path": "packages/contracts/index.ts",
-      "sha256": "8694503f7a12b9e164c3a09137b31bab24bfde7db57fa52a84e901fabd47fe05"
+      "sha256": "a79fad738fc3fa74102d2b468b93492d711b747ddf452288e71678a07c0018e8"
     },
     {
       "path": "packages/domain/index.ts",
-      "sha256": "44c32f4a3396e42d034a0a27f1e8bd8658d1bf082022b7ed25b29282424efa72"
+      "sha256": "c93a7e2a6394ee5a8e50f68ea17b0a21c1dccd83658b03a9bf1dda2fcde21df1"
     },
     {
       "path": "packages/domain/storage.ts",
@@ -42,19 +42,19 @@
     },
     {
       "path": "packages/domain/intake-report.ts",
-      "sha256": "84cd24aad255e59496b4fdaf51d44a80e39e2d06c3215068c92794f1288f8905"
+      "sha256": "6530d5d78a9e886c5c8bf7038029bf8eed5c168d6d91d14db40187c7b47d6795"
     },
     {
       "path": "apps/web/App.tsx",
-      "sha256": "44f35b170f5f77c068942ed90ec7eea923f46518b9162061234cffbab6655e38"
+      "sha256": "80331dbf1575f001ddb44737c6ae549130a4321b03f58387ffba507c22d88d51"
     },
     {
       "path": "apps/web/Documents.tsx",
-      "sha256": "76a0985bf86e8f13d9d7dfd1dd58d7156d69ba3868db5333e3c6cd091ad05c81"
+      "sha256": "4b6dd20df121bd7f1136168748134638c1e271595bc838f2c9ad9431fa8cfce4"
     },
     {
       "path": "apps/web/Backstage.tsx",
-      "sha256": "f94a265df6bfa12148ba4e8c0d6529f154c805b7acf267285c2d3bcf0c75c9b8"
+      "sha256": "e7a4e163b0078ef9f99c4c5c87530f07e5813bcdc64394fc41d9c54b2f86d552"
     },
     {
       "path": "apps/web/ui.tsx",
@@ -78,7 +78,7 @@
     },
     {
       "path": "apps/api/validation.ts",
-      "sha256": "73af01718ea58618a701b79e14fe7c19750a7d5063a37907e812ace1746de485"
+      "sha256": "1ab7a17d589119e79026523d3f1aa1db76730acb424f4bf120980201388a0c35"
     },
     {
       "path": "vercel.json",
@@ -93,12 +93,24 @@
       "sha256": "d88846ffecaa6f1e6bf951f40bdf411863c4796b07faf5cae7ffd62035439a0e"
     },
     {
+      "path": "vitest.config.ts",
+      "sha256": "7d841946088677bfae1a3fc11bdf313f275f2a6fd09e8d405bc6b874f2bccfbe"
+    },
+    {
       "path": "package.json",
-      "sha256": "db3d98a137ea2da4324294623a830e19ee6b1ff975b3adf1a28f8c25e1156562"
+      "sha256": "973ea2ca69b9d4bf73d83a0645abbd748f18611c9d900ce4f02135a998d35042"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "64ee8b9b7707406d4097ee1427a1b5a76acf08d48fa6c791fee6b4fec6a444fc"
+    },
+    {
+      "path": "README.md",
+      "sha256": "1a48e23ec6d04f3a19cd585f1c614b2a5dbd62cdfafc4e8f9703c9b23b20a61c"
     },
     {
       "path": "apps/api/README.md",
-      "sha256": "c13b31d7962f8822fc057511df3e7064642d86eed66909524d6fed25a1dd5f9d"
+      "sha256": "1571d47cc49d6db5658c0eae7739be5f144e3925a0a84285b15d233488654550"
     },
     {
       "path": "apps/web/README.md",
@@ -110,7 +122,7 @@
     },
     {
       "path": "scripts/build-handbook.ts",
-      "sha256": "c5ca88a751946115436c8a8d90c173f574d1464bfdbb76a57651d9d6506c5202"
+      "sha256": "9e0a5ffe9c27c30fde359be436d2d8d01deabb00b632e7994cd062628ea1e370"
     },
     {
       "path": "docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf",
@@ -120,11 +132,11 @@
   "outputs": [
     {
       "path": "apps/web/public/handbook.html",
-      "sha256": "e8d40ee959ea666e0127f01d52e5ac654d5496b895fcc4ef9617d65789e7bc89"
+      "sha256": "331fc6cccbd1dab6169d5ef06d627a9ec8d9270eecdc6f2d67f43fb45ef22aa0"
     },
     {
       "path": "apps/web/public/handbook.pdf",
-      "sha256": "7dd8fe6e1827ac33ad307d589919151aa1790fe820ec35d7b20ac1eae46c6571"
+      "sha256": "fbeb0ef556f6cad0a23fda70dfba94ed4c8c454de121ee2a86e858e4c8e458e7"
     }
   ],
   "localArtifactChecks": {

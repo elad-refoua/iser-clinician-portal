@@ -21,7 +21,7 @@ const sourceFiles = [
   'packages/domain/intake-report.ts',
   'apps/web/App.tsx', 'apps/web/Documents.tsx', 'apps/web/Backstage.tsx', 'apps/web/ui.tsx',
   'apps/api/handler.ts', 'apps/api/auth.ts', 'apps/api/quota.ts', 'apps/api/provider.ts', 'apps/api/validation.ts',
-  'vercel.json', '.github/workflows/pages.yml', 'vite.config.ts', 'package.json', 'README.md',
+  'vercel.json', '.github/workflows/pages.yml', 'vite.config.ts', 'vitest.config.ts', 'package.json', 'package-lock.json', 'README.md',
   'apps/api/README.md', 'apps/web/README.md', 'packages/prompts/README.md',
   'scripts/build-handbook.ts', 'docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf',
 ];

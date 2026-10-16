@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-16T09:56:09.787Z",
+  "oldCodeStatus": 401,
+  "modelsStatus": 200,
+  "promptVersion": "2026-10-16.4",
+  "liveReady": true,
+  "readiness": {
+    "providerKey": true,
+    "access": true,
+    "quota": true
+  },
+  "cors": "https://elad-refoua.github.io"
+}
