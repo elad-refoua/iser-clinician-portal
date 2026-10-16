@@ -1,20 +1,20 @@
 {
-  "version": "2026-10-16.6",
+  "version": "2026-10-16.7",
   "promptVersion": "2026-10-16.12",
-  "sourceSha256": "0c5f8ba024b652a1cb5736b65004d1426359b5f11d2789406342e453285eb046",
-  "generatedAt": "2026-10-16T13:53:29.825Z",
+  "sourceSha256": "e35a64b2374b89645d89f98f83cc307eed154432a4ea54617d1ce97ec405c355",
+  "generatedAt": "2026-10-16T14:25:37.930Z",
   "sourceFiles": [
     {
       "path": "docs/handbook/2026-10-16/handbook.md",
-      "sha256": "7fdd469a70f85836158e271c1b01d6089ba33740b3df1a4c084eb457f180ce73"
+      "sha256": "a2400f8d81e835296e6ec71d36e03313a62cd74cd8c5debc7bd25a28e179443f"
     },
     {
       "path": "docs/handbook/2026-10-16/metadata.json",
-      "sha256": "c99f91ca2b94dc1876a6ca28a58a1209b053a3157d3defdc62c9fb7ae246273c"
+      "sha256": "6217f6c1c69ded81fba663a0d968d20e571ead2bb468dde86a24c9f04d3dfd4b"
     },
     {
       "path": "docs/handbook/2026-10-16/release-evidence.md",
-      "sha256": "4b99827b30b4748f201bccdc9b87293bd9d7952a83ebdaf4d01f0c18464f7696"
+      "sha256": "32e2932f3f0876ec5e2d04a7f50f28c88c9fcbb282905261d1a5118e5a86db29"
     },
     {
       "path": "Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md",
@@ -182,11 +182,11 @@
     },
     {
       "path": "tests/api.test.ts",
-      "sha256": "e215278343001eb457678e05c7f5ea55eca0f581be10e19fd83934fd6ed75ff1"
+      "sha256": "04c5bb7acec777206670662c54440a7564a97603a44422ae198f7d0071ec7b2d"
     },
     {
       "path": "tests/quota-limits.test.ts",
-      "sha256": "9ac465708673f8fd8ced7f75c4a9bceda212065d3860cc8bc4270210ac62f344"
+      "sha256": "def0824f9e8884dec4ac47342879fb194caa3012be46d5bb35a5b6057257ebde"
     },
     {
       "path": "tests/wire-field-schema.test.ts",
@@ -214,7 +214,7 @@
     },
     {
       "path": "apps/api/quota.ts",
-      "sha256": "682e2354db09a780e404b1c8c083e9b3291fc7f76d9bf540211288ed86c3126a"
+      "sha256": "7d1e7c1aa7c0c3a09cc98e519b40970bcab153dc1e7f9b4749d1d9e527760cdb"
     },
     {
       "path": "apps/api/provider.ts",
@@ -270,7 +270,7 @@
     },
     {
       "path": "apps/api/README.md",
-      "sha256": "def9a6a0b16a1922307d09e625cf95cee0b825b27550ef7743f8ba9487d1b775"
+      "sha256": "57c6f6b67afc5e0ba39b0737128ab5076e0fa62c1b6e386bc26d646a1a94932b"
     },
     {
       "path": "apps/web/README.md",
@@ -292,11 +292,11 @@
   "outputs": [
     {
       "path": "apps/web/public/handbook.html",
-      "sha256": "4a106c34b76062f82338b836768a81ff977c337c49d88b078e353c0464ceddae"
+      "sha256": "3eef2c39e90dd18011c0eab6e65b43aa03653515ef642d8128a3d0d872d3557e"
     },
     {
       "path": "apps/web/public/handbook.pdf",
-      "sha256": "9b1324f4ba9a4bd7ab910ad5fa5ef17c87d6de9768f9ce5a8f06c8f2dce22b35"
+      "sha256": "46b3a5b05e81f4879c6cd31fe3339ebc289c94c072e3df83e620035f75ac60a4"
     }
   ],
   "localArtifactChecks": {

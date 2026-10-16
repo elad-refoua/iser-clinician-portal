@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { dailyLimitMicros, FINALIZE_LUA, LIMITS, RedisQuotaStore, RESERVE_LUA, type ReservationInput } from '../apps/api/quota.js';
+import { FINALIZE_LUA, RedisQuotaStore, RESERVE_LUA, type ReservationInput } from '../apps/api/quota.js';
 
 const env = { KV_REST_API_URL: 'https://redis.example', KV_REST_API_TOKEN: 'fictional-test-token' };
 const reservationInput = (now: number): ReservationInput => ({
@@ -8,23 +8,16 @@ const reservationInput = (now: number): ReservationInput => ({
   questionCount: 1, intakeCount: 0, intakeRound: 0,
 });
 
-describe('temporary daily spending cap', () => {
+describe('trial spending limits', () => {
   it.each([
-    ['2026-10-15T23:59:59.999Z', 2_000_000],
-    ['2026-10-16T00:00:00.000Z', 5_000_000],
-    ['2026-10-16T23:59:59.999Z', 5_000_000],
-    ['2026-10-17T00:00:00.000Z', 2_000_000],
-    ['2026-10-18T12:00:00.000Z', 2_000_000],
-    ['2026-10-17T02:59:59.999+03:00', 5_000_000],
-    ['2026-10-17T03:00:00.000+03:00', 2_000_000],
-  ])('uses the UTC date at %s', (timestamp, expected) => {
-    expect(dailyLimitMicros(Date.parse(timestamp))).toBe(expected);
-  });
-
-  it.each([
-    ['2026-10-16T23:59:59.999Z', '2026-10-16', 5_000_000],
-    ['2026-10-17T00:00:00.000Z', '2026-10-17', 2_000_000],
-  ])('passes the server-time cap to the existing Redis reservation at %s', async (timestamp, day, expectedLimit) => {
+    ['2026-10-15T23:59:59.999Z', '2026-10-15'],
+    ['2026-10-16T00:00:00.000Z', '2026-10-16'],
+    ['2026-10-16T23:59:59.999Z', '2026-10-16'],
+    ['2026-10-17T00:00:00.000Z', '2026-10-17'],
+    ['2026-10-17T02:59:59.999+03:00', '2026-10-16'],
+    ['2026-10-17T03:00:00.000+03:00', '2026-10-17'],
+    ['2027-01-01T00:00:00.000Z', '2027-01-01'],
+  ])('passes stable limits and the server UTC day to Redis at %s', async (timestamp, day) => {
     const commands: (string | number)[][] = [];
     const fetcher = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
       commands.push(JSON.parse(String(init?.body)));
@@ -40,11 +33,10 @@ describe('temporary daily spending cap', () => {
     const args = command.slice(10);
     expect(args).toEqual([
       input.payloadHash, input.now, input.micros,
-      10_000_000, expectedLimit, 250_000, 40, 120_000, 2,
+      20_000_000, 10_000_000, 250_000, 100, 120_000, 2,
       input.codeId, input.revision, input.questionCount, input.intakeCount, input.intakeRound,
     ]);
     expect(reservation.day).toBe(day);
-    expect(LIMITS.dailyMicros).toBe(2_000_000);
   });
 
   it('finalizes against the original reservation day without resetting receipts or counters', async () => {

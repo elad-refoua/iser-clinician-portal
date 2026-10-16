@@ -65,9 +65,9 @@ Saving a workspace does not change the model authorization boundary. `/api/turn`
 
 ## Durable quotas and idempotency
 
-`quota.ts` uses atomic Redis Lua scripts and the namespace `iser:v1:`. Amounts are integer microdollars (one million equals one USD). The base daily limit is $2 per UTC calendar day. A user-authorized temporary override raises that day's total cap to **$5 only on UTC 2026-10-16**, expiring automatically at **2026-10-17 00:00:00 UTC**, when the base $2 daily cap applies again. Spending already recorded for October 16 counts toward the $5 cap; no counters, reservations or receipts are reset or refunded by this change.
+`quota.ts` uses atomic Redis Lua scripts and the namespace `iser:v1:`. Amounts are integer microdollars (one million equals one USD). The user-authorized trial limits are **$10 per UTC calendar day** and **$20 total**. These limits have no scheduled expiry. All previously recorded spending and reservations count toward them; increasing the allowance does not reset or refund counters, reservations or receipts.
 
-The other limits remain $10 total, at most $0.25 reserved per request, 40 operations per access code per UTC day, one concurrent request per fictional session, and two across the environment. Policy-only finish responses count as an operation but finalize at zero cost. The temporary daily override does not raise the lifetime or per-request caps.
+The remaining limits are at most $0.25 reserved per request, 100 operations per access code per UTC day, one concurrent request per fictional session, and two across the environment. Policy-only finish responses count as an operation but finalize at zero cost. The application limits are separate from the OpenRouter account or key allowance; increasing one does not configure the other.
 
 `compactModelContext` removes only duplicated deterministic intake rendering when all fields are present, preserving original source text, messages and custom intake prose. Stored records stay complete. Working drafts and pending fields remain explicitly unapproved. The final effective context is returned for tracing.
 

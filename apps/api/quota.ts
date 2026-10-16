@@ -1,12 +1,7 @@
 import { digest } from './auth.js';
 import { ApiError, boundedJson, type Environment } from './errors.js';
 
-export const LIMITS = { totalMicros: 10_000_000, dailyMicros: 2_000_000, requestMicros: 250_000, dailyCalls: 40, globalConcurrency: 2, leaseMs: 120_000 } as const;
-// User-approved increase for this UTC day only; all later days use the base cap.
-export function dailyLimitMicros(serverNow: number): number {
-  return serverNow >= Date.UTC(2026, 9, 16) && serverNow < Date.UTC(2026, 9, 17)
-    ? 5_000_000 : LIMITS.dailyMicros;
-}
+export const LIMITS = { totalMicros: 20_000_000, dailyMicros: 10_000_000, requestMicros: 250_000, dailyCalls: 100, globalConcurrency: 2, leaseMs: 120_000 } as const;
 export interface ReservationInput { codeId: string; sessionKey: string; requestId: string; payloadHash: string; micros: number; now: number; revision: number; questionCount: number; intakeCount: number; intakeRound: number }
 export interface Reservation { requestKey: string; day: string; sessionKey: string; questionCount: number; intakeCount: number; intakeRound: number }
 export interface QuotaStore {
@@ -96,7 +91,7 @@ export class RedisQuotaStore implements QuotaStore {
     const sessionKey = digest(`${input.codeId}:${input.sessionKey}`);
     const requestKey = `${this.prefix}request:${digest(`${input.codeId}:${input.requestId}`)}`;
     const keys = [requestKey, `${this.prefix}total`, `${this.prefix}day:${day}`, `${this.prefix}calls:${input.codeId}:${day}`, `${this.prefix}leases`, `${this.prefix}lease:${sessionKey}`, `${this.prefix}session:${sessionKey}`];
-    const result = await this.command(['EVAL', RESERVE_LUA, keys.length, ...keys, input.payloadHash, input.now, input.micros, LIMITS.totalMicros, dailyLimitMicros(input.now), LIMITS.requestMicros, LIMITS.dailyCalls, LIMITS.leaseMs, LIMITS.globalConcurrency, input.codeId, input.revision, input.questionCount, input.intakeCount, input.intakeRound]) as string[];
+    const result = await this.command(['EVAL', RESERVE_LUA, keys.length, ...keys, input.payloadHash, input.now, input.micros, LIMITS.totalMicros, LIMITS.dailyMicros, LIMITS.requestMicros, LIMITS.dailyCalls, LIMITS.leaseMs, LIMITS.globalConcurrency, input.codeId, input.revision, input.questionCount, input.intakeCount, input.intakeRound]) as string[];
     if (!Array.isArray(result) || !['ok', 'error'].includes(result[0])) throw new ApiError(503, 'quota_store_unavailable');
     if (result[0] === 'error') {
       const minimumRevision = result[1] === 'stale_revision' ? Number(result[2]) : undefined;
