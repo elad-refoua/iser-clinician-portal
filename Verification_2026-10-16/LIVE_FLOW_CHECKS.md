@@ -1,7 +1,7 @@
 # Live conversation release verification — 2026-10-16
 
 ## Scope and candidate
-Fictional cases only. Chrome participant-facing interaction; credentials never included in output. Current candidate dpl_GsUfcShUwideMzFBB18LcMVaoKZb, READY: https://iser-clinician-rbdkcadiu-elad-refouas-projects.vercel.app . Prompt 2026-10-16.9. Canonical book/public publication still undergoing final checks at this checkpoint.
+Fictional cases only. Chrome participant-facing interaction; credentials never included in output. Current candidate dpl_GsUfcShUwideMzFBB18LcMVaoKZb, READY: https://iser-clinician-rbdkcadiu-elad-refouas-projects.vercel.app . Prompt 2026-10-16.9. Published feature commit:3fe8ce8c408af99ede3d50149fd3d421820e93f2. Final deployment and public checks are recorded below.
 
 ## Automated evidence
 173 tests passed, including the opt-in public model catalogue budget check (no inference). TypeScript and production build passed. The >500kB bundle warning remains; it is not a failed build. Regression coverage includes patient/time/branch isolation, pending fields, atomic five-document approval, stale proposal/version guards, JSON import, exact selected expansion, lossless deterministic intake-rendering compaction and budget reservations.
@@ -29,4 +29,10 @@ No clinical validation is claimed. GPT was exercised in the earlier release, not
 - Eitan5 direct edit removed the redundant draft heading. Save created version3; manual approval created version4 without LLM use. Restore of version3 created version5; subsequent manual approval created version6. The comparison retained all earlier versions.
 -390px viewport: document width375px, header153px, no page overflow. Approved state and compact controls visible. Screenshot live-mobile-approved.png. Viewport reset afterwards.
 - Backstage for Adi exposed actual prompt2026-10-16.9, five live traces and a context of three sources (administrative creation, session report, correction), zero pre-existing documents, zero interview questions. No other patient's sources appeared.
-- Remaining publication gate: matching handbook/PDF and manifest; stable Vercel/Pages publication and public browser checks.
+- Final Vercel deployment dpl_7iGt421J4GJ2E35GqaQ2kkBUYYrX is READY and promoted to https://iser-clinician-api.vercel.app . Immutable build: https://iser-clinician-4xlcrw4eo-elad-refouas-projects.vercel.app .
+- GitHub Pages run38898205975 succeeded for3fe8ce8: clean npm ci,172 tests passed/one conditional public catalogue check skipped, TypeScript/build and deployment. Local run with API_BUDGET_LIVE=1 passed all173.
+- Public https://elad-refoua.github.io/iser-clinician-portal/ was reloaded in Chrome. Username/password login succeeded against the promoted API and automatically opened the saved workspace. Eitan5 showed six preserved versions and the approved edited note. Adi1 showed the corrected approved note and all five portal tabs. No browser error logs were captured in this public check. Screenshot:live-portal-public.png.
+- Published Hebrew handbook HTML loaded in the browser with edition.4/prompt.9 and matching source fingerprint. The PDF download button produced a local PDF; its SHA256 matches the reviewed artifact. Both HTML/PDF return200 on Pages and Vercel and match build-manifest.json byte-for-byte; see public-handbook-hashes.json.
+- Book:48 pages; all rendered and reviewed at contact-sheet scale, with detailed samples11,21,33,39,46. No text blocks outside page bounds.59 input hashes and both artifact hashes match.
+- Pattern-based credential scan found only explicit fake connection URLs in tests/workspace.test.ts. Private access file and Vercel service state are gitignored; no provider key was retrieved. This is a scoped check, not a comprehensive security audit.
+- No deployment/configuration input is currently required from the user. Final independent context/clinician review remains incomplete due to agent account limits; direct QA results are available and attributed above.

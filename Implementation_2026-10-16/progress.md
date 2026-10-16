@@ -93,3 +93,6 @@ Prompt .9 adds semantic preservation and excludes editorial metadata from notes 
 
 ### 2026-10-16 15:07 — final browser and book checks
 Adi live explicit correction succeeded and was approved; regeneration alone retained a prior summary error (documented limit). Eitan direct edit, manual approval, comparison and restore passed, six versions preserved. Mobile390px no horizontal overflow; backstage showed .9 and Adi-only sources. Handbook .4/.9 generated:48 pages,59 inputs, all hashes match, every page reviewed at contact scale and five pages at full scale. Publishing next.
+
+### 2026-10-16 — publication verified
+Feature3fe8ce8 published; Pages run38898205975 succeeded (clean install,172pass/1conditional skip; local173pass). Vercel dpl_7iGt421J4GJ2E35GqaQ2kkBUYYrX READY and promoted. Public browser login opened persistent workspace, Eitan six versions and Adi corrected approved note verified. HTML/PDF downloaded from both public origins match manifest; actual browser PDF download hash also matches. No public browser errors observed. Saved live-portal-public.png. Final continuity/evidence docs updated separately from frozen book source. No additional user setup; two final independent reviews still limited by agent account quota.

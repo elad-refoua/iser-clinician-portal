@@ -12,3 +12,5 @@ Source fingerprint: `f7242eb7634088a3e3851f87c13a4ff6bc78d273128cba507dbb5ae36c3
 
 HTML SHA256: `cebcd72308872ca3c803d942efee81d9b025577356b9b550fe1a6dfaa4a4c3d2`.
 PDF SHA256: `e3cb0bff2460777836180538d076ebfee4a81257289a140fe8ecf14bc02b68a1`.
+
+Public release check: Pages and stable Vercel serve byte-identical HTML/PDF matching the manifest. Browser opened HTML edition.4/prompt.9; actual PDF download matched SHA256 above. See Verification_2026-10-16/public-handbook-hashes.json and LIVE_FLOW_CHECKS.md.
