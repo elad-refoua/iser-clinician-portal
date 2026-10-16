@@ -12,6 +12,7 @@
     "handbook": "tsx scripts/build-handbook.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
     "idb": "8.0.4",
     "lucide-react": "1.58.0",
     "react": "19.3.1",

@@ -1,13 +1,114 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { createDemoState } from '../fixtures/fictional';
 import { preparedDraft } from '../fixtures/fictional/prepared';
-import { acceptProposal, addUserMessage, applyTurn, approveSession, buildContext, cancelPreference, createSession, currentVersion, editDocument, emptyIntakeFields, exportState, forkBranch, importState, renderIntakeReport, restoreVersion, saveDraft } from '../packages/domain';
+import { acceptProposal, addUserMessage, applyTurn, approveSession, buildContext, cancelPreference, createPatient, createSession, currentVersion, editDocument, emptyIntakeFields, exportState, forkBranch, importState, renderIntakeReport, restoreVersion, saveDraft } from '../packages/domain';
 import type { PortalState, TurnResult } from '../packages/contracts';
 
 const patient = 'fictional-tamar'; const branch = `${patient}-main`;
 function active() { return createSession(createDemoState(), patient, branch, 5); }
 const question: TurnResult = { action: 'question', utterance: 'מה חשוב לך לשמור מהרגע הזה?', topic: 'רגע בפגישה', rationale: 'בירור לתיעוד', fieldUpdates: [], preferenceUpdates: [] };
 afterEach(() => vi.useRealTimers());
+
+describe('new patient records', () => {
+  it('atomically creates an empty first session and only the supplied administrative information', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-16T10:00:00.000Z'));
+    const original = createDemoState(); const before = exportState(original);
+    const created = createPatient(original, { name: '  תיק בדיקה א  ', schedule: { dayOfWeek: 0, time: '09:30' } });
+    expect(exportState(original)).toBe(before);
+    expect(created.patient).toMatchObject({ name: 'תיק בדיקה א', description: '', fictional: true, schedule: { dayOfWeek: 0, time: '09:30' } });
+    expect(created.patient).not.toHaveProperty('age');
+    expect(created.branch).toMatchObject({ patientId: created.patient.id });
+    expect(created.branch).not.toHaveProperty('parentId');
+    expect(created.session).toMatchObject({ patientId: created.patient.id, branchId: created.branch.id, number: 1, startedAt: '2026-10-16T10:00:00.000Z', status: 'writing', revision: 0, composer: '', messages: [], traces: [], questionCount: 0, intakeCount: 0 });
+    expect(created.state.versions).toEqual(original.versions);
+    const context = buildContext(created.state, created.session.id);
+    expect(context.documents).toEqual([]); expect(context.messages).toEqual([]); expect(context.preferences).toEqual([]);
+    expect(context.sources).toHaveLength(1);
+    expect(context.sources[0]).toMatchObject({ patientId: created.patient.id, branchId: created.branch.id, kind: 'manual', recordedAt: '2026-10-16T10:00:00.000Z' });
+    expect(context.sources[0]).not.toHaveProperty('sessionId');
+    expect(context.sources[0].text).toContain('תיק בדיקה א');
+    expect(context.sources[0].text).toContain('יום ראשון, שעה 09:30');
+    expect(context.sources[0].text).toContain('אינו תיעוד של פגישה שהתקיימה');
+  });
+  it('allows name only, day only, time only and all valid day/time boundaries without inventing values', () => {
+    for (const schedule of [undefined, { dayOfWeek: 0 }, { dayOfWeek: 6 }, { time: '00:00' }, { time: '23:59' }]) {
+      const created = createPatient(createDemoState(), { name: 'בדיקה', ...(schedule ? { schedule } : {}) });
+      expect(created.patient.schedule).toEqual(schedule);
+      expect(created.patient.age).toBeUndefined();
+      expect(importState(exportState(created.state))).toEqual(created.state);
+    }
+  });
+  it('isolates same-named new patients from one another and from seeded records', () => {
+    const first = createPatient(createDemoState(), { name: 'תיק בדיקה' });
+    const firstState = addUserMessage(first.state, first.session.id, 'מידע בדיוני ששייך לתיק הראשון בלבד');
+    const second = createPatient(firstState, { name: 'תיק בדיקה' });
+    expect(new Set([first.patient.id, second.patient.id, first.branch.id, second.branch.id, first.session.id, second.session.id]).size).toBe(6);
+    const firstContext = buildContext(second.state, first.session.id);
+    const secondContext = buildContext(second.state, second.session.id);
+    expect(firstContext.sources.every(source => source.patientId === first.patient.id)).toBe(true);
+    expect(secondContext.sources.every(source => source.patientId === second.patient.id)).toBe(true);
+    expect(JSON.stringify(secondContext)).not.toContain('מידע בדיוני ששייך לתיק הראשון בלבד');
+    expect(buildContext(second.state, `${patient}-session-4`).sources.every(source => source.patientId === patient)).toBe(true);
+  });
+  it('continues to session two while preserving the first session and its saved note', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-16T10:00:00.000Z'));
+    const first = createPatient(createDemoState(), { name: 'בדיקת רצף', schedule: { dayOfWeek: 2, time: '14:00' } });
+    let state = addUserMessage(first.state, first.session.id, 'תיאור פגישה בדיוני ראשון');
+    state = editDocument(state, first.patient.id, first.branch.id, 'note', 'רשומת בדיקה ראשונה', undefined, first.session.id);
+    const savedSession = structuredClone(state.sessions.find(s => s.id === first.session.id));
+    const savedNote = structuredClone(currentVersion(state, first.patient.id, first.branch.id, 'note', first.session.id));
+    vi.setSystemTime(new Date('2026-10-23T10:00:00.000Z'));
+    const second = createSession(state, first.patient.id, first.branch.id, 2);
+    expect(second.state.sessions.find(s => s.id === first.session.id)).toEqual(savedSession);
+    expect(currentVersion(second.state, first.patient.id, first.branch.id, 'note', first.session.id)).toEqual(savedNote);
+    expect(second.session).toMatchObject({ number: 2, messages: [], composer: '', startedAt: '2026-10-23T10:00:00.000Z' });
+    expect(buildContext(second.state, second.session.id).sources.some(source => source.text === 'תיאור פגישה בדיוני ראשון')).toBe(true);
+    expect(importState(exportState(second.state))).toEqual(second.state);
+  });
+  it('imports older records with their existing ages and newer records without a supplied age', () => {
+    const old = createDemoState();
+    expect(old.patients.every(p => p.age !== undefined && p.schedule === undefined)).toBe(true);
+    expect(importState(exportState(old))).toEqual(old);
+    const created = createPatient(old, { name: 'בדיקת גיבוי', schedule: { dayOfWeek: 3, time: '17:45' } });
+    expect(importState(exportState(created.state))).toEqual(created.state);
+  });
+  it('rejects blank or overlong names consistently during creation and import', () => {
+    for (const name of ['', ' \t\n ', 'א'.repeat(201)]) {
+      const state = createDemoState(); const before = exportState(state);
+      expect(() => createPatient(state, { name })).toThrow();
+      expect(exportState(state)).toBe(before);
+      state.patients[0].name = name;
+      expect(() => importState(exportState(state))).toThrow();
+    }
+    const created = createPatient(createDemoState(), { name: 'א'.repeat(200) });
+    expect(importState(exportState(created.state))).toEqual(created.state);
+  });
+  it('rejects malformed or unknown schedule fields consistently during creation and import', () => {
+    for (const schedule of [{ dayOfWeek: -1 }, { dayOfWeek: 7 }, { dayOfWeek: 1.5 }, { dayOfWeek: '1' }, { time: '24:00' }, { time: '09:60' }, { time: '9:00' }, { time: '09:00Z' }, { time: '' }, { time: null }, { duration: 50 }]) {
+      const state = createDemoState();
+      expect(() => createPatient(state, { name: 'בדיקה', schedule } as any)).toThrow();
+      (state.patients[0] as any).schedule = schedule;
+      expect(() => importState(exportState(state))).toThrow();
+    }
+  });
+  it('keeps supplied ages adult-only and rejects non-fictional imports', () => {
+    for (const age of [17, 121, 20.5, null, '30']) {
+      const state = createDemoState(); (state.patients[0] as any).age = age;
+      expect(() => importState(exportState(state))).toThrow();
+    }
+    const created = createPatient(createDemoState(), { name: 'בדיקה' });
+    (created.patient as any).fictional = false;
+    expect(() => importState(exportState(created.state))).toThrow();
+  });
+  it('allows the fiftieth patient but rejects further creation without changing existing work', () => {
+    let state = createDemoState();
+    while (state.patients.length < 50) state = createPatient(state, { name: `תיק בדיקה ${state.patients.length + 1}` }).state;
+    expect(importState(exportState(state))).toEqual(state);
+    const before = exportState(state);
+    expect(() => createPatient(state, { name: 'תיק נוסף' })).toThrow('50');
+    expect(exportState(state)).toBe(before);
+  });
+});
 
 describe('time, case and branch context', () => {
   it('includes only the selected case and available past, never future sessions', () => {

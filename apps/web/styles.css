@@ -9,3 +9,19 @@
 .handbook-links{display:flex;align-items:center;gap:18px;padding:20px 24px;background:#e4eee5;border:1px solid #cfdfd0;border-radius:10px;margin-bottom:28px}.handbook-links>div{display:flex;align-items:center;gap:13px;flex:1}.handbook-links strong{font-size:15px}.handbook-links p{font-size:12px;color:var(--muted);margin:5px 0 0}.handbook-links a{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:nowrap}.handbook-links a.text-button{font-size:12px}@media(max-width:760px){.handbook-links{flex-wrap:wrap;padding:18px;gap:12px}.handbook-links>div{flex-basis:100%}.handbook-links p{font-size:11px}.handbook-links a{font-size:12px}}
 
 .main-nav{overflow-y:hidden}
+
+.new-patient-button{white-space:nowrap;flex-shrink:0}
+.new-patient-form{margin-top:24px}
+.meeting-schedule{margin:0;padding:18px 0 0;border:0;border-top:1px solid var(--line)}
+.meeting-schedule legend{font-size:14px;padding-inline-end:12px;color:var(--ink)}
+.meeting-schedule legend span{font-size:12px;color:var(--muted)}
+.schedule-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.schedule-fields input[type=time]{min-width:0;width:100%;direction:ltr;text-align:right}
+.patient-schedule{font-size:12px;color:var(--muted);margin-top:14px}
+.patient-schedule-mobile{display:none}
+@media(max-width:760px){.new-patient-button{order:1;margin-inline-start:auto;font-size:11px;padding-inline:10px}.header-inner>.settings-button{margin-inline-start:0}.schedule-fields{gap:12px}.patient-schedule{font-size:11px}.patient-schedule-mobile{display:block;margin:0 0 20px}}
+.storage-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.storage-connect{border:0;border-bottom:1px solid currentColor;background:none;color:inherit;padding:1px 0;font-size:12px;cursor:pointer}
+.cloud-notice{max-width:1140px;margin:18px auto 0;padding:16px 22px;background:#fff7e8;border:1px solid #e5d9bb;border-radius:12px;font-size:14px}
+.cloud-notice p{margin:0 0 10px}
+@media(max-width:760px){.storage-actions{justify-content:center;gap:6px 14px}.demo-strip{flex-wrap:wrap;gap:6px}.cloud-notice{margin:14px 18px 0}.storage-connect{font-size:11px}}

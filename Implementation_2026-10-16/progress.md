@@ -68,3 +68,6 @@ The final companion handbook contains 37 A4 pages, edition 2026-10-16.2 and prom
 
 ## Release delivered — 2026-10-16
 Product and matched handbook published in commit 9edba49. Pages Actions 38884374843 succeeded; Vercel deployment dpl_DCFM5gATAjfRHkiD3asVhu7uuFyz is READY. All four public handbook URLs return 200 and exactly match the manifest. Actual Chrome user view shows handbook .2 / prompt .4. The public PDF link downloaded a file whose SHA-256 matches the published 37-page PDF. CONTINUE_HERE now records the completed release instead of an outdated task list. Private access instructions remain local and ignored. No further user input is needed for the prototype.
+
+## New records and durable storage extension — 2026-10-16
+User confirmed minimal new-record fields (name/code, optional regular day/time), then clarified persistent storage is expected and fictional demo cases only. Neon Free fra1 resource iser-demo-records provisioned with accepted terms and linked Production DEMO_ variables. Implementing authenticated cross-browser workspace snapshots with revision conflicts, preserving local work and existing document history. New patient domain tests passed; UI build passed, integrated verification pending.

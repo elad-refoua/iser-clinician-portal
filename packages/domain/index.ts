@@ -1,11 +1,18 @@
 import { z } from 'zod';
-import type { Branch, ContextPacket, DocumentVersion, DraftResult, FieldUpdate, Goal, IntakeField, PortalState, Preference, PreferenceCancellation, Session, Source, TurnResult } from '../contracts';
-import { emptyIntakeFields, renderIntake } from '../prompts/intake-schema';
-import { renderIntakeReport } from './intake-report';
-export { emptyIntakeFields, renderIntake, intakeFields, intakeSections, fieldStatusLabels } from '../prompts/intake-schema';
-export { renderIntakeReport } from './intake-report';
+import type { Branch, ContextPacket, DocumentVersion, DraftResult, FieldUpdate, Goal, IntakeField, Patient, PortalState, Preference, PreferenceCancellation, Session, Source, TurnResult } from '../contracts';
+import { emptyIntakeFields, renderIntake } from '../prompts/intake-schema.js';
+import { renderIntakeReport } from './intake-report.js';
+export { emptyIntakeFields, renderIntake, intakeFields, intakeSections, fieldStatusLabels } from '../prompts/intake-schema.js';
+export { renderIntakeReport } from './intake-report.js';
 
 const goals: Goal[] = ['note', 'formulation', 'intake', 'gold', 'supervision'];
+const archiveLimits = { patients: 50, branches: 300, sessions: 2000, sources: 10000 };
+const patientNameSchema = z.string().trim().min(1, 'יש להזין שם תצוגה או קוד לתיק.').max(200, 'שם התצוגה או הקוד יכול להכיל עד 200 תווים.');
+const patientScheduleSchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6).optional(),
+  time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'יש להזין שעה תקינה בפורמט HH:mm.').optional(),
+}).strict();
+const newPatientSchema = z.object({ name: patientNameSchema, schedule: patientScheduleSchema.optional() }).strict();
 const uid = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 const now = () => new Date().toISOString();
 const distinct = (items: string[]) => [...new Set(items)];
@@ -95,6 +102,22 @@ function eligibleVersions(state: PortalState, patientId: string, branchId: strin
     const access = inScope(v, scope);
     return v.patientId === patientId && !v.proposal && !v.rejected && access && atOrBefore(v.createdAt, asOf) && (!access.cutoffAt || atOrBefore(v.createdAt, access.cutoffAt));
   });
+}
+
+export function createPatient(state: PortalState, input: Pick<Patient, 'name' | 'schedule'>): { state: PortalState; patient: Patient; branch: Branch; session: Session } {
+  const parsed = newPatientSchema.safeParse(input);
+  if (!parsed.success) throw new Error(parsed.error.issues[0].message);
+  if (state.patients.length >= archiveLimits.patients) throw new Error('אפשר לשמור עד 50 תיקים בהדגמה.');
+  if (state.branches.length >= archiveLimits.branches || state.sessions.length >= archiveLimits.sessions || state.sources.length >= archiveLimits.sources) throw new Error('האחסון הגיע למגבלת ההדגמה. יש לייצא גיבוי לפני פתיחת תיק נוסף.');
+  const patient: Patient = { id: uid('patient'), ...parsed.data, description: '', fictional: true };
+  const branch: Branch = { id: uid('branch'), patientId: patient.id, name: 'הרצף המקורי הבדיוני' };
+  const days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  const schedule = [patient.schedule?.dayOfWeek !== undefined ? `יום ${days[patient.schedule.dayOfWeek]}` : '', patient.schedule?.time ? `שעה ${patient.schedule.time}` : ''].filter(Boolean).join(', ');
+  const source: Source = { id: uid('manual'), patientId: patient.id, branchId: branch.id, kind: 'manual', recordedAt: now(),
+    text: `פרטי פתיחת תיק הדגמה — מידע מנהלי שהוזן על ידי המטפל.\nשם תצוגה או קוד: ${patient.name}${schedule ? `\nמועד שבועי מתוכנן: ${schedule}. המועד הוא תכנון קבוע בלבד ואינו תיעוד של פגישה שהתקיימה.` : ''}` };
+  const next = { ...state, patients: [...state.patients, patient], branches: [...state.branches, branch], sources: [...state.sources, source] };
+  const created = createSession(next, patient.id, branch.id, 1);
+  return { ...created, patient, branch };
 }
 
 export function createSession(state: PortalState, patientId: string, branchId: string, number: number): { state: PortalState; session: Session } {
@@ -256,13 +279,13 @@ const kind = z.enum(['note', 'formulation', 'intake', 'gold', 'supervision']);
 const fieldSchema = z.object({ id: z.number().int().min(1).max(32), value: z.string().max(30000), status: z.enum(['documented', 'partial', 'unknown', 'not_assessed', 'not_recalled', 'conflict', 'not_applicable']), sourceIds: z.array(identifier).max(200), remaining: z.string().max(5000).optional() }).strict();
 const archiveSchema = z.object({
   schemaVersion: z.literal(1),
-  patients: z.array(z.object({ id: identifier, name: z.string().max(200), age: z.number().int().min(18).max(120), description: z.string().max(2000), fictional: z.literal(true) }).strict()).min(1).max(50),
-  branches: z.array(z.object({ id: identifier, patientId: identifier, name: z.string().max(200), parentId: identifier.optional(), forkSession: z.number().int().min(1).max(1000).optional(), cutoffAt: date.optional() }).strict()).max(300),
-  sources: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, sessionId: identifier.optional(), sessionNumber: z.number().int().min(1).max(1000).optional(), text: z.string().max(100000), recordedAt: date, kind: z.enum(['clinician', 'manual', 'seed']) }).strict()).max(10000),
+  patients: z.array(z.object({ id: identifier, name: patientNameSchema, age: z.number().int().min(18).max(120).optional(), schedule: patientScheduleSchema.optional(), description: z.string().max(2000), fictional: z.literal(true) }).strict()).min(1).max(archiveLimits.patients),
+  branches: z.array(z.object({ id: identifier, patientId: identifier, name: z.string().max(200), parentId: identifier.optional(), forkSession: z.number().int().min(1).max(1000).optional(), cutoffAt: date.optional() }).strict()).max(archiveLimits.branches),
+  sources: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, sessionId: identifier.optional(), sessionNumber: z.number().int().min(1).max(1000).optional(), text: z.string().max(100000), recordedAt: date, kind: z.enum(['clinician', 'manual', 'seed']) }).strict()).max(archiveLimits.sources),
   versions: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, kind, sessionId: identifier.optional(), sessionNumber: z.number().int().min(1).max(1000).optional(), content: z.string().max(100000), fields: z.array(fieldSchema).max(32).optional(), sourceIds: z.array(identifier).max(10000), createdAt: date, author: z.enum(['clinician', 'assistant', 'seed']), reason: z.string().max(2000), baseVersionId: identifier.optional(), approved: z.boolean(), proposal: z.boolean().optional(), rejected: z.boolean().optional() }).strict()).max(10000),
   preferences: z.array(z.object({ id: identifier, topic: z.string().max(200), goal: kind.optional(), action: z.enum(['less', 'block', 'exclude']), scope: z.enum(['session', 'patient']), sessionId: identifier.optional(), patientId: identifier.optional(), branchId: identifier.optional(), recordedAt: date.optional() }).strict()).max(1000),
   preferenceCancellations: z.array(z.object({ id: identifier, preferenceId: identifier, patientId: identifier, branchId: identifier, sessionId: identifier, recordedAt: date }).strict()).max(1000).optional(),
-  sessions: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, number: z.number().int().min(1).max(1000), startedAt: date, closedAt: date.optional(), revision: z.number().int().min(0), status: z.enum(['writing', 'asking', 'draft', 'approved']), messages: z.array(z.object({ id: identifier, role: z.enum(['user', 'assistant']), text: z.string().max(100000), sourceId: identifier.optional(), at: date }).strict()).max(500), composer: z.string().max(100000), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), intakeActive: z.boolean(), skippedTopics: z.array(z.string().max(200)).max(100), traces: z.array(z.unknown()).max(200) }).strict()).max(2000),
+  sessions: z.array(z.object({ id: identifier, patientId: identifier, branchId: identifier, number: z.number().int().min(1).max(1000), startedAt: date, closedAt: date.optional(), revision: z.number().int().min(0), status: z.enum(['writing', 'asking', 'draft', 'approved']), messages: z.array(z.object({ id: identifier, role: z.enum(['user', 'assistant']), text: z.string().max(100000), sourceId: identifier.optional(), at: date }).strict()).max(500), composer: z.string().max(100000), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), intakeActive: z.boolean(), skippedTopics: z.array(z.string().max(200)).max(100), traces: z.array(z.unknown()).max(200) }).strict()).max(archiveLimits.sessions),
 }).strict();
 
 export function importState(json: string): PortalState {

@@ -1,7 +1,8 @@
 export type Goal = 'note' | 'formulation' | 'intake' | 'gold' | 'supervision';
 export type FieldStatus = 'documented' | 'partial' | 'unknown' | 'not_assessed' | 'not_recalled' | 'conflict' | 'not_applicable';
 export type Mode = 'prepared' | 'live';
-export interface Patient { id: string; name: string; age: number; description: string; fictional: true }
+export interface PatientSchedule { dayOfWeek?: number; time?: string }
+export interface Patient { id: string; name: string; age?: number; schedule?: PatientSchedule; description: string; fictional: true }
 export interface Branch { id: string; patientId: string; name: string; parentId?: string; forkSession?: number; cutoffAt?: string }
 export interface Preference { id: string; topic: string; goal?: Goal; action: 'less' | 'block' | 'exclude'; scope: 'session' | 'patient'; sessionId?: string; patientId?: string; branchId?: string; recordedAt?: string }
 export interface PreferenceCancellation { id: string; preferenceId: string; patientId: string; branchId: string; sessionId: string; recordedAt: string }

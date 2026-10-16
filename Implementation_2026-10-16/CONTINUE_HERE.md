@@ -1,52 +1,52 @@
 # המשכיות עבודה — 16.10.2026
 
-זהו מסמך המצב הנוכחי לקריאה אחרי קומפקט. התוכנית המאושרת נמצאת ב־`Planning_2026-10-16/MASTER_PLAN_HE.md`; ההיסטוריה נשמרת ב־`progress.md`, והראיות ב־`Verification_2026-10-16/RELEASE_CHECKS.md`.
+מסמך המצב הנוכחי לאחר הרחבת פתיחת התיקים והשמירה המתמשכת. התוכנית המקורית ב-Planning_2026-10-16/MASTER_PLAN_HE.md; שינוי האחסון המחייב ב-PERSISTENCE_EXTENSION_HE.md באותה תיקייה. ההיסטוריה ב-progress.md, וראיות ההרחבה ב-Verification_2026-10-16/PERSISTENCE_CHECKS.md.
 
 ## הרשאות וגבולות
-- אלעד אישר בנייה, פריסה ב־Vercel, פרסום במאגר GitHub וב־Pages ובדיקות OpenRouter בתשלום עם חומר בדיוני בלבד. אין צורך באישור חוזר לפעולות אלה.
-- אין לפתוח או להשתמש במידע של מטופלים אמיתיים. כל הדמויות והתרחישים נכתבו מאפס.
-- מפתח OpenRouter נמצא ב־Vercel Production. אין לשלוף או להדפיס אותו.
-- מכסות הקוד: $10 כולל, $2 ליום, עד $0.25 שמור לכל בקשה, עד 20 בקשות לקוד ליום. אין retry בתשלום או מעבר אוטומטי למודל אחר.
+- אלעד אישר בנייה, פריסה ב-Vercel, פרסום GitHub/Pages ובדיקות OpenRouter בחומר בדיוני. אין צורך באישור חוזר לפעולות אלה.
+- לאחר בקשת שמירה לאורך זמן, אלעד בחר במפורש בדמויות בדיוניות בלבד. אין לקרוא או להשתמש במידע של מטופלים אמיתיים.
+- קוד הגישה הפרטי הוא credential לסביבת עבודה יחידה; אינו חשבון מטפל רב-משתמשים. לא לפרסם אותו.
+- מפתח OpenRouter ושאר הסודות נמצאים ב-Vercel. אין לשלוף או להדפיס אותם.
+- תקציבי inference: $10 כולל, $2 ליום, עד $0.25 לבקשה, 20 פעולות לקוד ביום. הרחבת האחסון נבדקה ללא בקשות מודל בתשלום.
 
-## כתובות ומצב מימוש
-- אתר ציבורי: https://elad-refoua.github.io/iser-clinician-portal/
-- מאגר ציבורי: https://github.com/elad-refoua/iser-clinician-portal
-- שרת ואירוח מקביל: https://iser-clinician-api.vercel.app/
-- ענף העבודה המקומי `feat/clinician-portal`, נדחף ל־`origin/main`. מהדורת המוצר והספר פורסמה ב־commit `9edba49`; פריסת Pages מספר `38884374843` הצליחה. Vercel production: `dpl_DCFM5gATAjfRHkiD3asVhu7uuFyz`.
-- מוצר עובד: 3 תיקים בדיוניים, 12 פגישות עבר, שיתוף לאחר פגישה, שאלה יחידה בכל שלב, עד 3 שאלות ראשיות, סבב אינטייק רצוני עד 2 שאלות, חמש טיוטות, עריכה ישירה, גרסאות והשוואה/שחזור, ענפים, ייצוא וייבוא, העדפות, מאחורי הקלעים עם הפרומפט וההקשר שנשלחו בפועל.
-- גרסת פרומפט `2026-10-16.4`. ברירת מחדל Sonnet 5.5; זמינים גם GPT 6.1 Sol ו־Gemini 3.8 Flash, בכפוף לקטלוג בזמן ההפעלה.
-- הדפדפן שומר את התוכן ב־IndexedDB. Redis שומר מונים, נעילות וקבלות hashed בלבד. אין סנכרון בין מכשירים ואין תמיכה בנתוני מטופלים אמיתיים.
+## כתובות ושירותים
+- Pages: https://elad-refoua.github.io/iser-clinician-portal/
+- Repo: https://github.com/elad-refoua/iser-clinician-portal
+- API + mirror: https://iser-clinician-api.vercel.app/
+- Vercel project iser-clinician-api, prj_6xwSpHBFHPmQiszhGJLaJ1acDv9l, scope elad-refouas-projects, Node24.
+- Latest verified feature deployment: dpl_2s7RKnWV24kbLgcTjQroUAitih9V, READY. Final handbook deployment still pending at this checkpoint.
+- Neon iser-demo-records, Free free_v3, fra1, Production-only DEMO_ prefix. User accepted terms. DEMO_DATABASE_URL confirmed by name only; no credentials pulled.
+- Upstash iser-demo-quota remains counters/locks/hashed receipts only, no record content.
+- Private access instructions: .local/Access_2026-10-16/ACCESS.md, ignored. Same code opens the database or paid live demo. Old QA code invalid.
+- Local branch feat/clinician-portal is pushed as origin/main. CLI works; old Vercel MCP403 should not be retried needlessly.
 
-## שרת וגישה
-- Vercel project `iser-clinician-api`, id `prj_6xwSpHBFHPmQiszhGJLaJ1acDv9l`, scope `elad-refouas-projects`, Node 24; קישור CLI ב־`.vercel` שאינו במאגר.
-- Upstash `iser-demo-quota`, fra1, Free, autoUpgrade=false, eviction=false, prodPack=false. תנאים אושרו בידי אלעד.
-- משתני Production: `OPENROUTER_API_KEY`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `SESSION_SECRET`, `DEMO_ACCESS_CODE_HASH`, `ALLOWED_ORIGINS`. סודות אינם חלק מהמאגר.
-- קוד QA הוחלף. קוד המסירה הפרטי והוראותיו נמצאים ב־`.local/Access_2026-10-16/ACCESS.md` (ignored). קוד זה אומת בדפדפן באתר Pages. אין להכניסו לתיעוד הציבורי או ל־commit.
-- `/api/models` מציג readiness; `/api/access` מנפיק אסימון קצר־חיים; `/api/turn` ו־`/api/draft` דורשים אותו.
-- Vercel MCP החזיר 403 קודם; CLI עובד. אין לחזור על ניסיונות MCP זהים.
+## Product and storage now
+- Existing post-session flow: 3 wholly fictional seed cases, previous meetings, one question per turn, max3 main questions, voluntary intake round max2, five outputs, edits/version history, branching, preferences, source/context/prompt inspection.
+- New תיק חדש: required display name/code, optional recurring weekday/time only; own root branch and empty session1. No fabricated age/history. New sessions increment2,3... Patient switching no longer jumps to session5.
+- New authenticated GET/PUT /api/workspace: full fictional snapshot including source/document histories in Neon, no TTL,3MB request cap. Stable server-controlled DEMO_WORKSPACE_ID defaults owner-demo, independent of access-code rotation. Atomic expectedRevision CAS prevents stale writes.
+- Explicit connection through top פתיחת התיקים השמורים. Public anonymous use remains local. Cloud saving works independently of prepared/live model mode. Tokens remain memory-only and expire after1h; reopen/re-enter code to reconnect.
+- IndexedDB saves local work. Per-tab sessionStorage stores the last acknowledged baseline. Reconnect NEVER silently uploads differing local content. Clean unchanged local content may load newer remote; otherwise explicitchoice preserves oldlocal beforeadoption.
+- Sync errors/conflicts/auth failures create separate per-page recovery copies, updated while paused, no auto-deletion. Options→עותקים מקומיים לשחזור lists downloadable JSONs. A separate previous-before-cloud slot also exists. Import/reset warns that connectedserver is replaced too.
+- Prompt remains2026-10-16.4. Models Sonnet5.5(default),GPT6.1Sol,Gemini3.8Flash.
 
-## בדיקות שהושלמו
-- 79 בדיקות עברו, אחת מותנית מדולגת; typecheck/build עברו. `vitest.config.ts` מגביל גילוי לתיקיית tests, כדי לא להריץ עותק התקנה נקייה פעמיים.
-- כל שלושת המודלים עברו שאלה וחמש טיוטות במסלול חי. Sonnet נבדק גם מקצה לקצה בממשק. ביקורת תוכן נפרדת איתרה פער ייחוס שדה ב־Gemini; פרומפט .4 ובדיקה חוזרת פתרו את הדוגמה שנמצאה.
-- בדיקות דפדפן: שיתוף, דילוג, טיוטה, עריכה/גרסאות/שחזור, התמדה אחרי רענון, סבב אינטייק רצוני, הפרדת הדרכה מהרשומה, דוח פגישה 5, ייצוא JSON וייבוא חזרה עם אישור פנימי, ענף היסטורי, רוחב 390px וכניסה חיה דרך Pages.
-- סוכן נפרד בדק התקנה נקייה על Node 24, כולל משתנים, Pages base, תלויות ובנייה. `ADOPTER_REVIEW.md` מפרט מה נבדק ומה לא.
-- שני קובצי handbook הופקו מאותו מקור ומהפרומפטים בקוד: מהדורה 2026-10-16.2, פרומפט .4, 37 עמודי A4. כל העמודים רונדרו ונבדקו בגיליונות סקירה, עם בדיקות מפורטות של עמודים מייצגים; אין חריגת טקסט מגבולות העמוד. ה־HTML הציבורי נפתח ונבדק, וה־PDF הורד דרך קישור האתר. חתימות שני הקבצים זהות ל־manifest גם ב־Pages וגם ב־Vercel.
+## Verification completed
+-127 tests passed,1 optionalcatalogue skip. TypeScript+productionbuild passed.
+- Actual deployedbrowser: newrecord Monday17:30; session1prepared draft+approval; session2; then serverrecovery fromdifferentorigin withindependentIndexedDB. Recovered bothsessions,schedule,content,andtwofirst-session versions.
+- Olderwindow edit wasblocked, newerremote textpreserved. FinalrecoveryUIdownload producedvalidJSON with4cases,16sessions,81versions andtheunsynchronizedmarker.
+- Mobile390px nohorizontaloverflow, newrecord/savecontrolsvisible. Screenshot persistent-record-mobile.png.
+- UnauthenticatedGET401/no-store. GitHubPagesCORSpreflight204exactorigin;unapprovedorigin403.
+- Independentreview identified reconnect/sharedIDB data-loss route andasyncadoptionrace; bothfixed, sixregressiontests added. Fourrecoverytests verifypageisolation andfileintegrity.
+- Originalrelease livechecks ofall3models,cleanadopterinstall,existingUI/import/editorpassedpreviously; notrerunpaidinference unnecessarily.
 
-## מפת אחריות ומקורות
-- `apps/web/`: ממשק RTL והצגת מסמכים; `packages/domain/`: הקשר, זמן, ענפים, גרסאות והחרגות; `packages/contracts/`: טיפוסים.
-- `packages/prompts/`: הפרומפטים בפועל וסכמת 32 השדות; `fixtures/fictional/`: תוכן הדגמה מומצא.
-- `api/`, `apps/api/`: נתיבי Vercel, OpenRouter, אימות ומכסות.
-- `docs/handbook/2026-10-16/`: מקור ספר ההפעלה; `scripts/build-handbook.ts`: HTML/PDF; `apps/web/public/handbook.*`: תוצרים לפרסום.
-- עבודת הסוכנים שולבה והמהדורה נמסרה. לפני המשך פיתוח יש לבדוק git status ולשמר עבודה חדשה של אחרים.
+## Current next steps
+1. Root: commit/push feature toPages; verifypublicPagesconnect/load/newrecord controls.
+2. Handbook agent: sourcefreeze received, edition2026-10-16.3, prompt.4,40sourceinputs includingallnewmodules. RegeneratepairedHTML/PDF,renderallpages,verifyLF/sourcehashes.
+3. Root: commitmatchedhandbook,deployVercel+Pages,verifypublicfilehashesandbrowserbook/download,update this checkpoint tocompleted.
+No more user input is needed. Preserve currentagentedits; do not restartplanning.
 
-## מצב המסירה והמשך אפשרי
-הבנייה, הפריסה, בדיקות המטפל, בדיקת ההתקנה הנקייה, הספר וה־PDF הושלמו. אין פעולה נדרשת מאלעד כדי לצפות בדמו. להפעלת שיחה חיה יש להשתמש בקוד הפרטי שבקובץ ACCESS.md המקומי, דרך כפתור המצב באתר.
+## Email investigation already resolved
+The Vercel email at12:13Israel concerned12:10faileddeployment dpl_2EMmNyK8hQqG2EQbXqnPWvgjNHAV, commit8e38fa9, TS2339 Preference.recordedAt. It hadalreadybeenfixed beforeemailarrival;sevenlaterdeployments succeeded. It wasnotacurrentoutage.
 
-אין משימת יישום פתוחה במסגרת האב־טיפוס המאושר. שיפורים עתידיים יוגדרו מתוך משוב על ההדגמה; אין להפוך את הדמו למערכת נתוני מטופלים בלי תכנון והרשאה נפרדים. הראיות מבחינות בין בדיקות שעברו, מדגם שיחות וגבולות שלא תוקפו.
-
-## פקודות
-`npm ci`, `npm test`, `npm run typecheck`, `npm run build`, `npm run handbook`.
-
-`vercel deploy --prod --yes --scope elad-refouas-projects`; `git push origin HEAD:main`.
-
-לאחר קומפקט בדפדפן: `cua.rewriteDocumentation()`; הדפדפן שנבחר הוא Chrome id 3. אין להשתמש בטאבים ישנים שנתקעו על native confirm; הממשק הוחלף באישור פנימי ונבדק מחדש.
+## Tools and browser continuity
+Commands: npm test; npm run build; npm run handbook; vercel deploy --prod --yes --scope elad-refouas-projects; git push origin HEAD:main.
+Aftercompaction: cua.rewriteDocumentation(). SelectedChromeid3. recordsTab469737094 stableVercel; recoveryTab469737097 immutablepreviousdeployment withindependentstorage. Privatecode already held in REPL finalAccessCode; neverprint. Currenttabsarenotmarkedtosurvive yet. Viewportresetaftermobilecheck. NativeAXcontrolsare reliable; PlaywrightgetByLabel sometimesmissesanddownload eventtimedoutalthoughactualdownloadcompleted. Verify actualdownloadfile whennecessary; neverassumefailurefromeventalone.

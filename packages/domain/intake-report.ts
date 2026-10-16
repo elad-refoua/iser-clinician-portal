@@ -1,5 +1,5 @@
 import type { IntakeField, Preference } from '../contracts';
-import { intakeFields, renderIntake } from '../prompts/intake-schema';
+import { intakeFields, renderIntake } from '../prompts/intake-schema.js';
 
 const normalize = (text: string) => text.normalize('NFKC').replace(/[\u0591-\u05C7]/g, '').toLowerCase().trim();
 const labelGroups = [
