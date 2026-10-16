@@ -56,3 +56,6 @@ Live Sonnet reached 200 after provider-schema portability fix; compound question
 
 ## Release checkpoint — 12:40 local
 79 tests pass; TypeScript/build pass. Prompt .3 deployed. All three models passed live turn AND five-document draft. Sonnet clinician browser flow passed, including supervision separation and complete-format intake with missing fields. Browser export downloaded and preserved as fictional evidence. Historical branch showed only sessions1–2. UI historical paid-call preflight fixed locally for next deployment. Adopter clean-copy build in progress; Pages pending publication.
+
+## Public release check — 12:54 local
+GitHubcommit0393251publishedmain; Actions38882146228 succeeded. PublicPages loadedasnewuser. Mobile390pxlayoutcheckednohorizontaloverflow. Cleanadopterinstallation andbuildpassed. Gemini v3fieldcitationgap repairedwithpromptv4andnewliveGemini5documentdraftreviewednoadditionalblocker. Accesscode rotatedviaCLI intoignored .local/Access_2026-10-16/code.txt andACCESS.md; deploymentinprogress. UIbackup/reset nowusesin-pageconfirmationwithexportoption followingnativebrowserdialogautomationstall; retestpending.

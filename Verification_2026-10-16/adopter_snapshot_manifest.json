@@ -53,19 +53,19 @@
   },
   {
     "path": "apps/api/README.md",
-    "sha256": "4c257b0f0d564b40904afd9ff79880360f4ded24b65c1d3193269fc40f1bf7a4"
+    "sha256": "1571d47cc49d6db5658c0eae7739be5f144e3925a0a84285b15d233488654550"
   },
   {
     "path": "apps/api/validation.ts",
-    "sha256": "205d4c51d5f40be247e788ac6bd6ad2a3e04ae787664f154a02eacf4ba55ec24"
+    "sha256": "1ab7a17d589119e79026523d3f1aa1db76730acb424f4bf120980201388a0c35"
   },
   {
     "path": "apps/web/api-errors.ts",
-    "sha256": "d0d86d1c50df91371ee0f1f327210b283d93e24ebfa1e703e30e4dd85221d928"
+    "sha256": "ef9eca3f6faa0a63260eb6feb94227042ecd44f213d0f05f235ff6dd82237404"
   },
   {
     "path": "apps/web/App.tsx",
-    "sha256": "0192183f0b02af7343a70c69b960b2a227dc9c9aaa1f6975992583348a0332ef"
+    "sha256": "e79204632ffb1a88221ab69c9a29f7b02c2b0ad3258cb9a004db367f485af6cf"
   },
   {
     "path": "apps/web/assets/NotoSansHebrew.ttf",
@@ -73,11 +73,11 @@
   },
   {
     "path": "apps/web/assets/OFL.txt",
-    "sha256": "9b9fe028b5ba74d231659a1bbaf0ed09b11e759d1ca6a070999e16d151616b47"
+    "sha256": "5b93a1ad3c9891b755443440b067f4b1a5e4d51fedde1055aa310ee33f09394a"
   },
   {
     "path": "apps/web/Backstage.tsx",
-    "sha256": "f94a265df6bfa12148ba4e8c0d6529f154c805b7acf267285c2d3bcf0c75c9b8"
+    "sha256": "e7a4e163b0078ef9f99c4c5c87530f07e5813bcdc64394fc41d9c54b2f86d552"
   },
   {
     "path": "apps/web/DESIGN.md",
@@ -85,11 +85,11 @@
   },
   {
     "path": "apps/web/Documents.tsx",
-    "sha256": "c1328ccd1bad389dd80b92337307d4fa0e57dc7bfe61383a56c45e130ec2be3f"
+    "sha256": "4b6dd20df121bd7f1136168748134638c1e271595bc838f2c9ad9431fa8cfce4"
   },
   {
     "path": "apps/web/index.html",
-    "sha256": "6532c24e5a8c8b7435ad9ae988d4e61fa536d7708a64c138b77466b0e74ae020"
+    "sha256": "46d3629b0036f718ce4d85b856b1517d04f5cc3f154af90d3fb76efd3b433679"
   },
   {
     "path": "apps/web/main.tsx",
@@ -109,7 +109,7 @@
   },
   {
     "path": "apps/web/styles.css",
-    "sha256": "852e0173361f4a2d1255212ecba02ad84b5768624846da9ea64e1200ffa1535d"
+    "sha256": "d785a3f90f55059d276278689e775d1515a64f83e39d339d18693fdb80f9521a"
   },
   {
     "path": "apps/web/ui.tsx",
@@ -201,7 +201,7 @@
   },
   {
     "path": "packages/prompts/index.ts",
-    "sha256": "08080fdb29cf0cabaa0cabe65ceb4be8114461d5e2602c4c8fb260ba40442ac3"
+    "sha256": "94025d6d7b5226ba9494002b45bc2ac748ecd7defce3f30266842e2cf87413a4"
   },
   {
     "path": "packages/prompts/intake-schema.ts",
@@ -241,7 +241,7 @@
   },
   {
     "path": "tests/api.test.ts",
-    "sha256": "a80ea208a091510a40659dd5124f544f4500276e561d2e7349b912be8a47f50b"
+    "sha256": "9008b0c52e57ce434ed4ec4170cf717a0886f6484566a2397d37b8eedefcfcfc"
   },
   {
     "path": "tests/domain.test.ts",
