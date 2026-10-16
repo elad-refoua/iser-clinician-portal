@@ -1,3 +1,11 @@
+# Handbook verification — current edition2026-10-16.7
+
+Prompt.12 unchanged. Source fingerprint `e35a64b2374b89645d89f98f83cc307eed154432a4ea54617d1ce97ec405c355`. All71source hashes and both outputs match. PDF51pages, zero out-of-page text blocks,22TOClinks/anchors, loadedfonts and no desktop/mobile overflow. Updatedbudget/evidence pages25/34 visually reviewed at full resolution; no clipping or overlap. No new all-page visual pass claimed.
+
+Public Pages38915957065 and Vercel dpl_2TQBaQmNRmrSSF8ZEnPVMnvBRvpC verified. Browser edition/budget table and downloadedPDF match. Allfourpublicartifact hashes match. PDFSHA256 `46b3a5b05e81f4879c6cd31fe3339ebc289c94c072e3df83e620035f75ac60a4`.
+
+## Prior edition verification history
+
 # Handbook verification — 2026-10-16
 
 Edition2026-10-16.6; prompt2026-10-16.12.

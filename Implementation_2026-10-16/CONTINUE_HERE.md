@@ -2,24 +2,24 @@
 
 ## Current status
 
-The authorized fictional clinician portal release is published and verified. No required release step or user setup remains. Feature commit `55d5aa8d0fcd8c7f4de89e5c5152947547777897` contains the code, prompt and paired handbook. Subsequent documentation-only commits record public checks without changing frozen book inputs.
+The authorized fictional clinician portal release is published and verified. No required release step or user setup remains. Feature commit `ece487b131f42918fb5e9dcf6cbfaf5c0830762b` contains the code, prompt and paired handbook. Subsequent documentation-only commits record public checks without changing frozen book inputs.
 
 - Portal: https://elad-refoua.github.io/iser-clinician-portal/
 - Stable API and alternate UI: https://iser-clinician-api.vercel.app/
-- Vercel deployment: `dpl_CNHRSGaVG7JgDgcRFzqWueLD1NDD`, READY and promoted.
-- Immutable deployment: https://iser-clinician-n35hd20w8-elad-refouas-projects.vercel.app/
-- GitHub Pages release run `38912181953` succeeded: install, tests, build and deployment.
+- Vercel deployment: `dpl_2TQBaQmNRmrSSF8ZEnPVMnvBRvpC`, READY and promoted.
+- Immutable deployment: https://iser-clinician-glpud2mte-elad-refouas-projects.vercel.app/
+- GitHub Pages release run `38915957065` succeeded: install, tests, build and deployment.
 - Authorized completion Telegram sent once, acknowledged HTTP200/ok=true at 2026-10-16T14:02:36.154Z. The bridge returns no message ID. Receipt: `Verification_2026-10-16/telegram-completion.json`. Do not resend automatically.
 
 ## Authorization and boundaries
 
 Implementation, deployment, fictional OpenRouter QA and this Telegram notice were explicitly authorized. The app and handbook are Hebrew; chat is English. Use fictional fixtures only; real patient data remains prohibited.
 
-Server-only persistence is required. Operation limit: 40 per access code per UTC day. Monetary limits: $2/day normally, temporarily $5 only during UTC 2026-10-16, automatically returning to $2 at 2026-10-17T00:00Z. Total $10 and per-request $0.25 remain unchanged. No counter or receipt was reset. The temporary limit uses server time and needs no scheduled task or later deployment.
+Server-only persistence is required. Following the explicit larger-trial request, limits are $10 per UTC day, $20 total, 100 operations per access code per UTC day and $0.25 per request. There is no scheduled expiry. Prior spending remains counted; no keys, counters, receipts or reservations were reset. OpenRouter account/key allowance remains separate and is configured by the user.
 
 ## Current implementation
 
-- Prompt **2026-10-16.12**. Full suite **252 tests across19files**, including the public catalogue check, and typecheck/build passed. Provider output uses nested anyOf to require empty unknown values, retaining historical context and runtime rejection. Intake instructions cover explicit-source mapping across32fields, distinguish referral reason/complaint/course and prioritize field-specific later manual corrections over historical backfill. Summary instructions compare actual output changes.
+- Prompt **2026-10-16.12**. Full suite **250 tests across19files**, including the public catalogue check, and typecheck/build passed. Provider output uses nested anyOf to require empty unknown values, retaining historical context and runtime rejection. Intake instructions cover explicit-source mapping across32fields, distinguish referral reason/complaint/course and prioritize field-specific later manual corrections over historical backfill. Summary instructions compare actual output changes.
 - Quiet post-session conversation with a prominent Hebrew **Send** action and a secondary summary action. The first question comes from the LLM. One grounded open question per turn; maximum three main questions and two per voluntary expansion round. Five proposed documents remain separate from approved records; approval commits the five together.
 - Neon is the durable workspace. Login loads server state before editing; a new empty workspace requires its first successful PUT. Browser state, auth and unsaved editor buffers are memory-only. No automatic IndexedDB/localStorage/sessionStorage persistence or fallback. Existing browser snapshots are not automatically deleted.
 - Lossless workspace gzip: **3,000,000 bytes wire**, **25,000,000 bytes decoded**. Full source/version/trace history is retained. CAS conflicts require explicit reconciliation; every acknowledged intermediate save refreshes the reconnect baseline.
@@ -32,7 +32,7 @@ Server-only persistence is required. Operation limit: 40 per access code per UTC
 
 All three independent audits and subsequent schema, quota, context and clinician-content addenda are complete. The final read-only closeout found no unresolved release blocker. Reports: `Verification_2026-10-16/FINAL_CLINICIAN_AUDIT.md`, `FINAL_CONTEXT_AUDIT.md`, `FINAL_WORKFLOW_AUDIT.md`, `SERVER_ONLY_AUDIT.md`, `SERVER_UI_REVIEW.md`.
 
-- Frozen source: prompt 2026-10-16.12; 252 tests across 19 files passed, including the opt-in public model catalogue check without inference. Typecheck and production build passed. The default CI catalogue test is conditional; full 252 refers to the local opt-in run.
+- Frozen source: prompt 2026-10-16.12; 250 tests across 19 files passed, including the opt-in public model catalogue check without inference. Typecheck and production build passed. The default CI catalogue test is conditional; full 250 refers to the local opt-in run.
 - Live checks cover Sonnet first questions and five-document drafting through the refined schema, and a Flash draft. Final .12 general source-to-intake reconciliation filled fields 4 and 6 without field-number hints. All five documents were read in the browser before approval.
 - Approval added exactly five versions, 124 to 129. Authenticated gzip GET on the promoted stable API returned HTTP200, revision69, seven fictional cases and129 document versions.
 - Fresh login on the published Pages origin recovered Lior's approved first-session note, two note versions, all five portal tabs and the updated intake fields 4/6. Server-saved status was visible. Backstage architecture, prompt/context tabs and handbook links were visible. Browser error logs were empty during these checks. Screenshot: `Verification_2026-10-16/sonnet-12-public.png`.
@@ -40,11 +40,17 @@ All three independent audits and subsequent schema, quota, context and clinician
 
 ## Handbook
 
-Edition 2026-10-16.6, prompt 2026-10-16.12, 51 pages, 71 source inputs. Shared fingerprint: `0c5f8ba024b652a1cb5736b65004d1426359b5f11d2789406342e453285eb046`.
+Edition 2026-10-16.7, prompt 2026-10-16.12, 51 pages, 71 source inputs. Shared fingerprint: `e35a64b2374b89645d89f98f83cc307eed154432a4ea54617d1ce97ec405c355`.
 
-All 71 committed input hashes and both outputs match. Independent visual review covered every page at contact-sheet scale plus nine full-resolution samples. No blocking clipping, overlap or missing glyphs; sparse continuation pages remain. Layout checks found 22 chapters/TOC links, no broken anchors or desktop/mobile overflow, loaded fonts and no PDF text blocks outside page bounds.
+All 71 committed input hashes and both outputs match. The preceding edition received independent all-page contact-sheet and nine-page detailed review. For this policy-only revision, root visually checked changed pages25/34; no new full-book visual review is claimed. No clipping or overlap was found on the changed pages. Layout checks found 22 chapters/TOC links, no broken anchors or desktop/mobile overflow, loaded fonts and no PDF text blocks outside page bounds.
 
-All four public HTML/PDF URLs returned200 and matched the frozen hashes. The actual browser download to `C:/Users/user/Downloads/handbook (3).pdf` matched PDF SHA256 `9b1324f4ba9a4bd7ab910ad5fa5ef17c87d6de9768f9ce5a8f06c8f2dce22b35`. Do not modify frozen canonical inputs without rebuilding HTML and PDF together. See `public-handbook-hashes.json` and `HANDBOOK_VISUAL_REVIEW.md`.
+All four public HTML/PDF URLs returned200 and matched the frozen hashes. The actual browser download to `C:/Users/user/Downloads/handbook (4).pdf` matched PDF SHA256 `46b3a5b05e81f4879c6cd31fe3339ebc289c94c072e3df83e620035f75ac60a4`. Do not modify frozen canonical inputs without rebuilding HTML and PDF together. See `public-handbook-hashes.json` and `HANDBOOK_VISUAL_REVIEW.md`.
+
+## Latest allowance release verification
+
+Feature ece487b changes only trial quota policy, its tests and paired handbook. All250 tests/19files, typecheck and production build passed. Independent review confirms unchanged Lua scripts/key selection and consistent code/docs. Pages run38915957065 succeeded. Live public API reports provider/access/quota ready; actual browser reload/login recovered the server workspace with saved status and no observed browser errors. Authenticated gzip GET returned revision80, seven fictional cases and134 versions. That newer state was already present on login; this release check did not modify records.
+
+The public handbook visibly shows $10/day, $20 total,100operations and no expiry. All four public artifact hashes and the actual browser-downloaded PDF match the new manifest. No paid inference was issued for this quota-only release; the prior live model checks below retain their original scope. No duplicate Telegram completion was sent. See `Verification_2026-10-16/TRIAL_ALLOWANCE_UPDATE.md`.
 
 ## Known limitations for future work
 
