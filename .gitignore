@@ -44,3 +44,5 @@ nul
 *.wav
 *.zip
 *.7z
+
+.vercel

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-16T09:18:07.839Z",
+  "model": "anthropic/claude-sonnet-5.5",
+  "task": "turn",
+  "requestId": "3c261f3e-3564-4b81-ae02-430ce323ae82",
+  "status": 502,
+  "elapsedMs": 1292,
+  "fictional": true,
+  "response": {
+    "error": "provider_http_400_schema"
+  }
+}

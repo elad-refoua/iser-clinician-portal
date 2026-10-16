@@ -1,0 +1,139 @@
+{
+  "version": "2026-10-16.1",
+  "promptVersion": "2026-10-16.2",
+  "sourceSha256": "7426c72803b90084df8509770eaadf4b3e75f4e3c0fc7fe4b3a8220e220bfe46",
+  "generatedAt": "2026-10-16T09:23:36.753Z",
+  "sourceFiles": [
+    {
+      "path": "docs/handbook/2026-10-16/handbook.md",
+      "sha256": "fcfe5268846380eec13f7801c0c7a0c47ebc291b05b1c606f646abb58548fabe"
+    },
+    {
+      "path": "docs/handbook/2026-10-16/metadata.json",
+      "sha256": "b40ac181a93157682da6da818ffc9157f946ec9403a507419bd3c10eb3bb22e3"
+    },
+    {
+      "path": "docs/handbook/2026-10-16/release-evidence.md",
+      "sha256": "734a958c5b87f44c485e5a3bdfab3c814d01601b80dc4c6db7055381e8be0626"
+    },
+    {
+      "path": "docs/handbook/2026-10-16/handbook.css",
+      "sha256": "72056da5b4cdad0b9604e8ec8f7161f7c868dc512f18d92bf5543ead7ec4c141"
+    },
+    {
+      "path": "packages/prompts/index.ts",
+      "sha256": "c7e818dad1d742743fea6d4852e63863d2ecfcaa289d46f7901c75015e4a26d8"
+    },
+    {
+      "path": "packages/prompts/intake-schema.ts",
+      "sha256": "e7fac2b89e8fa149bc3c5f4a732ee929c5a7e5557dd4a5d3f47de88d0c3ab9a8"
+    },
+    {
+      "path": "packages/contracts/index.ts",
+      "sha256": "8694503f7a12b9e164c3a09137b31bab24bfde7db57fa52a84e901fabd47fe05"
+    },
+    {
+      "path": "packages/domain/index.ts",
+      "sha256": "44c32f4a3396e42d034a0a27f1e8bd8658d1bf082022b7ed25b29282424efa72"
+    },
+    {
+      "path": "packages/domain/storage.ts",
+      "sha256": "4e9ee7f843853fc0d40ca95b8f49e6ab2321c4b925769e2257494ba7687066bf"
+    },
+    {
+      "path": "packages/domain/intake-report.ts",
+      "sha256": "84cd24aad255e59496b4fdaf51d44a80e39e2d06c3215068c92794f1288f8905"
+    },
+    {
+      "path": "apps/web/App.tsx",
+      "sha256": "44f35b170f5f77c068942ed90ec7eea923f46518b9162061234cffbab6655e38"
+    },
+    {
+      "path": "apps/web/Documents.tsx",
+      "sha256": "76a0985bf86e8f13d9d7dfd1dd58d7156d69ba3868db5333e3c6cd091ad05c81"
+    },
+    {
+      "path": "apps/web/Backstage.tsx",
+      "sha256": "f94a265df6bfa12148ba4e8c0d6529f154c805b7acf267285c2d3bcf0c75c9b8"
+    },
+    {
+      "path": "apps/web/ui.tsx",
+      "sha256": "e016f6b8ddf15ac8d3d97deac9a1e212e6b3daab5a91062b4ce7c5a645305146"
+    },
+    {
+      "path": "apps/api/handler.ts",
+      "sha256": "6481ac2cfb7e8a7e1857047a01ea9b1370224522dc19a79e6602d13a2beaf7f4"
+    },
+    {
+      "path": "apps/api/auth.ts",
+      "sha256": "b16109b39f920afef7726c026aa64ebab2dff50baee7d799113f037da4e91d36"
+    },
+    {
+      "path": "apps/api/quota.ts",
+      "sha256": "dbb7ee1d9c132574425a3f01ef71d5d6e9559c0100754129126abc997644ac8a"
+    },
+    {
+      "path": "apps/api/provider.ts",
+      "sha256": "d3af6b01aca285e0a9e1f06a65eadc3910d3774c369b1925c11bbaeab7040c97"
+    },
+    {
+      "path": "apps/api/validation.ts",
+      "sha256": "73af01718ea58618a701b79e14fe7c19750a7d5063a37907e812ace1746de485"
+    },
+    {
+      "path": "vercel.json",
+      "sha256": "dcea915ae21c7257f406b2cc02acd187ebd788c6e6858a7d7d6cad6adf9689ed"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "sha256": "737950af7828f28cb83f322f608e7c7ce8354bf6c679b7e0905e50030a738257"
+    },
+    {
+      "path": "vite.config.ts",
+      "sha256": "d88846ffecaa6f1e6bf951f40bdf411863c4796b07faf5cae7ffd62035439a0e"
+    },
+    {
+      "path": "package.json",
+      "sha256": "db3d98a137ea2da4324294623a830e19ee6b1ff975b3adf1a28f8c25e1156562"
+    },
+    {
+      "path": "apps/api/README.md",
+      "sha256": "c13b31d7962f8822fc057511df3e7064642d86eed66909524d6fed25a1dd5f9d"
+    },
+    {
+      "path": "apps/web/README.md",
+      "sha256": "7ccc1b89d9764daea91b70e918ab535c64ed7efeaaabe64852a703236e205a9f"
+    },
+    {
+      "path": "packages/prompts/README.md",
+      "sha256": "b6134786e28c979a42bf624bb12d02c94c9f5b0e6f5bc806882754e645cd4535"
+    },
+    {
+      "path": "scripts/build-handbook.ts",
+      "sha256": "c5ca88a751946115436c8a8d90c173f574d1464bfdbb76a57651d9d6506c5202"
+    },
+    {
+      "path": "docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf",
+      "sha256": "7ef36a2c3593758cdb622e1bdef4f84523e92fbc3ccc667438dd80ff54c2de88"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "apps/web/public/handbook.html",
+      "sha256": "e8d40ee959ea666e0127f01d52e5ac654d5496b895fcc4ef9617d65789e7bc89"
+    },
+    {
+      "path": "apps/web/public/handbook.pdf",
+      "sha256": "7dd8fe6e1827ac33ad307d589919151aa1790fe820ec35d7b20ac1eae46c6571"
+    }
+  ],
+  "localArtifactChecks": {
+    "headings": 22,
+    "tocLinks": 22,
+    "brokenAnchors": 0,
+    "desktopOverflow": false,
+    "loadedFonts": true,
+    "mobileOverflow": false
+  },
+  "verificationBoundary": "Local artifact font, anchors and width checks only. Does not verify the deployed website, live API, model quality or every PDF page visually."
+}
