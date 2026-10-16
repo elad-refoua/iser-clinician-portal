@@ -21,18 +21,17 @@ Elad explicitly approved more AI operations (“אפשר גם יותר מה שצ
 
 All **three independent audits are complete**: `Verification_2026-10-16/FINAL_CLINICIAN_AUDIT.md`, `FINAL_CONTEXT_AUDIT.md`, and `FINAL_WORKFLOW_AUDIT.md`. Follow-up reviews are `SERVER_ONLY_AUDIT.md` and `SERVER_UI_REVIEW.md`; fixes and their reproducible tests are recorded there. Audit completion is not a substitute for the final staged browser/LLM gate.
 
-Root owns deployment, actual-browser verification and release evidence. The latest staged candidate is `dpl_J2UDmhyzVQb3tvW6YM6dW6AN6iex` at https://iser-clinician-hck5ts76h-elad-refouas-projects.vercel.app . The last recorded stable publication is `122f30c4`; confirm current deployment status before publishing.
+Published feature commit **7243a8033fffd9c269d622c81702035ae6fb92ff**. Vercel **dpl_FufczWwehX4g6JHFyoneQLUg9hzp** promoted to https://iser-clinician-api.vercel.app ; immutable https://iser-clinician-msc24jokz-elad-refouas-projects.vercel.app . Pages run38907158829 succeeded with clean install/tests/build/deploy. Public browser login, approved Shira record, source/prompt UI and handbook/PDF verified. Subsequent documentation-only commits record these checks without changing frozen book inputs.
 
 Recorded browser checks: server reload, mobile Send, new Shira19:30 schedule and reset editor guard passed. Sonnet.11 first question was grounded; its draft failed with unsupported_unknown_value, motivating the wire refinement. New-wire Sonnet draft hit $2/day reservation cap before inference. Explicit cheaper Flash request fit the existing cap and produced five reviewed documents; direct-draft patient-level less-learning preference was extracted. Approval created exactly five versions; saved status and reload/login recovery verified. Authenticated gzip GET:rev58,7cases,119versions. See SERVER_CHAT_BROWSER_CHECKS.md. Historical .10 failure cause remains unknown. No real data.
 
 ## Handbook and remaining release sequence
 
-Handbook **2026-10-16.5**, prompt **.11**, rebuilt49pages with70inputs. Source fingerprint `08f1a56bc52d4054763898979a67243a06b36dbbbd7610c1fef159104877a555`; all hashes match. Final visual recheck underway. Any canonical source edit requires rebuilding both outputs.
+Handbook **2026-10-16.5**, prompt **.11**, rebuilt49pages with70inputs. Source fingerprint `08f1a56bc52d4054763898979a67243a06b36dbbbd7610c1fef159104877a555`; all committed source/output hashes match. Final independent all-page contact review and7detailed samples passed with nonblocking sparse continuations. Both public origins serve byte-identical HTML/PDF; browser PDF download hash matches. Any canonical source edit requires rebuilding both outputs.
 
-1. Complete final book visual report, commit reviewed code/artifacts, stage/promote and push to Pages. Verify clean CI, public browser and artifact hashes.
-2. Await separate $5/day approval (10total/.25request unchanged) or UTC reset for remaining Sonnet draft test. Do not bypass or reset monetary caps. Forty operations/day is authorized and staged.
-3. If approved, implement a documented temporary daily increase, test/redeploy, run Sonnet draft QA and rebuild book evidence. Do not attribute Flash success to Sonnet.
-4. Send authorized Telegram completion only after all gates. **No completion Telegram has been sent.**
+1. Await separate temporary $5/day approval (10total/.25request unchanged) or UTC reset for remaining Sonnet draft test. Do not bypass or reset monetary caps. Forty operations/day is authorized and published.
+2. If approved, implement a documented temporary daily increase, test/redeploy, run Sonnet draft QA and rebuild book evidence. Do not attribute Flash success to Sonnet. Prior .11question + finalwireFlashdraft/approval/reload are already verified; do not repeat them unnecessarily.
+3. Publish any resulting code/book change, verify public artifacts, then send authorized Telegram completion. **No completion Telegram has been sent.** User's pending answer is required for the separate monetary increase; the operation-cap approval does not authorize it.
 
 Public endpoints: https://iser-clinician-api.vercel.app/ and https://elad-refoua.github.io/iser-clinician-portal/ . Chrome control previously timed out; the in-app browser/CUA route worked. Use existing private access handling without printing credentials. Telegram completion is authorized; follow the Telegram skill when sending. Do not repeat a successful delivery automatically.
 
