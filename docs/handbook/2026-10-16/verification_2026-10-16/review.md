@@ -14,3 +14,7 @@ Source fingerprint: `0c5f8ba024b652a1cb5736b65004d1426359b5f11d2789406342e453285
 
 HTML SHA256: `4a106c34b76062f82338b836768a81ff977c337c49d88b078e353c0464ceddae`.
 PDF SHA256: `9b1324f4ba9a4bd7ab910ad5fa5ef17c87d6de9768f9ce5a8f06c8f2dce22b35`.
+
+## Public publication check
+
+Feature55d5aa8, promoted Vercel dpl_CNHRSGaVG7JgDgcRFzqWueLD1NDD and successful Pages run38912181953. Browser cover displayed edition.6/prompt.12/fingerprint above. All four public HTML/PDF URLs returned200 and matched the manifest; actual browser download `C:/Users/user/Downloads/handbook (3).pdf` matched the PDF hash above. Public portal login restored the final approved record from the server. See SERVER_CHAT_BROWSER_CHECKS.md and public-handbook-hashes.json for evidence. These checks verify publication and recovery, not clinical validity or perfect model extraction.

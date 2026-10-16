@@ -1,10 +1,21 @@
 # Active implementation checkpoint — 2026-10-16
 
-## Objective and authorization
+## Current status
 
-Finish the live fictional clinician portal, verify the staged release through the actual browser and LLM, publish the matching website/handbook pair, then send the authorized Telegram completion notice. Elad requires server-only automatic persistence. Implementation, Vercel/Pages deployment and fictional OpenRouter QA are authorized. Elad explicitly approved the temporary $5/day cap on 2026-10-16. It applies only to that UTC date and automatically returns to $2 at 2026-10-17T00:00Z. App and handbook are Hebrew; chat is English.
+The authorized fictional clinician portal release is published and verified. No required release step or user setup remains. Feature commit `55d5aa8d0fcd8c7f4de89e5c5152947547777897` contains the code, prompt and paired handbook. Subsequent documentation-only commits record public checks without changing frozen book inputs.
 
-Elad explicitly approved more AI operations (“אפשר גם יותר מה שצריך”). `LIMITS.dailyCalls` is **40 per access code per UTC day**. Monetary limits are **$2/day normally, $5 on UTC 2026-10-16 only, $10 total, $0.25/request**. No Redis counter, receipt or budget may be reset. Real patient data remains prohibited; use fictional fixtures only.
+- Portal: https://elad-refoua.github.io/iser-clinician-portal/
+- Stable API and alternate UI: https://iser-clinician-api.vercel.app/
+- Vercel deployment: `dpl_CNHRSGaVG7JgDgcRFzqWueLD1NDD`, READY and promoted.
+- Immutable deployment: https://iser-clinician-n35hd20w8-elad-refouas-projects.vercel.app/
+- GitHub Pages release run `38912181953` succeeded: install, tests, build and deployment.
+- Authorized completion Telegram sent once, acknowledged HTTP200/ok=true at 2026-10-16T14:02:36.154Z. The bridge returns no message ID. Receipt: `Verification_2026-10-16/telegram-completion.json`. Do not resend automatically.
+
+## Authorization and boundaries
+
+Implementation, deployment, fictional OpenRouter QA and this Telegram notice were explicitly authorized. The app and handbook are Hebrew; chat is English. Use fictional fixtures only; real patient data remains prohibited.
+
+Server-only persistence is required. Operation limit: 40 per access code per UTC day. Monetary limits: $2/day normally, temporarily $5 only during UTC 2026-10-16, automatically returning to $2 at 2026-10-17T00:00Z. Total $10 and per-request $0.25 remain unchanged. No counter or receipt was reset. The temporary limit uses server time and needs no scheduled task or later deployment.
 
 ## Current implementation
 
@@ -17,24 +28,28 @@ Elad explicitly approved more AI operations (“אפשר גם יותר מה שצ
 - Failed turn/draft retries retain the route. Failed untouched expansion retries retain the exact goal/suggestion and expected state, then consume a new voluntary round. Cancellation preserves monotonic revisions/rounds and restores proposal review eligibility only under exact content/base/preference guards.
 - Validation diagnostics contain fixed codes, safe schema paths and counts only; client details show allowlisted codes. No raw source/provider text is logged for these failures.
 
-## Reviews and evidence
+## Verified release evidence
 
-All **three independent audits are complete**: `Verification_2026-10-16/FINAL_CLINICIAN_AUDIT.md`, `FINAL_CONTEXT_AUDIT.md`, and `FINAL_WORKFLOW_AUDIT.md`. Follow-up reviews are `SERVER_ONLY_AUDIT.md` and `SERVER_UI_REVIEW.md`; fixes and their reproducible tests are recorded there. Audit completion is not a substitute for the final staged browser/LLM gate.
+All three independent audits and subsequent schema, quota, context and clinician-content addenda are complete. The final read-only closeout found no unresolved release blocker. Reports: `Verification_2026-10-16/FINAL_CLINICIAN_AUDIT.md`, `FINAL_CONTEXT_AUDIT.md`, `FINAL_WORKFLOW_AUDIT.md`, `SERVER_ONLY_AUDIT.md`, `SERVER_UI_REVIEW.md`.
 
-Published feature commit **7243a8033fffd9c269d622c81702035ae6fb92ff**. Vercel **dpl_FufczWwehX4g6JHFyoneQLUg9hzp** promoted to https://iser-clinician-api.vercel.app ; immutable https://iser-clinician-msc24jokz-elad-refouas-projects.vercel.app . Pages run38907158829 succeeded with clean install/tests/build/deploy. Public browser login, approved Shira record, source/prompt UI and handbook/PDF verified. Subsequent documentation-only commits record these checks without changing frozen book inputs.
+- Frozen source: prompt 2026-10-16.12; 252 tests across 19 files passed, including the opt-in public model catalogue check without inference. Typecheck and production build passed. The default CI catalogue test is conditional; full 252 refers to the local opt-in run.
+- Live checks cover Sonnet first questions and five-document drafting through the refined schema, and a Flash draft. Final .12 general source-to-intake reconciliation filled fields 4 and 6 without field-number hints. All five documents were read in the browser before approval.
+- Approval added exactly five versions, 124 to 129. Authenticated gzip GET on the promoted stable API returned HTTP200, revision69, seven fictional cases and129 document versions.
+- Fresh login on the published Pages origin recovered Lior's approved first-session note, two note versions, all five portal tabs and the updated intake fields 4/6. Server-saved status was visible. Backstage architecture, prompt/context tabs and handbook links were visible. Browser error logs were empty during these checks. Screenshot: `Verification_2026-10-16/sonnet-12-public.png`.
+- Current browser method: browser-client through Node REPL, in-app browser. Chrome discovery timed out earlier. No browser credentials or record snapshots are persisted locally by the application. Existing private QA access remains in ignored `.local/Access_2026-10-16/code.txt`; never print it.
 
-Recorded browser checks: server reload, mobile Send, new Shira19:30 schedule and reset editor guard passed. Sonnet.11 first question was grounded; its draft failed with unsupported_unknown_value, motivating the wire refinement. New-wire Sonnet draft hit $2/day reservation cap before inference. Explicit cheaper Flash request fit the existing cap and produced five reviewed documents; direct-draft patient-level less-learning preference was extracted. Approval created exactly five versions; saved status and reload/login recovery verified. Authenticated gzip GET:rev58,7cases,119versions. See SERVER_CHAT_BROWSER_CHECKS.md. Historical .10 failure cause remains unknown. No real data.
+## Handbook
 
-## Handbook and remaining release sequence
+Edition 2026-10-16.6, prompt 2026-10-16.12, 51 pages, 71 source inputs. Shared fingerprint: `0c5f8ba024b652a1cb5736b65004d1426359b5f11d2789406342e453285eb046`.
 
-Current candidate `dpl_CJdxgx9EEM6PCQ6Km99HjD8bwm5X` at https://iser-clinician-lzvanz17a-elad-refouas-projects.vercel.app has frozen.12 and the temporary cap. Sonnet.11 draft succeeded on the preceding candidate; .12 neutral regeneration preserved the existing documents but did not repair a missing complaint field. An explicit general source-to-intake reconciliation, without naming field IDs, populated4and6. All five outputs were read and approved. Server revision69 has7fictional cases/129versions, exactlyfive added by the final approval. Do not claim automatic or complete extraction; remaining sparse administrative fields and summary overgeneralization are documented. Three independent reviewers completed the code/prompt/content addenda.
+All 71 committed input hashes and both outputs match. Independent visual review covered every page at contact-sheet scale plus nine full-resolution samples. No blocking clipping, overlap or missing glyphs; sparse continuation pages remain. Layout checks found 22 chapters/TOC links, no broken anchors or desktop/mobile overflow, loaded fonts and no PDF text blocks outside page bounds.
 
-Handbook **2026-10-16.6**, prompt **.12**, rebuilt51pages with71inputs. Source fingerprint `0c5f8ba024b652a1cb5736b65004d1426359b5f11d2789406342e453285eb046`; all local source/output hashes match. Layout checks:22chapters/TOClinks, no broken anchors or desktop/mobile overflow, fonts loaded, zero PDF blocks outside bounds. Independent final visual review and publication pending. Any canonical source edit requires rebuilding both outputs.
+All four public HTML/PDF URLs returned200 and matched the frozen hashes. The actual browser download to `C:/Users/user/Downloads/handbook (3).pdf` matched PDF SHA256 `9b1324f4ba9a4bd7ab910ad5fa5ef17c87d6de9768f9ce5a8f06c8f2dce22b35`. Do not modify frozen canonical inputs without rebuilding HTML and PDF together. See `public-handbook-hashes.json` and `HANDBOOK_VISUAL_REVIEW.md`.
 
-1. Finish independent visual review of the frozen book. Do not change canonical inputs without rebuilding both outputs.
-2. Commit code/book/evidence, deploy matching production candidate, promote stable API, push HEAD:main and verify Pages CI, public browser login/reload and public HTML/PDF hashes/download.
-3. Send authorized Telegram completion using the existing local bridge only after final publication checks. **No completion Telegram has been sent.** No further user setup is required. Record actual result and final deployment/commit in this checkpoint/history.
+## Known limitations for future work
 
-Public endpoints: https://iser-clinician-api.vercel.app/ and https://elad-refoua.github.io/iser-clinician-portal/ . Chrome control previously timed out; the in-app browser/CUA route worked. Use existing private access handling without printing credentials. Telegram completion is authorized; follow the Telegram skill when sending. Do not repeat a successful delivery automatically.
+The release is a working fictional demonstration, not validated clinical software. Model drafts require review: neutral regeneration did not repair the missing complaint field; explicit general reconciliation did. Administrative field1 remained sparse, the complaint/referral classification needs review, and one summary overgeneralized other fields as missing. The model's explanation is not proof of faithful extraction.
 
-History and authorization chronology: [progress.md](progress.md). Research/code review: `Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md`. Durable retrieval of undelivered LLM results remains a documented future extension, not a delivered feature.
+Only acknowledged server saves are durable; unsaved buffers can be lost. Interrupted model responses are regenerated rather than recovered. Durable retrieval of undelivered results and fully server-authoritative context assembly remain documented future extensions, not delivered features. Existing accounts share one fictional workspace.
+
+History: [progress.md](progress.md). Browser evidence: `Verification_2026-10-16/SERVER_CHAT_BROWSER_CHECKS.md`. Research: `Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md`. No outstanding permission question or release work remains.

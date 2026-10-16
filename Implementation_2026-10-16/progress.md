@@ -129,3 +129,11 @@ Elad explicitly approved the pending increase. Implementing a total daily cap of
 
 ### 2026-10-16 13:45 UTC — Sonnet draft verified; extraction refinement
 Candidate dpl_8wDjCCSN5GWkRUoUhVZyzd9tRj2s deployed temporary cap.250tests/build passed. Sonnet.11 draft on Lior succeeded; full5outputs reviewed, approved, server60/7cases/124versions and reload verified. Independent clinician found intakefield6 omitted despite explicitcomplaint in5/8, plus imprecise unchangedformulation summary. General prompt.12 correction and live retest underway. No final notification yet.
+
+### 2026-10-16 14:03 UTC — final release and delivery
+
+Feature55d5aa8 published to main. Vercel dpl_CNHRSGaVG7JgDgcRFzqWueLD1NDD READY/promoted; Pages38912181953 succeeded. Frozen .12 source passed252 tests/19files plus typecheck/build. The final Sonnet reconciliation and approval created five versions, reaching129; stable API verified revision69/seven fictional cases. Fresh public login recovered the approved note, two versions, intake4/6 and server-saved status. Backstage and handbook links verified; no browser errors observed.
+
+Book.6/.12 has51pages/71inputs; all committed source hashes and both outputs matched. Independent all-page-contact/nine-detail visual review passed with nonblocking sparse pagination. All four public HTML/PDF hashes and the actual browser-downloaded PDF match. Evidence in public-handbook-hashes.json, sonnet-12-public.png and SERVER_CHAT_BROWSER_CHECKS.md. Extraction remains imperfect and is documented; neutral regeneration did not auto-repair the omitted complaint, while explicit general reconciliation did.
+
+Authorized Telegram completion sent once at2026-10-16T14:02:36.154Z, bridge HTTP200/ok=true; no message ID returned. No user setup or required release gate remains. Temporary$5/day automatically expires at2026-10-17T00:00Z; base$2/total$10/request$.25/calls40 preserved, no counters reset. Final checkpoint describes current state; historical entries above remain chronology.

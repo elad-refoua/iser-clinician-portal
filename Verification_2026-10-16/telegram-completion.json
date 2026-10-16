@@ -1,0 +1,8 @@
+{
+  "sentAt": "2026-10-16T14:02:36.154Z",
+  "http": 200,
+  "ok": true,
+  "recipient": "Elad private Telegram",
+  "message": "Merhav is published and ready for your fictional-case walkthrough.\n\nPortal: https://elad-refoua.github.io/iser-clinician-portal/\n\nLogin: elad, with your existing password.\n\nThe first question and document drafts use live AI. Existing cases, new-case creation, server storage, editable records and version history are available. The backstage tab explains the prompts, context and architecture.\n\nVerified: 252 automated tests, live Sonnet drafting and approval, fresh browser login with server-restored records, and independent code/context/clinical-content reviews.\n\nHebrew handbook (51 pages): https://elad-refoua.github.io/iser-clinician-portal/handbook.pdf\n\nDrafts still need review: intake extraction can miss information. This version is for fictional cases.\n\nThe approved $5 daily cap expires automatically at 00:00 UTC on 17 October, returning to $2. The $10 total and $0.25 per-request limits remain.\n\nNo further account setup is needed.",
+  "note": "Local bridge acknowledged delivery; this endpoint does not return a Telegram message ID."
+}
