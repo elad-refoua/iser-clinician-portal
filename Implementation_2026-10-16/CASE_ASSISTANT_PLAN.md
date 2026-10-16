@@ -1,19 +1,19 @@
 # Case-management assistant update — scope and acceptance tracker
 
-Date: 2026-10-16. The user explicitly authorized multi-agent implementation, review, fictional live testing, documentation and publication. No further planning approval is pending. Current staging and release gates: [CONTINUE_HERE.md](CONTINUE_HERE.md). Chronology: [progress.md](progress.md).
+Date: 2026-10-16. The user explicitly authorized multi-agent implementation, review, fictional live testing, documentation and publication. **The release is published and verified**, with the coverage limits below. Current release identity: [CONTINUE_HERE.md](CONTINUE_HERE.md). Chronology: [progress.md](progress.md).
 
 ## Complete request map
 
-| Request | Implemented scope | Evidence / remaining acceptance |
+| Request | Implemented scope | Verified evidence and limits |
 |---|---|---|
-| **R1 — Explain the proposal simply** | Hebrew overview names all five destinations. Latest requirement is enforced by a computed summary of which saved documents are new, updated, unchanged or unavailable. The raw model summary remains evidence, not the authority for change status. | Computed overview passed targeted tests; follow-up missing-base field-claim hardening is in progress. Deploy and browser-check the final overview before release. |
-| **R2 — Show actual edits** | Original-baseline comparisons, additions/deletions/replacements, unchanged passages, textual legend, exact Hebrew word comparison, bounded large-input fallback and integration in existing comparison/history views. Empty proposals show deletions; missing bases are disclosed; intake status/remaining/source changes are explicit. | Diff tests and independent review passed; actual staged proposal/intake diffs inspected. Final overview/public desktop/mobile checks remain. |
-| **R3 — Actionable intake from session 4** | Persistent panel with top three gaps, all-gap expansion/count, manual editor and explicitly selected real-model route. Session 5 due / session 6+ outstanding wording. Effective pending information, historical scope, preferences, CAS, cancellation/retry and explicit approval preserved. | Tests cover sessions 3/4/5/6, all field states, source/pending precedence, time/fork isolation, preferences, stale guards, reload and restore/accept. Browser sessions 3/4/5, manual completion and optional question/reload passed. Session 6 and final approval/reload remain. |
+| **R1 — Explain the proposal simply** | Hebrew overview names all five destinations. A computed summary identifies new, updated, unchanged or unavailable documents from recorded bases. Raw model summary remains evidence, not the authority for change status. | Tests/review passed; final browser overview correctly showed new session-5 note, updated intake/formulation and unchanged learning/supervision. Missing-base claims are guarded. |
+| **R2 — Show actual edits** | Original-baseline comparisons, additions/deletions/replacements, unchanged passages, textual legend, exact Hebrew word comparison, bounded large-input fallback and comparison/history integration. Empty proposals show deletions; missing bases and intake status/remaining/source changes are explicit. | Diff tests and independent review passed; actual proposal/intake diffs and final overview were inspected. Edge-case tests are not claimed as separate browser runs of every case. |
+| **R3 — Actionable intake from session 4** | Persistent panel with top three gaps, all-gap expansion/count, manual editor and explicit real-model route. Session 5 due / session 6+ outstanding wording; pending information, historical scope, preferences, CAS, cancellation/retry and approval preserved. | Tests cover thresholds/states/isolation/guards. Browser sessions 3/4/5/6, manual completion, real question, active-round reload, stale approval, final session-5 approval and public recovery passed. Session 6 showed 31 overdue gaps. |
 | **R4 — Useful questioning across the case** | Prompt .13 organizes five outputs in one conversation, session note first. Main questions require a narrative anchor; from session 4 a relevant actual intake gap can be the single question. A selected gap permits a neutral optional question. No clinical advice, invented inference, repetitive checklist or expanded cap. | Source review/re-review completed. Live Sonnet optional question and stop/no-recall response, plus Flash session-5 main question and stop-without-expansion, passed in the fictional case. These samples do not guarantee extraction or wording quality. |
-| **R5 — Denser, clearer hierarchy** | Existing Hebrew RTL identity retained; grouped controls, tighter spacing and accessible diff labels. A final correction gives document heading levels distinct h3/h4/h5 elements and styles. | That heading correction and its regression are in progress. Checked workbench/desktop widths passed; final full desktop/mobile participant view remains, and a cropped screenshot is insufficient. |
-| **R6 — Editable prompts and separate context guide** | PROMPTS.md is authoritative with 16 named blocks; sync generates runtime module and check rejects drift. Separate Hebrew CONTEXT.md, README, workbench reader/downloads and examples distinguish editable instructions from code policy. | Authoring/parity tests passed; workbench and actual prompt download checked. Regenerate all copies and paired handbook after final source changes; verify public links/hashes. |
+| **R5 — Denser, clearer hierarchy** | Existing Hebrew RTL identity retained; grouped controls, tighter spacing, accessible diff labels and distinct document h3/h4/h5 elements/styles. | Tests and browser observed 20/18/16-pixel heading sizes; no checked desktop DOM/workbench horizontal overflow. Full mobile interaction and complete desktop screenshot inspection were not performed for this update. |
+| **R6 — Editable prompts and separate context guide** | PROMPTS.md is authoritative with 16 named blocks; sync generates runtime and check rejects drift. Separate Hebrew CONTEXT.md, README, workbench/downloads and examples distinguish instructions from code policy. | Authoring/parity tests passed. Actual prompt/context downloads matched canonical files; twelve public workbench URLs across both origins matched. Paired handbook rebuilt and verified. |
 | **R7 — Reputable design-skill research** | Sourced review of Anthropic Frontend Design, Vercel Web Design Guidelines and UI/UX Pro Max, with limitations and concrete fit to this portal. No framework/theme replacement. | Complete in Verification_2026-10-16/PORTAL_DESIGN_SKILLS_RESEARCH.md. Dated adoption figures are not clinical-usability evidence. |
-| **R8 — Multi-agent delivery and continuity** | Separate UI, domain/intake, prompt and integration ownership; independent UI/integration/clinical/PDF reviews; native server regression; guides and continuity. | Latest root full run: 320 tests / 23 files and typecheck. Missing-base and heading follow-ups are still being tested; no final freeze yet. Full build, paired book regeneration, browser gates, commit, promotion, Pages CI and public verification remain. |
+| **R8 — Multi-agent delivery and continuity** | Separate implementation ownership; independent UI/integration/clinical/PDF reviews; native server regression; guides and continuity. | Final 322 tests / 23 files, typecheck/build, feature 34ceec4 / docs 2a302b5, promoted Vercel, successful Pages run 38924458192, public recovery/download checks and one update-specific authorized Telegram notice. |
 
 ## Architecture and constraints
 
@@ -50,7 +50,7 @@ All work shares this checkout. Preserve other edits. Individual tests/reviews do
 - [x] Current intake restore/accept reopening and historical/fork preservation, with four regressions.
 - [x] Native compiled Node server-entry smoke test after the staged extensionless-import failure.
 - [x] .13 source authoring/parity and independent clinical wording re-review.
-- [x] Design research and independent UI, integration and provisional PDF reviews.
+- [x] Design research and independent UI, integration and final PDF reviews within their recorded scope.
 
 ## Observed live acceptance
 
@@ -61,19 +61,23 @@ All work shares this checkout. Preserve other edits. Individual tests/reviews do
 - [x] Later direct field edit invalidates the old pending proposal in the actual UI.
 - [x] Session 5 due panel, grounded Flash main question, explicit no-expansion/summary honored.
 - [x] Full nine-section/32-field session-5 intake inspected with partial history and manual values preserved.
-- [ ] Final computed overview on next deployment; session 5 approval/reload and session 6 overdue panel.
-- [ ] Final complete desktop/mobile and public-origin checks.
+- [x] Final computed overview, session-5 approval, session-6 overdue panel and fresh public login/recovery.
+- [x] Public downloads/hash parity and checked desktop DOM/heading behavior. Full mobile interaction is explicitly outside the observed scope below.
 
-## Remaining release gates
+## Completed release acceptance
 
-- [ ] Complete full tests, typecheck and production build on the final frozen source; stage the computed overview.
-- [ ] Finish browser acceptance above; record untested scenarios and extraction limits.
-- [ ] Regenerate workbench and paired handbook .8 HTML/PDF; verify source/output hashes and changed-page readability. Prior 52-page/89-input review is provisional.
-- [ ] Commit, stage/promote Vercel, publish Pages, confirm CI and verify public login/recovery, workbench and actual PDF download parity.
-- [ ] Replace staged continuity with final commit/deploy/evidence. Earlier Telegram receipt is historical; do not resend automatically.
+- [x] Final 322 tests across 23 files including opt-in public catalogue check; typecheck/build passed with nonblocking warnings.
+- [x] Observed browser acceptance above, with extraction and visual coverage limits recorded.
+- [x] Workbench and paired handbook .8/.13 regenerated: 52 pages, 89 committed inputs, matching hashes; final all-contact plus six-page independent visual review passed.
+- [x] Feature committed, Vercel promoted, Pages CI succeeded, public login/recovery and actual downloads verified.
+- [x] Continuity updated to final evidence. Update-specific Telegram notice acknowledged once at 2026-10-16T15:33:35.994Z; receipt telegram-case-assistant-release.json. Do not resend.
+
+## Verification limits
+
+Full mobile interaction was not repeated; the cropped screenshot does not establish full desktop visual coverage. DOM widths, heading sizes and visible workflows were checked. Source/time/branch, deletion/missing-base and restore/accept edge cases have automated/source-review evidence, not separate browser runs of every scenario. The final PDF received all-page contact review and six detailed samples, not a word-by-word review of all pages. Model extraction can still omit supported details. These limits remain transparent after release; no observed release-blocking defect remains.
 
 ## Evidence and baseline
 
 Current evidence directory: Verification_2026-10-16. Relevant reports: CASE_ASSISTANT_BROWSER_CHECKS.md, PROPOSAL_UI_REVIEW.md, CASE_ASSISTANT_INTEGRATION_REVIEW.md, CASE_ASSISTANT_CLINICAL_REVIEW.md, CASE_ASSISTANT_PDF_REVIEW.md and PORTAL_DESIGN_SKILLS_RESEARCH.md.
 
-Previous published release: feature ece487b, documentation ce51a46, prompt .12 / handbook .7, 250 tests / 19 files. This is historical evidence, not acceptance of this update. Current staging is in CONTINUE_HERE. No existing workspace reset is needed or authorized.
+Published release: feature 34ceec4, documentation 2a302b5, prompt .13 / handbook .8. Vercel dpl_CwtGb1mEUwFGhdgwr8ahP9HaCTsr promoted; Pages run 38924458192 succeeded. Final source fingerprint: 6426104c5b7ba03ab5568e0ac85f33493b75ee188ffd47d10d580fbe71bf3de4. Stable server revision 119 / eight cases / 152 versions; approval added exactly five from 147. Earlier ece487b/ce51a46 and .12/.7 evidence remains historical. No workspace reset occurred.

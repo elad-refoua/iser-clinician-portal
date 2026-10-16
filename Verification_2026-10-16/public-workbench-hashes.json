@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://elad-refoua.github.io/iser-clinician-portal/prompt-workbench-guide.md",
+    "status": 200,
+    "sha256": "ed319831dee8d3ad3bd1cca397e7d0e78c75d0971933867d07ed1cba696be535",
+    "matches": true
+  },
+  {
+    "url": "https://elad-refoua.github.io/iser-clinician-portal/prompts.md",
+    "status": 200,
+    "sha256": "9d8f50b533ee8568edfa174fa7d30c78cf7c629478a0f9cc2c6e4a8e92f33b1c",
+    "matches": true
+  },
+  {
+    "url": "https://elad-refoua.github.io/iser-clinician-portal/context-management.md",
+    "status": 200,
+    "sha256": "efcb5e55b2d0eb7d5bc38a26effb639cd23df1ab51c685c757f4d95960ebcd54",
+    "matches": true
+  },
+  {
+    "url": "https://elad-refoua.github.io/iser-clinician-portal/turn-prompt-example.txt",
+    "status": 200,
+    "sha256": "60095505c2b9563a4159bdc8ed678e93f5abcc3c7f5986bac58413a921656b80",
+    "matches": true
+  },
+  {
+    "url": "https://elad-refoua.github.io/iser-clinician-portal/draft-prompt-example.txt",
+    "status": 200,
+    "sha256": "64a3f4a45d2027ae68d46d596e31edde5f5eacf42d3638ad8460a9981ca4fc2e",
+    "matches": true
+  },
+  {
+    "url": "https://elad-refoua.github.io/iser-clinician-portal/prompt-workbench.html",
+    "status": 200,
+    "sha256": "5a968f2024b384ce4524f025adf3b439d3a984b5ab0186f678f096f5c2b08093",
+    "matches": true
+  },
+  {
+    "url": "https://iser-clinician-api.vercel.app/prompt-workbench-guide.md",
+    "status": 200,
+    "sha256": "ed319831dee8d3ad3bd1cca397e7d0e78c75d0971933867d07ed1cba696be535",
+    "matches": true
+  },
+  {
+    "url": "https://iser-clinician-api.vercel.app/prompts.md",
+    "status": 200,
+    "sha256": "9d8f50b533ee8568edfa174fa7d30c78cf7c629478a0f9cc2c6e4a8e92f33b1c",
+    "matches": true
+  },
+  {
+    "url": "https://iser-clinician-api.vercel.app/context-management.md",
+    "status": 200,
+    "sha256": "efcb5e55b2d0eb7d5bc38a26effb639cd23df1ab51c685c757f4d95960ebcd54",
+    "matches": true
+  },
+  {
+    "url": "https://iser-clinician-api.vercel.app/turn-prompt-example.txt",
+    "status": 200,
+    "sha256": "60095505c2b9563a4159bdc8ed678e93f5abcc3c7f5986bac58413a921656b80",
+    "matches": true
+  },
+  {
+    "url": "https://iser-clinician-api.vercel.app/draft-prompt-example.txt",
+    "status": 200,
+    "sha256": "64a3f4a45d2027ae68d46d596e31edde5f5eacf42d3638ad8460a9981ca4fc2e",
+    "matches": true
+  },
+  {
+    "url": "https://iser-clinician-api.vercel.app/prompt-workbench.html",
+    "status": 200,
+    "sha256": "5a968f2024b384ce4524f025adf3b439d3a984b5ab0186f678f096f5c2b08093",
+    "matches": true
+  }
+]

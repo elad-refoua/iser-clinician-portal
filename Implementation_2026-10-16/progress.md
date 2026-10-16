@@ -169,3 +169,18 @@ Root continues final overview, session-5 approval/session-6 and desktop/mobile c
 
 
 Follow-up before final freeze: root subsequently completed **320 tests across 23 files** and typecheck. Review then added missing-base field-claim hardening and identified document headings all rendering as h3; build_ui is implementing distinct h3/h4/h5 structure/styles, with two additional regressions in progress. Do not record the expected 322 count, a final build or code freeze until those checks actually pass.
+
+### 2026-10-16 15:33 UTC — case-assistant release published, verified and delivered
+
+All R1–R8 requests are implemented in feature **34ceec4** with release documentation **2a302b5**. Final Vercel deployment **dpl_CwtGb1mEUwFGhdgwr8ahP9HaCTsr**, immutable https://iser-clinician-esv0fm81z-elad-refouas-projects.vercel.app/ , is promoted to stable. GitHub Pages run **38924458192** succeeded in all steps. Earlier staged/pending entries above remain historical; no release blocker remains.
+
+- Final frozen source passed **322 tests across 23 files**, including the opt-in public model catalogue check, plus typecheck and production build. Build warnings were nonblocking.
+- The final browser overview correctly identified a new session-5 note, updates to intake/formulation, and unchanged learning/supervision. Actual document heading hierarchy was h3/h4/h5 with 20/18/16-pixel sizes. Clinical document text and raw model response remain unchanged by the computed overview.
+- Session 5 was explicitly approved after review; session 6 then opened through normal controls with overdue wording and 31 outstanding gaps. Stable authenticated workspace GET returned revision **119**, **eight cases** and **152 versions**, exactly five more than the 147 before approval.
+- Fresh login on public Pages recovered the six-session fictional QA case, approved session-5 note, complete nine-section/32-field intake and manual field 2. No browser errors or horizontal desktop DOM overflow were observed.
+- Final paired handbook **2026-10-16.8**, prompt **2026-10-16.13**, has **52 pages and 89 source inputs**. Source fingerprint: **6426104c5b7ba03ab5568e0ac85f33493b75ee188ffd47d10d580fbe71bf3de4**. All committed source hashes and generated outputs match. PDF SHA256: **e0e324ee64da530084473149f83f343e294f0d9f8c1a787e992d4cc3625316f0**.
+- Independent final PDF review inspected all contact sheets and six complete changed pages, finding no blocking defect. Four public handbook URLs and twelve workbench URLs across both origins matched expected files. Actual browser downloads prompts (1).md and the context-management file matched canonical source; handbook (5).pdf matched the final PDF hash.
+- Visual coverage is bounded: the cropped capture is not a full desktop visual review, full mobile interaction was not repeated, and the PDF was not read word-by-word. Automated edge-case coverage is not represented as separate browser execution of every scenario. Model extraction remains imperfect; these limitations are retained in the checkpoint and tracker.
+- One newly authorized, update-specific Telegram completion notice was sent and acknowledged **HTTP 200 / ok=true at 2026-10-16T15:33:35.994Z**. Its distinct receipt is **Verification_2026-10-16/telegram-case-assistant-release.json**. The older telegram-completion.json belongs to an earlier release. **Do not resend either notice.**
+
+Only documentation closeout commit/CI remains for root. Current checkpoint and request tracker now describe the verified published state; historical logs remain intact. Financial limits, stored receipts/counters and the server-only persistence boundary are unchanged.
