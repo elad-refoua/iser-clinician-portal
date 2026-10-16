@@ -25,10 +25,10 @@ function section(id: string) {
 // These checks protect authored instructions and examples, not live-model behavior.
 describe('contextual interview prompt specification', () => {
   it('ships grounding, visitor explanation, and revision rules in both tasks', () => {
-    expect(PROMPT_VERSION).toBe('2026-10-16.11');
+    expect(PROMPT_VERSION).toBe('2026-10-16.12');
     for (const task of ['turn', 'draft'] as const) {
       const prompt = buildSystemPrompt(context(), task);
-      for (const id of ['contextual-question', 'visible-explanation', 'revision']) {
+      for (const id of ['contextual-question', 'visible-explanation', 'revision', 'intake', 'working-memory']) {
         expect(prompt).toContain(section(id));
       }
     }
@@ -92,6 +92,36 @@ describe('contextual interview prompt specification', () => {
     expect(memory).toContain('workingDraftMetadata');
     expect(memory).toContain('אם stale=true');
     expect(memory).toContain('אישור אינו אימות עובדתי');
+  });
+
+  it('requires coverage of supported missing fields without turning the intake sweep into inference or more questions', () => {
+    const intake = section('intake');
+    expect(intake).toContain('בדוק את כל 32 השדות מול המקורות הקבילים ומצב השדות הנוכחי');
+    expect(intake).toContain('pendingIntakeFields כשנמסר, ואחרת שדות האינטייק שב-documents');
+    expect(intake).toContain('גם אם המקור מפגישה קודמת או שהמידע כבר מופיע בשדה אחר');
+    expect(intake).toContain('fieldUpdates דליל פירושו השמטת שדות שלא השתנו');
+    expect(intake).toContain('בכפוף להעדפות ולהחרגות');
+    expect(intake).toContain('בדיקה זו אינה פתיחת שאלון או בקשה לשאלות נוספות');
+    expect(intake).toContain('בלי בסיס מפורש השאר את החסר');
+    expect(intake).toContain('אין להסיק את סיבת הפנייה מעצם קיומה של תלונה');
+    expect(intake).toContain('שדה 5 — סיבת הפנייה');
+    expect(intake).toContain('שדה 6 — תלונת המטופל');
+    expect(intake).toContain('שדה 8 — הבעיה הנוכחית והתפתחותה');
+    expect(intake).toContain('גם פרטים מנהליים נלקחים רק ממקור קביל מפורש');
+    expect(intake).toContain('בשדות 1 ו-4 כלול פרטי זיהוי, פגישה ומקורות מידע שנמסרו במפורש');
+    expect(intake).toContain('והשאר את יתר הפרטים חסרים');
+    expect(intake).toContain('כלל הכיסוי כפוף לעריכה ישירה מאוחרת של המטפל');
+    expect(intake).toContain('השדה הנוכחי מפנה ב-sourceIds למקור manual מאוחר');
+    expect(intake).toContain('אין למלא מחדש שדה שהמטפל רוקן או להחזיר ניסוח שתיקן על בסיס אותו חומר ישן');
+    expect(intake).toContain('שדה ריק לבדו, או author=clinician של המסמך כולו, אינם ראיה');
+  });
+
+  it('does not describe a document as unchanged merely because factual additions introduced no new hypothesis', () => {
+    const memory = section('working-memory');
+    expect(memory).toContain('השווה את התוצר המוחזר למסמך הקיים ולהצעה הקודמת ששימשה בסיס לשכתוב');
+    expect(memory).toContain('כתוב ״ללא שינוי״ רק כשלא שינית את תוכן התוצר');
+    expect(memory).toContain('גם הוספת תיאור עובדתי מיוחס היא שינוי');
+    expect(memory).toContain('אם נוספו פרטים להמשגה בלי השערה חדשה, תאר את תוספת הפרטים');
   });
 
   it('extracts and applies new preferences during direct drafting without reopening questions', () => {

@@ -1,17 +1,16 @@
 # Handbook verification — 2026-10-16
 
-Edition 2026-10-16.5; prompt 2026-10-16.11.
-Source fingerprint: `08f1a56bc52d4054763898979a67243a06b36dbbbd7610c1fef159104877a555`.
+Edition2026-10-16.6; prompt2026-10-16.12.
+Source fingerprint: `0c5f8ba024b652a1cb5736b65004d1426359b5f11d2789406342e453285eb046`.
 
-- HTML and PDF generated together from70 source inputs; every source and both output hashes recomputed and matched. Text inputs use LF; the binary font is unchanged.
--22 chapters and22 TOC links, zero broken anchors, embedded Hebrew font loaded, no document overflow at desktop1440px or mobile390px.
--49 A4 pages rendered; zero extracted text blocks outside page bounds.
-- Independent final review inspected all five contact sheets and full-resolution pages25,29,33,34,46,47,48. The earlier provisional review also inspected eleven detailed samples. No blocking clipping, overlap, missing glyph or unreadable table/code defect was found. Sparse continuation pages6,15,19,46 remain a nonblocking pagination limitation.
-- Final printed budget is40 operations/day. Evidence distinguishes Sonnet.11 first question, Flash.11 draft/approval on the refined schema, and the budget-blocked final Sonnet draft check. No claim of clinical validation or perfect semantic fidelity.
-- Scope: all-page contact review plus sampled detailed inspection, not word-by-word PDF verification or assistive-technology testing. See Verification_2026-10-16/HANDBOOK_VISUAL_REVIEW.md for attributed observations.
-- Public artifact checks are a separate deployment gate, recorded in Verification_2026-10-16/public-handbook-hashes.json and SERVER_CHAT_BROWSER_CHECKS.md when completed.
+- HTML and PDF generated together from71source inputs. All source/output hashes recomputed and matched; text inputs use LF, binary font unchanged.
+-22chapters and22TOC links, zero broken anchors, embedded Hebrew font loaded, no document overflow at desktop1440px or mobile390px.
+-51A4pages rendered; zero extracted text blocks outside page bounds.
+- Independent visual review covered all five contact sheets and full-resolution pages25,26,33,34,35,40,41,43,48. No blocking clipping, overlap, missing glyph or unreadable table/code defect. Sparse continuations6,15,19,35,45,48 remain nonblocking pagination polish.
+- Current budget distinguishes base$2/day from temporary$5 on UTC2026-10-16, automatic expiry, and unchanged$10total/$.25request/40operations.
+- Evidence separates Sonnet.11 first question/draft, Flash.11 draft and Sonnet.12 regeneration/reconciliation. Explicit reconciliation filled4/6; neutral regeneration did not automatically repair the omission. No claim of complete extraction, clinical validity or perfect model fidelity.
+- Scope: all-page contact review plus detailed samples, not word-by-word PDF inspection or assistive-technology testing. See Verification_2026-10-16/HANDBOOK_VISUAL_REVIEW.md for attributed observations and prior-edition history.
+- Public browser/download verification is a separate gate recorded in SERVER_CHAT_BROWSER_CHECKS.md and public-handbook-hashes.json after publication.
 
-HTML SHA256: `31ca7b1ddd55573469b9568752801efe04d321f5fdc1479270efee5fc9c0aae8`.
-PDF SHA256: `b0453c1eac448bca577caebccabd209fae6572de77ded81beb0a3a4934872565`.
-
-Public verification: Vercel and Pages HTML/PDF all returned200 and matched these hashes. The browser opened edition.5/prompt.11 with this source fingerprint; its PDF link downloaded a file with the matching PDF hash. Feature commit7243a80, Vercel dpl_FufczWwehX4g6JHFyoneQLUg9hzp, Pages run38907158829. Outstanding Sonnet budget gate remains explicitly stated in the book and browser report.
+HTML SHA256: `4a106c34b76062f82338b836768a81ff977c337c49d88b078e353c0464ceddae`.
+PDF SHA256: `9b1324f4ba9a4bd7ab910ad5fa5ef17c87d6de9768f9ce5a8f06c8f2dce22b35`.

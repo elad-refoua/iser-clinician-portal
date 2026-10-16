@@ -74,3 +74,20 @@ Runtime validation still rejects substantive text paired with `unknown`, checks 
 |---|---|
 | `apps/api/validation.ts` | `2a0386ceab46ddc32c203c2bb999efc699d1d2b40b452e0e29cc441d942c4b94` |
 | `tests/wire-field-schema.test.ts` | `b7656a89390afbb7db5686d388ef59317460a8a8fbcf9a105f4adcb6696717ec` |
+
+## Addendum — temporary daily cap reviewed at 13:41 UTC
+
+The user subsequently authorized a **$5 daily cap only for UTC 2026-10-16**, with automatic return to the **$2 base cap at 2026-10-17 00:00:00 UTC**. This dated authorization supersedes the earlier entry's unchanged-$2 statement for that one day. The $10 lifetime cap, $0.25 per-request reservation cap and 40 daily operations remain unchanged; no quota reset was authorized or implemented.
+
+**Independent read-only finding: no blocker identified.** Against HEAD `594f3c8908819e589429cca5be961d164b674cb3`, the production change is an exported `dailyLimitMicros(serverNow)` helper and its use as the daily-budget argument to the existing Redis reservation. The helper uses the half-open UTC interval `[2026-10-16T00:00:00Z, 2026-10-17T00:00:00Z)`. `LIMITS.dailyMicros` remains 2,000,000 microdollars. The production handler supplies `Date.now()` through its server clock; the request contract has no client-supplied clock field.
+
+`RESERVE_LUA`, `FINALIZE_LUA` and `ACCESS_LUA` were compared with HEAD and are unchanged. Redis key selection, accumulated expenditure, pending reservations, receipts, expiry rules and finalization logic are unchanged. Spending already recorded on October 16 counts toward the new $5 ceiling. A request reserved just before midnight finalizes against its original reservation day; new reservations at midnight use the ordinary October 17 day bucket and $2 cap. Expiry needs no scheduled job, deployment or manual counter reset.
+
+**Verification:** independently ran `npm test -- tests/quota-limits.test.ts`: **10/10 passed**. The tests cover both UTC interval boundaries, equivalent +03:00 timestamps, the actual captured Redis EVAL argument order and unchanged limits/keys, and finalization against the reservation day. The implementing agent separately reported TypeScript and **42/42 quota/API tests** passing. Diff-check passed. No live Redis mutation, browser action, provider request or deployment was performed for this review.
+
+The only documentation changes for this policy were the English `apps/api/README.md` and Hebrew `docs/handbook/2026-10-16/handbook.md`: both now distinguish the base and date-limited caps, name the exact automatic expiry, and state that existing expenditure/reservations are retained. Generated book artifacts, release metadata and live evidence remain the root agent's responsibility.
+
+| Addendum file | SHA-256 at 2026-10-16 13:41:13 UTC |
+|---|---|
+| `apps/api/quota.ts` | `682e2354db09a780e404b1c8c083e9b3291fc7f76d9bf540211288ed86c3126a` |
+| `tests/quota-limits.test.ts` | `9ac465708673f8fd8ced7f75c4a9bceda212065d3860cc8bc4270210ac62f344` |

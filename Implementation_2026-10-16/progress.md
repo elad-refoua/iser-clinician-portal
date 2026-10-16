@@ -123,3 +123,9 @@ Staged40operations in dpl_61jeqvD4W24DNfS7ePtgHu4PwcTv. Sonnet.11firstquestion s
 
 ### 2026-10-16 — server-only release published and verified
 Feature7243a80 committed and pushed. Vercel dpl_FufczWwehX4g6JHFyoneQLUg9hzp READY/promoted; Pages38907158829 successful cleaninstall/tests/build/deploy. Publicbrowser login loadedNeon, Shira approvednote+conversation+portal, defaultSonnet; inspectederrorlogempty. Publicbook.5/.11visible; fourpublicartifacthashes matchmanifest, actualbrowserPDFdownloadhashmatches.70committedinputs match. Final49page independentvisualreviewpassedwithnonblockingsparsecontinuations. No furtheraccountsetup needed. Separate$5dailyapprovalpending;2daily/10total/.25request unchanged,40opslive. FinalSonnetdraftQAandTelegramready-notice remainpending; no notification sent. Currentcheckpointandallreports updated.
+
+### 2026-10-16 13:37 UTC — temporary daily spending approval
+Elad explicitly approved the pending increase. Implementing a total daily cap of 5 USD only for UTC 2026-10-16, automatically returning to 2 USD at 2026-10-17T00:00Z. Lifetime10/request0.25/calls40 unchanged. No counters or receipts reset. Remaining gate: Sonnet draft through current wire schema, approval/server recovery, matching handbook publication and authorized Telegram completion.
+
+### 2026-10-16 13:45 UTC — Sonnet draft verified; extraction refinement
+Candidate dpl_8wDjCCSN5GWkRUoUhVZyzd9tRj2s deployed temporary cap.250tests/build passed. Sonnet.11 draft on Lior succeeded; full5outputs reviewed, approved, server60/7cases/124versions and reload verified. Independent clinician found intakefield6 omitted despite explicitcomplaint in5/8, plus imprecise unchangedformulation summary. General prompt.12 correction and live retest underway. No final notification yet.

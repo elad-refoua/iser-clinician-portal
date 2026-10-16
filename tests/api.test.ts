@@ -4,7 +4,7 @@ import { handle } from '../apps/api/handler.js';
 import { authenticate, digest, issueToken } from '../apps/api/auth.js';
 import { ApiError } from '../apps/api/errors.js';
 import { getModels, prepareProviderRequest, type CatalogModel } from '../apps/api/provider.js';
-import { LIMITS, RedisQuotaStore, redisConfigured, type QuotaStore, type Reservation, type ReservationInput } from '../apps/api/quota.js';
+import { dailyLimitMicros, LIMITS, RedisQuotaStore, redisConfigured, type QuotaStore, type Reservation, type ReservationInput } from '../apps/api/quota.js';
 import { responseSchema, shouldFinish, validateRequest, validateResult, ValidationError } from '../apps/api/validation.js';
 
 const now = Date.parse('2026-10-16T12:00:00Z');
@@ -45,7 +45,7 @@ class TestQuota implements QuotaStore {
     if (i.revision <= this.committed) throw new ApiError(409, 'stale_revision', this.committed + 1);
     if (this.calls >= LIMITS.dailyCalls) throw new ApiError(429, 'daily_call_limit');
     if (this.total + i.micros > LIMITS.totalMicros) throw new ApiError(429, 'total_budget_exceeded');
-    if (this.daily + i.micros > LIMITS.dailyMicros) throw new ApiError(429, 'daily_budget_exceeded');
+    if (this.daily + i.micros > dailyLimitMicros(i.now)) throw new ApiError(429, 'daily_budget_exceeded');
     this.total += i.micros; this.daily += i.micros; this.calls++; this.active.add(i.sessionKey);
     this.records.set(i.requestId, { hash: i.payloadHash, status: 'pending', amount: i.micros });
     return { requestKey: i.requestId, day: '2026-10-16', sessionKey: i.sessionKey, questionCount: Math.max(i.questionCount, this.questions), intakeCount: Math.max(i.intakeCount, this.intakes), intakeRound: i.intakeRound };
@@ -262,7 +262,7 @@ describe('API boundaries', () => {
   });
   it('enforces quota boundaries before paid work and exposes readiness', async () => {
     for (const field of ['total', 'daily', 'calls'] as const) {
-      const quota = new TestQuota(); quota[field] = field === 'total' ? LIMITS.totalMicros : field === 'daily' ? LIMITS.dailyMicros : LIMITS.dailyCalls;
+      const quota = new TestQuota(); quota[field] = field === 'total' ? LIMITS.totalMicros : field === 'daily' ? dailyLimitMicros(now) : LIMITS.dailyCalls;
       const p = provider(); const response = await handle(request('turn', requestBody()), 'turn', { env, quota, fetcher: p.fetcher, now: () => now });
       expect(response.status).toBe(429); expect(p.count()).toBe(0);
     }

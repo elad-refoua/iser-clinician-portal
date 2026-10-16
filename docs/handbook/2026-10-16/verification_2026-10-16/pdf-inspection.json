@@ -1,6 +1,6 @@
 {
   "pdf": "C:\\Users\\user\\Desktop\\projects\\ISER-oct-26\\apps\\web\\public\\handbook.pdf",
-  "pages": 49,
+  "pages": 51,
   "page_data": [
     {
       "page": 1,
@@ -39,17 +39,17 @@
     },
     {
       "page": 8,
-      "characters": 1879,
+      "characters": 2178,
       "outside_page_blocks": []
     },
     {
       "page": 9,
-      "characters": 1303,
+      "characters": 1297,
       "outside_page_blocks": []
     },
     {
       "page": 10,
-      "characters": 748,
+      "characters": 811,
       "outside_page_blocks": []
     },
     {
@@ -124,12 +124,12 @@
     },
     {
       "page": 25,
-      "characters": 1986,
+      "characters": 1816,
       "outside_page_blocks": []
     },
     {
       "page": 26,
-      "characters": 1854,
+      "characters": 2459,
       "outside_page_blocks": []
     },
     {
@@ -164,86 +164,96 @@
     },
     {
       "page": 33,
-      "characters": 1947,
+      "characters": 1996,
       "outside_page_blocks": []
     },
     {
       "page": 34,
-      "characters": 2120,
+      "characters": 2351,
       "outside_page_blocks": []
     },
     {
       "page": 35,
-      "characters": 2712,
+      "characters": 502,
       "outside_page_blocks": []
     },
     {
       "page": 36,
-      "characters": 3011,
+      "characters": 2712,
       "outside_page_blocks": []
     },
     {
       "page": 37,
-      "characters": 2852,
+      "characters": 3011,
       "outside_page_blocks": []
     },
     {
       "page": 38,
-      "characters": 3058,
+      "characters": 2852,
       "outside_page_blocks": []
     },
     {
       "page": 39,
-      "characters": 3061,
+      "characters": 3058,
       "outside_page_blocks": []
     },
     {
       "page": 40,
-      "characters": 826,
+      "characters": 2977,
       "outside_page_blocks": []
     },
     {
       "page": 41,
-      "characters": 2078,
+      "characters": 2183,
       "outside_page_blocks": []
     },
     {
       "page": 42,
-      "characters": 3059,
+      "characters": 869,
       "outside_page_blocks": []
     },
     {
       "page": 43,
-      "characters": 1517,
+      "characters": 3139,
       "outside_page_blocks": []
     },
     {
       "page": 44,
-      "characters": 2076,
+      "characters": 3208,
       "outside_page_blocks": []
     },
     {
       "page": 45,
-      "characters": 2490,
+      "characters": 192,
       "outside_page_blocks": []
     },
     {
       "page": 46,
-      "characters": 532,
+      "characters": 2076,
       "outside_page_blocks": []
     },
     {
       "page": 47,
-      "characters": 4027,
+      "characters": 2490,
       "outside_page_blocks": []
     },
     {
       "page": 48,
-      "characters": 2072,
+      "characters": 532,
       "outside_page_blocks": []
     },
     {
       "page": 49,
+      "characters": 4027,
+      "outside_page_blocks": []
+    },
+    {
+      "page": 50,
+      "characters": 2072,
+      "outside_page_blocks": []
+    },
+    {
+      "page": 51,
       "characters": 894,
       "outside_page_blocks": []
     }

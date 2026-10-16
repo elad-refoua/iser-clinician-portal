@@ -28,7 +28,7 @@ const sourceFiles = [
   'tests/staged-records.test.ts', 'tests/context-budget.test.ts', 'tests/context-integrity.test.ts', 'tests/workflow-guards.test.ts',
   'tests/document-editing.test.ts', 'tests/server-only-workflow.test.ts', 'tests/session-conversation.test.ts', 'tests/workspace-sync.test.ts', 'tests/workspace.test.ts', 'tests/model-retry.test.ts',
   'apps/web/login.css', 'apps/web/experience.css', 'apps/web/styles.css',
-  'tests/api.test.ts', 'tests/wire-field-schema.test.ts', 'tests/experience-model.test.ts', 'tests/prompt-behavior.test.ts',
+  'tests/api.test.ts', 'tests/quota-limits.test.ts', 'tests/wire-field-schema.test.ts', 'tests/experience-model.test.ts', 'tests/prompt-behavior.test.ts',
   'apps/api/handler.ts', 'apps/api/auth.ts', 'apps/api/errors.ts', 'apps/api/quota.ts', 'apps/api/provider.ts', 'apps/api/validation.ts',
   'apps/api/workspace.ts', 'apps/api/workspace-store.ts', 'api/workspace.ts',
   'vercel.json', '.github/workflows/pages.yml', 'vite.config.ts', 'vitest.config.ts', 'package.json', 'package-lock.json', '.env.example', 'README.md',
