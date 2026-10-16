@@ -62,3 +62,18 @@
 .portal-archive-fields h4{margin:0 0 6px;font-size:13px;font-weight:600}
 .portal-archive-fields span{font-size:11px;color:#6c806f}
 @media(max-width:760px){.portal-heading{display:block;margin-bottom:24px}.portal-heading h1{font-size:29px}.portal-heading p{font-size:13px}.portal-heading>.secondary{margin-top:17px}.portal-patient-details{font-size:11px;margin-top:11px}.portal-pending{display:block;padding:17px 18px}.portal-pending-actions{margin-top:13px;align-items:flex-start}.portal-pending h2{font-size:16px}.portal-pending p{font-size:12px}.portal-session-history{margin-bottom:23px}.portal-session-history ol{grid-template-columns:minmax(0,1fr);gap:9px}.portal-session-history li{padding:16px}.portal-session-history>summary{font-size:13px;gap:8px}.portal-session-history>summary>small{font-size:10px}.portal-document-tabs button{font-size:12px;padding:10px 13px}.portal-note-picker{display:block}.portal-note-picker label{max-width:none}.portal-note-actions{margin-top:8px;gap:5px 20px}.portal-note-actions button{font-size:11px}.portal-document-paper{padding:22px 19px}.portal-document-paper .document-toolbar h2{font-size:21px}.portal-unsaved{padding:14px 15px}.portal-unsaved button{font-size:11px}.portal-archive-picker select{font-size:12px}.portal-archive-status{padding:13px 15px}.portal-archive-document>.document-text{font-size:13px}}
+
+.portal-heading{margin-bottom:20px;gap:18px}
+.portal-pending{padding:16px 19px;margin-bottom:17px;gap:18px}
+.portal-session-history{margin-bottom:20px}
+.portal-session-history>summary{min-height:48px}
+.portal-session-history ol{gap:9px;margin-bottom:15px}
+.portal-session-history li{padding:13px 16px}
+.portal-session-actions button,.portal-unsaved button{min-height:44px}
+.portal-document-tabs,.portal-note-picker{margin-bottom:16px}
+.portal-document-paper{padding:23px 27px}
+.portal-document-paper .document-text,.portal-archive-document>.document-text{font-size:16px;line-height:1.75}
+.portal-archive-document>summary{min-height:46px;font-weight:600}
+.portal-archive-summary{font-size:16px;line-height:1.75;margin-bottom:16px}
+.portal-archive-sources>summary,.portal-archive-fields>summary,.portal-archive-followups>summary{min-height:44px}
+@media(max-width:760px){.portal-heading{margin-bottom:18px}.portal-pending{padding:15px 16px}.portal-document-paper{padding:19px 17px}.portal-document-paper .document-text,.portal-archive-document>.document-text{font-size:16px}.portal-session-history li{padding:13px 15px}}

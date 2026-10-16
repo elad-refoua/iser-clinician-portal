@@ -18,6 +18,14 @@ const sourceFiles = [
   'Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md',
   'docs/handbook/2026-10-16/handbook.css',
   'packages/prompts/index.ts', 'packages/prompts/intake-schema.ts',
+  'packages/prompts/authored.generated.ts', 'packages/prompts/template.ts',
+  'Prompt_Workbench_2026-10-16/README.md', 'Prompt_Workbench_2026-10-16/PROMPTS.md', 'Prompt_Workbench_2026-10-16/CONTEXT.md',
+  'scripts/prompt-source.ts', 'scripts/sync-prompts.ts', 'scripts/build-prompt-workbench.ts',
+  'apps/web/IntakeCompletion.tsx', 'apps/web/intake-completion.css', 'apps/web/proposal-diff.ts',
+  'packages/domain/intake-readiness.ts', 'tests/intake-readiness.test.ts', 'tests/proposal-diff.test.ts',
+  'tests/prompt-authoring.test.ts', 'tests/prompts.test.ts',
+  'tests/native-server-imports.test.ts',
+  'Verification_2026-10-16/PORTAL_DESIGN_SKILLS_RESEARCH.md',
   'packages/contracts/index.ts', 'packages/domain/index.ts',
   'packages/domain/intake-report.ts', 'packages/transport/workspace.ts',
   'apps/web/App.tsx', 'apps/web/Documents.tsx', 'apps/web/Backstage.tsx', 'apps/web/ui.tsx',
@@ -81,6 +89,7 @@ const links = [
   ['המשך עבודה ומצב ביצוע', 'Implementation_2026-10-16/CONTINUE_HERE.md'],
   ['README הממשק', 'apps/web/README.md'], ['README השרת', 'apps/api/README.md'],
   ['README ההוראות', 'packages/prompts/README.md'], ['לוגיקת הדומיין', 'packages/domain/index.ts'],
+  ['כל הפרומפטים לעריכה', 'Prompt_Workbench_2026-10-16/PROMPTS.md'], ['ניהול ההקשר בנפרד', 'Prompt_Workbench_2026-10-16/CONTEXT.md'],
   ['מקור הספר והוראות הבנייה', 'docs/handbook/README.md'],
 ].map(([label, path]) => `- [${label}](${meta.repository}/blob/main/${path}) — \`${path}\``).join('\n');
 let markdown = await readFile(resolve(sourceDir, 'handbook.md'), 'utf8');

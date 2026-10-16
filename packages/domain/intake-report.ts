@@ -13,7 +13,7 @@ const labelGroups = [
 const words = (text: string) => normalize(text).split(/[^\p{L}\p{N}]+/u).filter(Boolean).flatMap(word => word.startsWith('ה') && word.length > 3 ? [word, word.slice(1)] : [word]);
 
 /** Literal topic matching plus a small label vocabulary; this does not infer semantic paraphrases. */
-function excluded(field: IntakeField, topic: string): boolean {
+export function intakeTopicMatches(field: IntakeField, topic: string): boolean {
   const query = normalize(topic);
   if (!query) return false;
   const label = intakeFields.find(item => item.id === field.id)?.label ?? '';
@@ -28,7 +28,7 @@ function excluded(field: IntakeField, topic: string): boolean {
 /** Redacts a report copy only; the structured ledger and source history remain unchanged. */
 export function renderIntakeReport(fields: IntakeField[], preferences: Preference[]): string {
   const exclusions = preferences.filter(pref => pref.action === 'exclude' && (!pref.goal || pref.goal === 'intake'));
-  const reportFields = fields.map(field => exclusions.some(pref => excluded(field, pref.topic))
+  const reportFields = fields.map(field => exclusions.some(pref => intakeTopicMatches(field, pref.topic))
     ? { ...field, value: 'תוכן השדה הוחרג מתוצר זה לבקשת המטפל.', remaining: '', sourceIds: [] }
     : field);
   return renderIntake(reportFields);

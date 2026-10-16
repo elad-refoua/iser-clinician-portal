@@ -1,0 +1,13 @@
+.intake-completion { margin: 1.3rem 0; padding: 1.3rem; border: 1px solid #d7e3de; border-radius: 18px; background: #f6faf7; }
+.intake-completion > header { display: flex; align-items: flex-start; gap: 1rem; justify-content: space-between; }
+.intake-completion h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+.intake-completion p { margin: .35rem 0 .8rem; line-height: 1.65; overflow-wrap: anywhere; }
+.intake-gap-count { flex-shrink: 0; padding: .4rem .7rem; border-radius: 20px; background: #e6efe9; font-size: .85rem; }
+.intake-completion ul { list-style: none; margin: 0; padding: 0; }
+.intake-completion li { padding: 1rem 0; border-top: 1px solid #dde7e0; }
+.intake-gap-heading, .intake-gap-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.intake-gap-heading span, .intake-completion small, .intake-completion-note { color: #53675e; font-size: .85rem; }
+.intake-gap-actions { margin-top: .65rem; }
+.intake-completion details > summary { display: flex; gap: .5rem; cursor: pointer; padding: .75rem 0; font-weight: 600; }
+.intake-completion-editor .document-footer { position: sticky; bottom: 0; padding: .8rem; background: #fff; border-top: 1px solid #dde7e0; }
+@media (max-width: 600px) { .intake-completion { padding: 1rem; } .intake-completion > header { flex-direction: column; gap: .4rem; } .intake-gap-actions { align-items: stretch; flex-direction: column; } }

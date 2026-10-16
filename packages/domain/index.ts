@@ -3,6 +3,7 @@ import type { Branch, ContextPacket, DocumentVersion, DraftFollowUp, DraftResult
 import { TEXT_LIMITS } from '../contracts/index.js';
 import { emptyIntakeFields, renderIntake } from '../prompts/intake-schema.js';
 import { renderIntakeReport } from './intake-report.js';
+import { intakeCompletionFocus, intakeReadiness, isCanonicalIntakeCompletionFocus } from './intake-readiness.js';
 export { emptyIntakeFields, renderIntake, intakeFields, intakeSections, fieldStatusLabels } from '../prompts/intake-schema.js';
 export { renderIntakeReport } from './intake-report.js';
 
@@ -62,6 +63,11 @@ function reopenNote(state: PortalState, sessionId: string | undefined): PortalSt
   return { ...state, sessions: state.sessions.map(s => s.id === sessionId
     ? { ...s, status: 'draft', ...(!nextSession(state, s) ? { closedAt: undefined } : {}) }
     : s) };
+}
+function reopenDocumentSession(state: PortalState, version: DocumentVersion): PortalState {
+  const session = state.sessions.find(item => item.id === version.sessionId);
+  return version.kind === 'note' || (version.kind === 'intake' && session && !nextSession(state, session))
+    ? reopenNote(state, version.sessionId) : state;
 }
 function scopeFor(state: PortalState, branchId: string, throughSession: number): ContextPacket['branchScope'] {
   const scopes: ContextPacket['branchScope'] = [];
@@ -265,6 +271,15 @@ export function startExpansion(state: PortalState, sessionId: string, goal: Goal
   if ((s.intakeRound ?? 0) >= 10) throw new Error('הגענו למספר ההרחבות לפגישה. אפשר לערוך את המסמכים ישירות.');
   return updateSession(state, { ...s, revision: s.revision + 1, closedAt: undefined, status: 'asking', intakeActive: true, focusGoal: goal, focusSelection: selection ? structuredClone(selection) : undefined, intakeCount: 0, intakeRound: (s.intakeRound ?? 0) + 1 });
 }
+/** Explicit panel choice; derives the focus afresh instead of trusting a stale UI suggestion. */
+export function startIntakeCompletion(state: PortalState, sessionId: string, fieldId: number, expectedRevision: number): PortalState {
+  const session = checkRevision(state, sessionId, expectedRevision);
+  assertCurrentSession(state, session);
+  const readiness = intakeReadiness(buildContext(state, sessionId));
+  if (!readiness.visible || !readiness.gaps.some(gap => gap.field.id === fieldId && gap.canDiscuss)) throw new Error('הנושא השתנה או שאינו זמין להשלמה בשיחה. יש לבחור מתוך המצב המעודכן.');
+  const next = startExpansion(state, sessionId, 'intake');
+  return updateSession(next, { ...sessionOf(next, sessionId), focusSelection: intakeCompletionFocus(fieldId) });
+}
 export function rollbackExpansion(state: PortalState, sessionId: string, expectedRevision: number, previousSession: Session): PortalState {
   const current = sessionOf(state, sessionId);
   if (previousSession.id !== sessionId || previousSession.patientId !== current.patientId || previousSession.branchId !== current.branchId
@@ -339,7 +354,7 @@ export function editDocument(state: PortalState, patientId: string, branchId: st
   const version: DocumentVersion = { id: uid('version'), patientId, branchId, kind, ...(session ? { sessionId: session.id, sessionNumber: session.number } : {}), content: rendered, ...(normalized ? { fields: normalized } : {}), sourceIds: distinct([...(normalized ? normalized.flatMap(f => f.sourceIds) : []), sourceId]), createdAt: at, author: 'clinician', reason: 'עריכה ישירה של המטפל', approved: false, ...(previous ? { baseVersionId: previous.id } : {}) };
   const manuallyChangedFields = new Set(normalized?.filter(field => field.sourceIds.includes(sourceId)).map(field => field.id) ?? []);
   const edited = invalidate(clearPendingFields({ ...state, sources: [...state.sources, source], versions: [...state.versions, version] }, patientId, branchId, manuallyChangedFields), patientId, branchId);
-  return kind === 'note' && session ? reopenNote(edited, session.id) : edited;
+  return reopenDocumentSession(edited, version);
 }
 
 export function restoreVersion(state: PortalState, versionId: string): PortalState {
@@ -350,7 +365,7 @@ export function restoreVersion(state: PortalState, versionId: string): PortalSta
   if (state.versions.length >= 10000) throw new Error('הגענו למגבלת גרסאות המסמכים. יש לייצא גיבוי לפני המשך העבודה.');
   const next = invalidate(clearPendingFields({ ...state, versions: [...state.versions, restored] }, original.patientId, original.branchId,
     new Set(original.kind === 'intake' ? (original.fields ?? []).map(field => field.id) : [])), original.patientId, original.branchId);
-  return original.kind === 'note' ? reopenNote(next, original.sessionId) : next;
+  return reopenDocumentSession(next, restored);
 }
 export function acceptProposal(state: PortalState, versionId: string): PortalState {
   const proposal = state.versions.find(v => v.id === versionId && v.proposal && !v.rejected);
@@ -360,7 +375,7 @@ export function acceptProposal(state: PortalState, versionId: string): PortalSta
   if (state.versions.length >= 10000) throw new Error('הגענו למגבלת גרסאות המסמכים. יש לייצא גיבוי לפני המשך העבודה.');
   const accepted: DocumentVersion = { ...structuredClone(proposal), id: uid('version'), createdAt: now(), author: 'clinician', approved: false, proposal: false, rejected: false, reason: 'המטפל קיבל הצעת עדכון לאחר השוואה' };
   const next = invalidate({ ...state, versions: [...state.versions.map(v => v.id === versionId ? { ...v, rejected: true } : v), accepted] }, proposal.patientId, proposal.branchId);
-  return proposal.kind === 'note' ? reopenNote(next, proposal.sessionId) : next;
+  return reopenDocumentSession(next, accepted);
 }
 export function rejectProposal(state: PortalState, versionId: string): PortalState {
   return { ...state, versions: state.versions.map(v => v.id === versionId && v.proposal ? { ...v, rejected: true } : v) };
@@ -455,7 +470,11 @@ export function importState(json: string): PortalState {
   for (const s of state.sessions) {
     const b = state.branches.find(b => b.id === s.branchId)!;
     if ((b.parentId && s.number <= b.forkSession!) || (s.closedAt && Date.parse(s.closedAt) < Date.parse(s.startedAt))) throw new Error('זמן הפגישה או מיקומה ברצף אינם תקינים.');
-    if (s.focusSelection && (s.focusSelection.goal !== s.focusGoal || !s.intakeActive || !s.pendingDraft?.result.followUps?.some(item => JSON.stringify(item) === JSON.stringify(s.focusSelection)))) throw new Error('בחירת ההרחבה בגיבוי אינה תואמת לפגישה.');
+    if (s.focusSelection) {
+      const savedFollowUp = s.pendingDraft?.result.followUps?.some(item => JSON.stringify(item) === JSON.stringify(s.focusSelection));
+      const intakePanelChoice = s.number >= 4 && (s.intakeRound ?? 0) > 0 && isCanonicalIntakeCompletionFocus(s.focusSelection);
+      if (s.focusSelection.goal !== s.focusGoal || !s.intakeActive || (!savedFollowUp && !intakePanelChoice)) throw new Error('בחירת ההרחבה בגיבוי אינה תואמת לפגישה.');
+    }
   }
   for (const item of [...state.sources, ...state.versions]) {
     const owner = state.sessions.find(s => s.id === item.sessionId);

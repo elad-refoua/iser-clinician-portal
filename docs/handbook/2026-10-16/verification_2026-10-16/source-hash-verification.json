@@ -1,6 +1,6 @@
 {
-  "sourceSha256": "e35a64b2374b89645d89f98f83cc307eed154432a4ea54617d1ce97ec405c355",
-  "sources": 71,
+  "sourceSha256": "6426104c5b7ba03ab5568e0ac85f33493b75ee188ffd47d10d580fbe71bf3de4",
+  "sources": 89,
   "outputs": 2,
   "allMatch": true,
   "checks": [
@@ -30,6 +30,78 @@
     },
     {
       "path": "packages/prompts/intake-schema.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/prompts/authored.generated.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/prompts/template.ts",
+      "matches": true
+    },
+    {
+      "path": "Prompt_Workbench_2026-10-16/README.md",
+      "matches": true
+    },
+    {
+      "path": "Prompt_Workbench_2026-10-16/PROMPTS.md",
+      "matches": true
+    },
+    {
+      "path": "Prompt_Workbench_2026-10-16/CONTEXT.md",
+      "matches": true
+    },
+    {
+      "path": "scripts/prompt-source.ts",
+      "matches": true
+    },
+    {
+      "path": "scripts/sync-prompts.ts",
+      "matches": true
+    },
+    {
+      "path": "scripts/build-prompt-workbench.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/IntakeCompletion.tsx",
+      "matches": true
+    },
+    {
+      "path": "apps/web/intake-completion.css",
+      "matches": true
+    },
+    {
+      "path": "apps/web/proposal-diff.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/domain/intake-readiness.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/intake-readiness.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/proposal-diff.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/prompt-authoring.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/prompts.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/native-server-imports.test.ts",
+      "matches": true
+    },
+    {
+      "path": "Verification_2026-10-16/PORTAL_DESIGN_SKILLS_RESEARCH.md",
       "matches": true
     },
     {

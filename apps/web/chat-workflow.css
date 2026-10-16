@@ -75,3 +75,66 @@
 .review-explain{display:block;margin-inline-start:auto}
 @media(max-width:760px){.chat-opening{font-size:19px;margin-block:7px 23px}.chat-log{max-height:52vh;gap:22px;padding-bottom:22px}.chat-message{max-width:96%}.chat-message-user{padding:14px 16px}.chat-message-assistant{max-width:100%;padding-inline:1px}.chat-message p{font-size:15px}.chat-message-assistant p{font-size:17px}.chat-compose textarea{font-size:16px;padding:17px 17px 6px}.chat-compose-footer{padding:12px 16px 16px;gap:9px;flex-direction:column;align-items:stretch}.chat-keyboard{font-size:9px;max-width:none;margin-inline:0;text-align:center}.chat-send{width:100%;min-width:150px;min-height:50px;padding-inline:18px}.chat-quiet-actions{gap:2px 16px}.chat-quiet-actions button{font-size:11px}.chat-waiting{font-size:11px}.review-proposal{margin-top:27px;padding:22px 19px 12px;border-radius:12px}.review-heading h2{font-size:23px}.review-heading{margin-bottom:18px}.review-summary{font-size:15px}.review-note>.document-text{font-size:15px}.review-approval{gap:7px;padding-top:22px}.review-approval>.primary{width:100%}.review-approval>.text-button{margin-inline:auto;min-height:44px}.review-destination>summary{gap:8px}.review-destination>summary>small{font-size:10px}.review-sources>article,.review-fields>article{padding:13px}.review-destination-body>.document-text{max-height:52vh}.review-goal-buttons{gap:7px}}
 @media(prefers-reduced-motion:reduce){.chat-compose{transition:none}.chat-spinner{animation:none}}
+
+/* Proposal reading starts with its destination and then the actual changed text. */
+.review-proposal{margin-top:24px;padding:22px 25px 12px;border-radius:12px}
+.review-heading{margin-bottom:16px;gap:7px 16px}
+.review-heading h2{font-size:24px}
+.review-proposal-overview{padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid #cfdfd3}
+.review-proposal-overview>h3{font-size:18px;color:#244f3b;margin:0 0 7px;font-weight:650}
+.review-summary{font-size:16px;line-height:1.75;margin-bottom:14px}
+.review-destination-map{list-style:none;padding:0;margin:0 0 10px;background:#f3f7f3;border:1px solid #d8e5da;border-radius:7px}
+.review-destination-map li{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;padding:9px 13px;border-bottom:1px solid #e0e9e1;min-width:0}
+.review-destination-map li:last-child{border-bottom:0}
+.review-destination-map li>div{display:flex;align-items:baseline;gap:8px 13px;flex-wrap:wrap;min-width:0}
+.review-destination-map strong{font-size:14px;font-weight:600}
+.review-destination-map li>div>span{font-size:12px;color:#607465}
+.review-change-status{font-size:12px;white-space:nowrap;color:#3d624c}
+.review-change-status.change-unchanged{color:#66766b}
+.review-change-status.change-unavailable{color:#875c29}
+.review-approval-scope{margin-bottom:0;font-size:12px}
+.review-section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #c4d8ca}
+.review-section-heading h3,.review-destinations>h3,.review-reminders>h3,.review-followups>h3{font-size:18px;color:#244f3b;font-weight:650;margin-bottom:0}
+.review-section-heading>span{font-size:12px;color:#607465}
+.review-note .document-text,.review-destination-body .document-text{font-size:16px;line-height:1.75}
+.review-note .document-text h3,.review-destination-body .document-text h3{font-size:17px}
+.review-destinations{margin-top:20px;padding-top:18px}
+.review-destinations>.review-small{margin-top:7px;margin-bottom:8px}
+.review-destination>summary{min-height:46px;padding:10px 0;font-size:15px}
+.review-destination>summary>span{font-weight:600}
+.review-destination>summary>small{font-size:12px}
+.review-destination-body{padding:3px 0 14px}
+.review-field-changes{font-size:13px;line-height:1.75;margin:0 0 12px;padding:9px 12px;background:#f0f5ef;border-inline-start:2px solid #7b9c7c}
+.review-sources,.review-previous,.review-fields,.review-clean{margin-top:9px;font-size:12px}
+.review-clean>summary{cursor:pointer;min-height:44px;padding:10px 0;color:#4e7260;font-size:12px}
+.review-clean>.document-text{padding:12px 14px;background:#f7faf6;border:1px solid #e1e9df;border-radius:5px}
+.review-sources>summary,.review-previous>summary,.review-fields>summary,.review-reminders summary,.review-followups details>summary,.review-more>summary{min-height:44px;padding:10px 0}
+.review-fields>article,.review-sources>article{margin-block:7px;padding:11px 13px}
+.review-fields .document-diff{margin-top:8px}
+.review-remaining-change{margin-top:12px}.review-remaining-change>strong{font-size:12px;color:#4e6857;font-weight:600}
+.review-reminders{margin-top:16px;padding-top:14px}
+.review-reminders>h3,.review-followups>h3{margin-bottom:9px}
+.review-approval{padding:18px 0 10px;gap:10px 18px}
+.review-stale{margin:12px 0 18px;padding:11px 14px}
+.review-followups{padding-top:10px}
+.review-followups>div{margin-bottom:12px}
+.review-goal-buttons button,.review-followups>div>button,.chat-quiet-actions button,.review-explain{min-height:44px}
+.chat-log{gap:18px;padding-bottom:18px}
+.chat-opening{margin-bottom:20px}
+.chat-message p{line-height:1.8}
+.chat-message-assistant p{line-height:1.8}
+@media(max-width:760px){
+  .review-proposal{padding:18px 16px 10px;margin-top:20px}
+  .review-heading h2{font-size:22px}
+  .review-summary,.review-note .document-text,.review-destination-body .document-text,.chat-message p{font-size:16px}
+  .review-proposal-overview{margin-bottom:16px;padding-bottom:14px}
+  .review-destination-map li{padding:9px 10px;gap:8px}
+  .review-destination-map li>div{display:block}
+  .review-destination-map li>div>span{display:block;margin-top:3px;font-size:11px}
+  .review-change-status{font-size:11px}
+  .review-section-heading{align-items:start;flex-wrap:wrap}
+  .review-section-heading h3,.review-destinations>h3,.review-reminders>h3,.review-followups>h3{font-size:17px}
+  .review-section-heading>span{font-size:11px}
+  .review-approval>.primary{min-height:48px}
+  .review-destination>summary>small{font-size:11px}
+}

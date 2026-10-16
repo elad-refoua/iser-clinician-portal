@@ -1,6 +1,7 @@
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Check, Copy, FileText, X } from 'lucide-react';
 import type { DocumentVersion, PortalState } from '../../packages/contracts';
+import { diffDocument, type DiffBlock } from './proposal-diff';
 
 export const dateLabel = (value: string) => new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
 export const timeLabel = (value: string) => new Intl.DateTimeFormat('he-IL', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
@@ -32,10 +33,53 @@ function inlineDocumentText(text: string) {
 export function DocumentText({ text }: { text: string }) {
   if (!text.trim()) return <p className="empty-copy">עדיין אין תוכן במסמך הזה.</p>;
   return <div className="document-text">{text.split('\n').map((line, index) => {
-    if (/^#{1,3}\s/.test(line)) return <h3 key={index}>{inlineDocumentText(line.replace(/^#{1,3}\s+/, ''))}</h3>;
+    if (!line.trim()) return <div className="document-space" key={index} aria-hidden="true" />;
+    const heading = line.match(/^(#{1,3})\s+/);
+    if (heading) {
+      const level = heading[1].length;
+      const Heading = (['h3', 'h4', 'h5'] as const)[level - 1];
+      return <Heading className={`document-heading document-heading-${level}`} key={index}>{inlineDocumentText(line.slice(heading[0].length))}</Heading>;
+    }
     if (/^[-*]\s/.test(line)) return <p className="document-bullet" key={index}>{inlineDocumentText(line.replace(/^[-*]\s+/, ''))}</p>;
-    return <p key={index}>{inlineDocumentText(line || '\u00a0')}</p>;
+    return <p key={index}>{inlineDocumentText(line)}</p>;
   })}</div>;
+}
+
+const changeLabels = { added: 'תוספת מוצעת', removed: 'הסרה מוצעת', replaced: 'החלפת נוסח' };
+
+function SpacingText({ text }: { text: string }) {
+  if (!text) return <p className="document-diff-spacing">ללא תווים</p>;
+  const counts = [
+    ['ירידות שורה', (text.match(/\r\n|\r|\n/g) ?? []).length],
+    ['רווחים', (text.match(/ /g) ?? []).length],
+    ['טאבים', (text.match(/\t/g) ?? []).length],
+    ['תווי ריווח אחרים', text.replace(/[ \t\r\n]/g, '').length],
+  ].filter(([, count]) => count);
+  return <p className="document-diff-spacing">ריווח בלבד: {counts.map(([label, count]) => `${label}: ${count}`).join('; ')}.</p>;
+}
+
+function ChangedContent({ text }: { text: string }) {
+  return text.trim() ? <DocumentText text={text} /> : <SpacingText text={text} />;
+}
+
+function ReplacementText({ block }: { block: DiffBlock }) {
+  const onePlainLine = [block.before, block.after].every(text => text.trim() && !/\n|^#{1,6}\s|^[-*]\s|\*\*/.test(text.replace(/\n$/, '')));
+  if (onePlainLine) return <p className="document-diff-inline">{block.parts.map((part, index) => part.kind === 'equal' ? <span key={index}>{inlineDocumentText(part.text)}</span>
+    : part.kind === 'removed' ? <del key={index}><span className="sr-only">נוסח שמוצע להסיר: </span>{inlineDocumentText(part.text)}<span className="sr-only"> סוף ההסרה. </span></del>
+      : <ins key={index}><span className="sr-only">נוסח שמוצע להוסיף: </span>{inlineDocumentText(part.text)}<span className="sr-only"> סוף התוספת. </span></ins>)}</p>;
+  return <div className="document-diff-replacement"><div className="document-diff-old"><span className="document-diff-side-label">נוסח שמוצע להסיר</span><del><ChangedContent text={block.before} /></del></div><div className="document-diff-new"><span className="document-diff-side-label">הנוסח המוצע במקומו</span><ins><ChangedContent text={block.after} /></ins></div></div>;
+}
+
+export function DocumentDiff({ before, after, showLegend = true }: { before: string; after: string; showLegend?: boolean }) {
+  const comparison = useMemo(() => diffDocument(before, after), [before, after]);
+  if (!comparison.changed) return <div className="document-diff"><p className="document-diff-unchanged">אין שינוי בנוסח לעומת גרסת הבסיס.</p><DocumentText text={after} /></div>;
+  return <div className="document-diff" aria-label="השינויים המוצעים במסמך">
+    {showLegend && <p className="document-diff-legend"><span><ins>תוספת</ins> בנוסח המוצע</span><span><del>הסרה</del> מגרסת הבסיס</span><span>החלפה מוצגת עם הנוסח הקודם והחדש</span></p>}
+    {comparison.blocks.map((block, index) => block.kind === 'unchanged' ? block.after.trim() ? <DocumentText key={index} text={block.after} /> : null : <div key={index} className={`document-diff-block diff-${block.kind}`}>
+      <span className="document-diff-label">{!block.before.trim() && !block.after.trim() ? 'שינוי בריווח' : changeLabels[block.kind]}</span>
+      {!block.before.trim() && !block.after.trim() ? <div className="document-diff-replacement"><div><span className="document-diff-side-label">לפני השינוי</span><SpacingText text={block.before} /></div><div><span className="document-diff-side-label">אחרי השינוי</span><SpacingText text={block.after} /></div></div> : block.kind === 'replaced' ? <ReplacementText block={block} /> : block.kind === 'added' ? <ins className="document-diff-whole"><ChangedContent text={block.after} /></ins> : <del className="document-diff-whole"><ChangedContent text={block.before} /></del>}
+    </div>)}
+  </div>;
 }
 
 export function CopyButton({ text, notify }: { text: string; notify: (message: string) => void }) {

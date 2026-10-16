@@ -1,20 +1,20 @@
 {
-  "version": "2026-10-16.7",
-  "promptVersion": "2026-10-16.12",
-  "sourceSha256": "e35a64b2374b89645d89f98f83cc307eed154432a4ea54617d1ce97ec405c355",
-  "generatedAt": "2026-10-16T14:25:37.930Z",
+  "version": "2026-10-16.8",
+  "promptVersion": "2026-10-16.13",
+  "sourceSha256": "6426104c5b7ba03ab5568e0ac85f33493b75ee188ffd47d10d580fbe71bf3de4",
+  "generatedAt": "2026-10-16T15:26:44.291Z",
   "sourceFiles": [
     {
       "path": "docs/handbook/2026-10-16/handbook.md",
-      "sha256": "a2400f8d81e835296e6ec71d36e03313a62cd74cd8c5debc7bd25a28e179443f"
+      "sha256": "58ed78c4b0b58168ca6cf74c6b432c660c03d84376868164c52051784c6818f5"
     },
     {
       "path": "docs/handbook/2026-10-16/metadata.json",
-      "sha256": "6217f6c1c69ded81fba663a0d968d20e571ead2bb468dde86a24c9f04d3dfd4b"
+      "sha256": "8ad5c372ff499fc8781f497c99a3a1eb43f51b1eefe9c3d65b9f9e93434a9cba"
     },
     {
       "path": "docs/handbook/2026-10-16/release-evidence.md",
-      "sha256": "32e2932f3f0876ec5e2d04a7f50f28c88c9fcbb282905261d1a5118e5a86db29"
+      "sha256": "5a037718d0ba6ca3abcb4324b0f36cb0d5564b45779b8cdb6918d87a6c0a33f5"
     },
     {
       "path": "Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md",
@@ -26,11 +26,83 @@
     },
     {
       "path": "packages/prompts/index.ts",
-      "sha256": "f606129e4b2a5b184ebb348a19270d9222473922876c6f3e489e390defd2487d"
+      "sha256": "dd4fa4165a529eae4c444e0a9e6fdfc850aaab370687199aeef369e2a4c14831"
     },
     {
       "path": "packages/prompts/intake-schema.ts",
       "sha256": "e7fac2b89e8fa149bc3c5f4a732ee929c5a7e5557dd4a5d3f47de88d0c3ab9a8"
+    },
+    {
+      "path": "packages/prompts/authored.generated.ts",
+      "sha256": "489b6a84d26178197d792b1c031bd0215b1fbcdf9b4e591c777786e6bc3c9e68"
+    },
+    {
+      "path": "packages/prompts/template.ts",
+      "sha256": "346113775977e66ba402ee614c8959aba9153245cdeb9e5b8663f62bca3917b4"
+    },
+    {
+      "path": "Prompt_Workbench_2026-10-16/README.md",
+      "sha256": "ed319831dee8d3ad3bd1cca397e7d0e78c75d0971933867d07ed1cba696be535"
+    },
+    {
+      "path": "Prompt_Workbench_2026-10-16/PROMPTS.md",
+      "sha256": "9d8f50b533ee8568edfa174fa7d30c78cf7c629478a0f9cc2c6e4a8e92f33b1c"
+    },
+    {
+      "path": "Prompt_Workbench_2026-10-16/CONTEXT.md",
+      "sha256": "efcb5e55b2d0eb7d5bc38a26effb639cd23df1ab51c685c757f4d95960ebcd54"
+    },
+    {
+      "path": "scripts/prompt-source.ts",
+      "sha256": "4aacbc166d5f3b8e59d922e90f89713cc6d334f39912addb5745b27162df82c9"
+    },
+    {
+      "path": "scripts/sync-prompts.ts",
+      "sha256": "b91e18bda538055321eaeb66e862378eae689617f48b0c9e99e67562ffaf4d3f"
+    },
+    {
+      "path": "scripts/build-prompt-workbench.ts",
+      "sha256": "e10f711ea2cba4e7c318e68cdc2e802ecbb4359ce189b1c921bde4224c2fd460"
+    },
+    {
+      "path": "apps/web/IntakeCompletion.tsx",
+      "sha256": "f9f606e31e6a9e26cfc3b217228080fba67dc0967c5d55e785702b4dc2ab20ab"
+    },
+    {
+      "path": "apps/web/intake-completion.css",
+      "sha256": "0cc3df2bf3d1ce8eba0c80e8c6d6f2189f5f5d44798bab07ff101e7824ae67f0"
+    },
+    {
+      "path": "apps/web/proposal-diff.ts",
+      "sha256": "fad0d6f10ef21e3c9bf0d98b6586d36f1139a166f09291f6c27712728789efc6"
+    },
+    {
+      "path": "packages/domain/intake-readiness.ts",
+      "sha256": "c6d1e6738214a770d99a58a203ebfba34d0a782ae582a4c4626bbe64c7bd2a76"
+    },
+    {
+      "path": "tests/intake-readiness.test.ts",
+      "sha256": "e8493646dd1a166c9e00cb9597aba5c5fd2844dc1e7cd09e97f0e4728de7646c"
+    },
+    {
+      "path": "tests/proposal-diff.test.ts",
+      "sha256": "e0247fede6a17c6ea9cf01999889c158d3da6f5a21858c60a8f43d393f95f330"
+    },
+    {
+      "path": "tests/prompt-authoring.test.ts",
+      "sha256": "edfefa9317e2109698e3e802fe36fb143701e33937d3afcdf8d551163fec70bb"
+    },
+    {
+      "path": "tests/prompts.test.ts",
+      "sha256": "3c28c4298e33905fa14b87a04dbad97cace0fc3c32204503da011902cec56931"
+    },
+    {
+      "path": "tests/native-server-imports.test.ts",
+      "sha256": "51cf9c04c40339d7e9355b470b1df6df28f731480e06e87f91031b3811e85044"
+    },
+    {
+      "path": "Verification_2026-10-16/PORTAL_DESIGN_SKILLS_RESEARCH.md",
+      "sha256": "e56276ed1822a5fb1fe5d2e593fa4df3da3252646bf13cf793f5f4ec4748127e"
     },
     {
       "path": "packages/contracts/index.ts",
@@ -38,11 +110,11 @@
     },
     {
       "path": "packages/domain/index.ts",
-      "sha256": "fd0b478988314093c80204ae0494c97cda8acff30a8dd330dd30a877e134fe08"
+      "sha256": "9d4a8e14884a98d93b4a8fdacf591770d0d9cae871a1d0a26231ec910cae65a4"
     },
     {
       "path": "packages/domain/intake-report.ts",
-      "sha256": "682619deac233f6c1e432fde9458a16d2fed846187b3ee5d7166110fbb6e26bd"
+      "sha256": "0267293c7e7082e121d0eb9c8fe263c2a4c5daf2929c2bb4b766b8bf62592739"
     },
     {
       "path": "packages/transport/workspace.ts",
@@ -50,19 +122,19 @@
     },
     {
       "path": "apps/web/App.tsx",
-      "sha256": "9799652989d643f2d0e894f49d459f3bae675f6cecde53c82e4e0141fbc66f84"
+      "sha256": "343cb2968032e4e39d8a69312b616dc0b26f3933aa9a0a7aad33fb04b8ef8e5d"
     },
     {
       "path": "apps/web/Documents.tsx",
-      "sha256": "67bcd3ec5ad2d12450f82ad0ac69acc52d43a8d82f3d72735636024682bbbbee"
+      "sha256": "b913d36447f772b80ac9e40ff2b6357b9dbf3d3e9f2aa02c1fc10dfffcfb2e01"
     },
     {
       "path": "apps/web/Backstage.tsx",
-      "sha256": "04674fb3a4fd47d043d79963948b8c985daf1f304d1f5393fb16e48a9207d0db"
+      "sha256": "da1539c905f3fb35ed428d02b207fdbe8a21eb19619331a888508675f1afe320"
     },
     {
       "path": "apps/web/ui.tsx",
-      "sha256": "c157fad5c112be090606d8dffe6cd69af6dd9332378c52908920443d88081058"
+      "sha256": "780eea84f7b2c9a8afc0d4481545965cb2d0957d248b6105bcf5b2b6df8c7f5f"
     },
     {
       "path": "apps/web/NewPatient.tsx",
@@ -106,7 +178,7 @@
     },
     {
       "path": "apps/web/ReviewProposal.tsx",
-      "sha256": "7d795ccc89e0d4d9303acace4602db4893f8652be2674ee9189721729fb5fe9d"
+      "sha256": "c3e6fdc3d9536ca155b52373312eee319ae8f6b66ad145d6f199ca334ad399df"
     },
     {
       "path": "apps/web/workflow-guards.ts",
@@ -122,11 +194,11 @@
     },
     {
       "path": "apps/web/chat-workflow.css",
-      "sha256": "a9fb07a1d93d22dac6c45b4dc3e5e90e645ebec741603f251c227c5d7a151602"
+      "sha256": "9a66b0b11472b4d5812f1f64c1bc68f9cbe9d69388d4491db06c407d999eed0b"
     },
     {
       "path": "apps/web/patient-portal.css",
-      "sha256": "2f587aff77295976e46e8ddfe7682a6c944f85fda80fb5c538b0b8d1a9e480f6"
+      "sha256": "2073f81e11de1182aac31e66057c1f1f1219867b39b98266ef9851779a7104e9"
     },
     {
       "path": "tests/staged-records.test.ts",
@@ -178,7 +250,7 @@
     },
     {
       "path": "apps/web/styles.css",
-      "sha256": "f03537fdd1a3e2ca5990d7f81ad18ab397d94be8e658efe153d87a5971194d82"
+      "sha256": "1fc61bf7d5aebf0f5227e14c6f8baf93f8c5b93ee478427961bdaea42138685b"
     },
     {
       "path": "tests/api.test.ts",
@@ -198,7 +270,7 @@
     },
     {
       "path": "tests/prompt-behavior.test.ts",
-      "sha256": "bf09bf9b82ea67005d85d81948138c0e22f87e1ccc644cc32c6d62ac4cd92ed8"
+      "sha256": "eee1ee19d7317a99345ea2384974764b81c7514b4d9518585a2256fca4e56c95"
     },
     {
       "path": "apps/api/handler.ts",
@@ -254,7 +326,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "765919b62dd2dcb679a8358f9c3c52b46424fdccb56a60f81b922bddd9ba4494"
+      "sha256": "b95ac5488a3ca90659a0d2061cc4f1a4eb9d81ed9430f48b425286892882d15a"
     },
     {
       "path": "package-lock.json",
@@ -266,7 +338,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "e20d583e7918079b4b017bddd6a3b0b322348f93a4598a7992e74226c898732c"
+      "sha256": "2f4773a684729011055ff252f52921d83784f9f50567c9c2499160f9f1a02b9e"
     },
     {
       "path": "apps/api/README.md",
@@ -274,15 +346,15 @@
     },
     {
       "path": "apps/web/README.md",
-      "sha256": "693783cc9d61ae021f29be8b6735ce5c6e52a9cfdf5985f0fec04061a58bfa29"
+      "sha256": "044c1d77f4d2c170c73f60bbf911b3a116bd86574c6118f86bf9011bfa08d525"
     },
     {
       "path": "packages/prompts/README.md",
-      "sha256": "3681e6cdb9d384a2bd76585ac506c93103e75327d0649b0b49a77bbef1889056"
+      "sha256": "146d816eb7cd2c7e4c897f83316a43edeef9c8e583fb758e9c2630817c3f7d43"
     },
     {
       "path": "scripts/build-handbook.ts",
-      "sha256": "931e056396647e8e81b427b47f65aa25d2b8692427ee644b435a6b1ee23020ed"
+      "sha256": "93291e04edc59a0609b3d4f18d38b3bb8558e4d2e4ecbce3c0cbf07901f2d108"
     },
     {
       "path": "docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf",
@@ -292,11 +364,11 @@
   "outputs": [
     {
       "path": "apps/web/public/handbook.html",
-      "sha256": "3eef2c39e90dd18011c0eab6e65b43aa03653515ef642d8128a3d0d872d3557e"
+      "sha256": "2793eb6f997f6cef9926836db6f64bb362263ad390b7528530aa40ed803c95fe"
     },
     {
       "path": "apps/web/public/handbook.pdf",
-      "sha256": "46b3a5b05e81f4879c6cd31fe3339ebc289c94c072e3df83e620035f75ac60a4"
+      "sha256": "e0e324ee64da530084473149f83f343e294f0d9f8c1a787e992d4cc3625316f0"
     }
   ],
   "localArtifactChecks": {

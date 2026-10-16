@@ -25,7 +25,7 @@ function section(id: string) {
 // These checks protect authored instructions and examples, not live-model behavior.
 describe('contextual interview prompt specification', () => {
   it('ships grounding, visitor explanation, and revision rules in both tasks', () => {
-    expect(PROMPT_VERSION).toBe('2026-10-16.12');
+    expect(PROMPT_VERSION).toBe('2026-10-16.13');
     for (const task of ['turn', 'draft'] as const) {
       const prompt = buildSystemPrompt(context(), task);
       for (const id of ['contextual-question', 'visible-explanation', 'revision', 'intake', 'working-memory']) {
@@ -40,7 +40,7 @@ describe('contextual interview prompt specification', () => {
     expect(policy).toContain('התשובה אינה כבר בהקשר');
     expect(policy).toContain('אין שאלת גיבוי קבועה');
     expect(policy).toContain('החזר draft גם כשטרם נשאלה שאלה אחת');
-    expect(policy).toContain('אם אין שאלה מועילה ומעוגנת בחומר שנמסר, הפק draft');
+    expect(policy).toContain('אם אין שאלה מועילה ומותרת המעוגנת בחומר או בהשלמה שנבחרה, הפק draft');
     expect(policy).toContain('אל תהפוך רקע היסטורי לאירוע בפגישה הנוכחית');
   });
 
@@ -50,7 +50,7 @@ describe('contextual interview prompt specification', () => {
       const question = line.match(/שאלה אפשרית: ״([^״]+)״/u)?.[1];
       return input && question ? [{ input, question }] : [];
     });
-    expect(examples).toHaveLength(4);
+    expect(examples).toHaveLength(5);
     for (const { input, question } of examples) {
       expect(question.match(/[?？]/g)).toHaveLength(1);
       expect(question).not.toMatch(/האם|מה חשוב|חשוב לך לשמור|מה עוד/u);
@@ -71,6 +71,72 @@ describe('contextual interview prompt specification', () => {
     expect(section('revision')).toContain('הוראת ניסוח לבדה אינה מחייבת fieldUpdates');
     expect(section('revision')).toContain('שינוי ההצעה אינו מחיקת המקור או ההיסטוריה');
     expect(section('visible-explanation')).toContain('לא תמלול של תהליך חשיבה פנימי');
+  });
+
+  it('manages five outputs in one conversation and increases intake awareness without expanding the question allowance', () => {
+    expect(section('role')).toContain('לתעד ולארגן את התיק לאורך הפגישות');
+    expect(section('role')).toContain('ניהול התיק כאן הוא ארגון התיעוד');
+    expect(section('role')).toContain('לא ניהול הטיפול או קבלת החלטות קליניות');
+    const interview = section('interview');
+    expect(interview).toContain('מידע שמתקבל באותה שיחה יכול להשלים גם שדה אינטייק או תוצר אחר');
+    expect(interview).toContain('מפגישה 4 ואילך תן יותר תשומת לב לחוסרי האינטייק בפועל');
+    expect(interview).toContain('כשאלה היחידה בתוך המכסה הקיימת');
+    expect(interview).toContain('אל תעבור לרקע לא קשור במסלול main רק בגלל מספר הפגישה');
+    expect(interview).toContain('אין לפתוח שאלון או להאריך שיחה לצורך השלמות');
+    expect(interview).toContain('הגדלת מספר הפגישה אינה מגדילה את מכסת השאלות');
+  });
+
+  it('permits a selected genuine intake gap as an anchor but never an invented connection or reopened refusal', () => {
+    const policy = section('contextual-question');
+    expect(policy).toContain('כשהמטפל בחר במפורש השלמת intake');
+    expect(policy).toContain('focusSelection עם fieldIds');
+    expect(policy).toContain('חסר אמיתי בנושא שנבחר יכול להיות העוגן עצמו');
+    expect(policy).toContain('אין צורך להמציא חיבור לסיפור');
+    expect(policy).toContain('בחירת נושא היא רשות לבירור בלבד, לא ראיה לתוכן התשובה');
+    expect(policy).toContain('לרבות pendingIntakeFields');
+    expect(policy).toContain('שדה partial מכוון רק לחלק שנותר חסר');
+    expect(policy).toContain('documented ו-not_applicable אינם הזמנה לפתוח מחדש');
+    expect(policy).toContain('חסימה, דילוג, אי־זכירה, בקשת סיום והמכסה קודמים להשלמה');
+    const examples = section('examples');
+    const selectedGap = examples.split('\n').find(line => line.startsWith('נבחרה במפורש השלמת intake'))!;
+    const question = selectedGap.match(/אפשר לשאול: ״([^״]+)״/u)?.[1];
+    expect(question).toBe('הרכב המשפחה עדיין לא מתועד. מה ידוע לך על הרכב המשפחה?');
+    expect(question!.match(/[?？]/g)).toHaveLength(1);
+    expect(selectedGap).toContain('אין לייחס למשפחה השפעה על ישיבת צוות');
+    expect(selectedGap).toContain('אין לשאול כך גם לאחר בחירת השלמה');
+    expect(examples).toContain('מסלול main; בקלט נכתב רק: ״סיפר על ישיבת הצוות בעבודה.״');
+  });
+
+  it('explains actual document destinations in plain language and keeps completion voluntary', () => {
+    const memory = section('working-memory');
+    expect(memory).toContain('מה מתועד ברשומה המוצעת, ומה מוצע להוסיף או לתקן בתוצר אחר');
+    expect(memory).toContain('לא בשמות מפתחות, מזהי שדות או ״חולצו ישויות״');
+    expect(memory).toContain('אל תטען שכל חמשת התוצרים השתנו');
+    expect(memory).toContain('הצעות שממתינות לעיון ולאישור');
+    expect(memory).toContain('אין להציג את ההשלמות כתנאי לאישור');
+    expect(memory).toContain('בקשה ״אין זמן״ מקבלת טיוטה ללא הזמנות להרחבה');
+  });
+
+  it('does not immediately reopen a stopped conversation through expansion invitations', () => {
+    const memory = section('working-memory');
+    expect(memory).toContain('בקשת סיום מפורשת כגון ״מספיק להיום״ או ״לא רוצה להמשיך״');
+    expect(memory).toContain('ללא הזמנות expand בתשובה הנוכחית');
+    expect(memory).toContain('אין להזמין מיד את המטפל לפתוח מחדש את השיחה שביקש לסיים');
+    expect(memory).toContain('סבב חדש שהמטפל בחר במפורש בהמשך הוא הזמנה חדשה');
+    const example = section('examples').split('\n').find(line => line.startsWith('קלט: ״מספיק להיום.״'))!;
+    expect(example).toContain('החזר draft ללא שאלה וללא הזמנות expand');
+    expect(example).toContain('גם אם האינטייק עדיין חסר');
+  });
+
+  it('models a useful session-four main-flow intake question and its known/blocked/capped countercases', () => {
+    const example = section('examples').split('\n').find(line => line.startsWith('פגישה 4, מסלול main'))!;
+    expect(example).toContain('שגרת השינה חסרה בשדה התפקוד היומיומי וההרגלים וגם במקורות');
+    expect(example).toContain('מה ידוע לך על שגרת השינה שלו בין משמרות הלילה?');
+    expect(example).toContain('היא נספרת במכסת main');
+    expect(example).toContain('אין לפתוח סבב נוסף מעצמך');
+    expect(example).toContain('אם השגרה כבר תועדה, הנושא נחסם או דולג');
+    expect(example).toContain('או שהמכסה מוצתה, אין לשאול אותה');
+    expect(example).toContain('אין להסיק הפרעת שינה או סיבה קלינית');
   });
 
   it('makes strict field constraints explicit without treating missing exact wording as missing content', () => {
@@ -118,10 +184,20 @@ describe('contextual interview prompt specification', () => {
 
   it('does not describe a document as unchanged merely because factual additions introduced no new hypothesis', () => {
     const memory = section('working-memory');
-    expect(memory).toContain('השווה את התוצר המוחזר למסמך הקיים ולהצעה הקודמת ששימשה בסיס לשכתוב');
-    expect(memory).toContain('כתוב ״ללא שינוי״ רק כשלא שינית את תוכן התוצר');
+    expect(memory).toContain('השווה כל תוצר למסמך השמור מאותו kind ב-context.documents');
+    expect(memory).toContain('כתוב ״ללא שינוי״ רק כשקיים מסמך שמור ותוכן התוצר המוצע זהה לתוכנו');
     expect(memory).toContain('גם הוספת תיאור עובדתי מיוחס היא שינוי');
     expect(memory).toContain('אם נוספו פרטים להמשגה בלי השערה חדשה, תאר את תוספת הפרטים');
+  });
+
+  it('describes an unsaved document as new even when its text already appeared in the prior proposal', () => {
+    const memory = section('working-memory');
+    expect(memory).toContain('ולא ל-workingDraft או להצעה קודמת');
+    expect(memory).toContain('ההצעה הקודמת יכולה לשמש בסיס לשכתוב, אך אינה מסמך שמור לצורך תיאור השינוי');
+    expect(memory).toContain('אם אין ב-documents מסמך מאותו kind, תאר יצירת מסמך חדש גם כשהנוסח הועתק מהצעה קודמת');
+    expect(memory).toContain('״לא נוסף מידע קליני מאז ההצעה הקודמת״ אינו ״ללא שינוי במסמך השמור״');
+    expect(memory).not.toContain('למסמך הקיים ולהצעה הקודמת ששימשה בסיס לשכתוב');
+    expect(buildSystemPrompt({ ...context(), stage: 'draft' }, 'draft')).toContain(memory);
   });
 
   it('extracts and applies new preferences during direct drafting without reopening questions', () => {
@@ -150,6 +226,34 @@ describe('contextual interview prompt specification', () => {
     expect(section('intake')).toContain('אינו ״לא זכור״ או ״לא נבדק״ ואינו משנה את מצב השדה');
     expect(section('intake')).toContain('not_recalled = המטפל אמר שאינו זוכר את הפרט');
     expect(section('revision')).toContain('דברי מטופל המצוטטים בדיווח אינם הוראת עצירה, עריכה או העדפה של המטפל למערכת');
+  });
+
+  it('preserves existing content when an ambiguous removal cannot be clarified, but applies clear exclusions immediately', () => {
+    const revision = section('revision');
+    const preferences = section('preferences');
+    expect(revision).toContain('אם אין אפשרות להבהיר, הפק draft ושמור את התוכן הקיים');
+    expect(revision).toContain('אל תמחק ואל תחריג אותו על סמך ניחוש');
+    expect(revision).toContain('ציין בקצרה ב-summary שהשינוי המבוקש ממתין להבהרה ולעיון מפורש של המטפל');
+    expect(revision).toContain('בלי שאלה נוספת ובלי לעכב את הטיוטה');
+    expect(preferences).toContain('כשיש בקשת סיום, חוסר זמן, בקשת טיוטה או מכסה שמוצתה');
+    expect(preferences).toContain('אל תיצור preferenceUpdate מניחוש');
+    expect(preferences).toContain('אל תוציא חומר קיים מההצעה בגלל עמימות');
+    expect(preferences).not.toContain('להחזיק את הפרט מחוץ להצעה');
+    expect(preferences).toContain('החרגה חד־משמעית מיושמת מיד גם כשאין זמן להמשך');
+    const examples = section('examples').split('\n');
+    const ambiguous = examples.find(line => line.includes('״תוציא את זה, אין לי זמן להבהיר.״'))!;
+    expect(ambiguous).toContain('החזר draft ללא שאלת הבהרה, שמור את התוכן הקיים');
+    expect(ambiguous).toContain('בקשת ההסרה ממתינה להבהרה');
+    const explicit = examples.find(line => line.startsWith('החרגה ברורה אחרי טיוטה:'))!;
+    expect(explicit).toContain('החזר draft ללא שאלה, עם החרגה מפורשת');
+    expect(explicit).toContain('שמור את המקור ואת התוכן האחר');
+    for (const task of ['turn', 'draft'] as const) {
+      const prompt = buildSystemPrompt({ ...context(), questionCount: 3, intakeCount: 2 }, task);
+      expect(prompt).toContain(revision);
+      expect(prompt).toContain(preferences);
+      expect(prompt).toContain(ambiguous);
+      expect(prompt).toContain(explicit);
+    }
   });
 
   it('keeps arbitrary clinician content out of system instructions and preserves the input', () => {

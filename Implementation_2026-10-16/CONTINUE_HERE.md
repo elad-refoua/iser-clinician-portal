@@ -1,61 +1,62 @@
 # Active implementation checkpoint — 2026-10-16
 
-## Current status
+## Current state: staged case-assistant update; release gates remain
 
-The authorized fictional clinician portal release is published and verified. No required release step or user setup remains. Feature commit `ece487b131f42918fb5e9dcf6cbfaf5c0830762b` contains the code, prompt and paired handbook. Subsequent documentation-only commits record public checks without changing frozen book inputs.
+The user authorized all eight requests in [CASE_ASSISTANT_PLAN.md](CASE_ASSISTANT_PLAN.md): understandable proposal explanations, actual document diffs, intake completion from session 4, useful grounded questioning across the case, clearer compact hierarchy, a separate editable prompt/context package, reputable design-skill research, and multi-agent verification/documentation/publication. **Do not describe the new update as published or fully complete.**
 
-- Portal: https://elad-refoua.github.io/iser-clinician-portal/
-- Stable API and alternate UI: https://iser-clinician-api.vercel.app/
-- Vercel deployment: `dpl_2TQBaQmNRmrSSF8ZEnPVMnvBRvpC`, READY and promoted.
-- Immutable deployment: https://iser-clinician-glpud2mte-elad-refouas-projects.vercel.app/
-- GitHub Pages release run `38915957065` succeeded: install, tests, build and deployment.
-- Authorized completion Telegram sent once, acknowledged HTTP200/ok=true at 2026-10-16T14:02:36.154Z. The bridge returns no message ID. Receipt: `Verification_2026-10-16/telegram-completion.json`. Do not resend automatically.
+- Current HEAD: ce51a467be0e69bee5c27bf4a57bedb39807bac3; feature code is uncommitted above it. The previous allowance release remains the published baseline.
+- Latest staged candidate reported by root: **dpl_CgP4goehcVVm779sM7ZRiZcPxXhG**, https://iser-clinician-mwqfi6r7a-elad-refouas-projects.vercel.app/ . **Not promoted.** The final computed-overview fix is local and needs the next deployment.
+- Runtime prompt: **2026-10-16.13**. Authoritative source: Prompt_Workbench_2026-10-16/PROMPTS.md, with **16 named blocks**, compiled to packages/prompts/authored.generated.ts. prompts:check rejects drift; public workbench/downloads are generated copies.
+- Final frozen source: **322 tests across 23 files passed**, including the opt-in public catalogue check, plus typecheck and production build. Missing-baseline labels and distinct h3/h4/h5 hierarchy are fixed and covered. Independent final review found no remaining blocker in its source/test scope.
+- Handbook **2026-10-16.8**, prompt .13: **52 pages / 89 source inputs**, paired HTML/PDF rebuilt against source fingerprint **6426104c5b7ba03ab5568e0ac85f33493b75ee188ffd47d10d580fbe71bf3de4**. All input/output hashes match; 22 chapters/TOC links, no broken anchors, loaded font, no desktop/mobile document overflow and zero PDF out-of-page blocks. Final changed-page visual review is in progress.
 
-## Authorization and boundaries
+## Implemented behavior
 
-Implementation, deployment, fictional OpenRouter QA and this Telegram notice were explicitly authorized. The app and handbook are Hebrew; chat is English. Use fictional fixtures only; real patient data remains prohibited.
+1. Proposal comparisons resolve pending.baseVersionIds, not the latest document or another pending draft. Additions, removals, replacements, whitespace-only changes and missing bases have explicit treatment. Empty proposed text remains visible as deletion. Source and field-status changes are distinguished from prose changes.
+2. The visible overview now uses deterministic proposalSummary(proposalDestinations(...), sessionNumber, fieldLabels). A document is new without a saved base, unchanged only when text/fields/sources match, updated otherwise, and unavailable if a referenced base is missing. Source-only updates are named; actual intake field changes list up to three labels plus a remainder count. Original clinical text and raw provider summary remain untouched in the response evidence. Final missing-base display hardening and browser verification are pending.
+3. Session 4+ intake panel shows three gaps plus expandable remainder/count. Session 5 is due; session 6+ gently identifies remaining work. Session 1–3 keeps ordinary chat. A full report does not imply all facts are known.
+4. Readiness uses the selected session's scoped context: saved intake fields → fresh working-draft patches → pending fields. Stale derivative claims are ignored; out-of-context sources are rejected. Documented/not-applicable fields are not gaps. Intake exclusions hide matching topics; block/skip/not-recalled disables discussion; lower-priority topics sort later.
+5. Manual completion opens the existing field editor and preserves its buffer/base version with CAS protection. A current-session direct/restored/accepted intake version reopens its owner so context sees the change; historical sessions and prior fork cutoffs remain closed. Approval remains explicit and requires a session note.
+6. Conversational completion checks expected revision and current eligibility before committing a new clinician source and starting the selected real-model round. Cancellation retains that source; retry does not duplicate it. Canonical focus survives save/reload even after a selected gap fills or is blocked. Start/retry still checks eligibility. Main questions remain at most 3, voluntary questions at most 2 per round, and voluntary rounds at most 10 per session.
+7. Prompt .13 organizes documentation across five outputs, with the session note first. It supports relevant intake gaps in main conversation from session 4 and a neutral question about an explicitly selected gap. It preserves manual corrections, uncertainty, exclusion/skip/stop/source boundaries and does not direct treatment. Ambiguous-removal and stop-follow-up wording was corrected after independent review.
+8. Backstage exposes the editable prompt source, separate Hebrew context guide, workbench reader and generated examples. CONTEXT.md explains code-enforced policy; editing it alone does not change filtering.
+9. Native ESM regression compiles server modules with the installed TypeScript CLI, imports every API entrypoint in plain Node, round-trips an active intake state and invokes workspace OPTIONS with network blocked. It catches the extensionless-import failure missed by bundler-based tests.
 
-Server-only persistence is required. Following the explicit larger-trial request, limits are $10 per UTC day, $20 total, 100 operations per access code per UTC day and $0.25 per request. There is no scheduled expiry. Prior spending remains counted; no keys, counters, receipts or reservations were reset. OpenRouter account/key allowance remains separate and is configured by the user.
+## Observed browser and live-model evidence
 
-## Current implementation
+Source: Verification_2026-10-16/CASE_ASSISTANT_BROWSER_CHECKS.md and root's current verification reports. Only a newly created, explicitly fictional eighth case was edited; existing user cases remain untouched.
 
-- Prompt **2026-10-16.12**. Full suite **250 tests across19files**, including the public catalogue check, and typecheck/build passed. Provider output uses nested anyOf to require empty unknown values, retaining historical context and runtime rejection. Intake instructions cover explicit-source mapping across32fields, distinguish referral reason/complaint/course and prioritize field-specific later manual corrections over historical backfill. Summary instructions compare actual output changes.
-- Quiet post-session conversation with a prominent Hebrew **Send** action and a secondary summary action. The first question comes from the LLM. One grounded open question per turn; maximum three main questions and two per voluntary expansion round. Five proposed documents remain separate from approved records; approval commits the five together.
-- Neon is the durable workspace. Login loads server state before editing; a new empty workspace requires its first successful PUT. Browser state, auth and unsaved editor buffers are memory-only. No automatic IndexedDB/localStorage/sessionStorage persistence or fallback. Existing browser snapshots are not automatically deleted.
-- Lossless workspace gzip: **3,000,000 bytes wire**, **25,000,000 bytes decoded**. Full source/version/trace history is retained. CAS conflicts require explicit reconciliation; every acknowledged intermediate save refreshes the reconnect baseline.
-- Source and document provenance, derivative draft/staleness metadata, direct-draft preferences, restored-intake invalidation and shared edit/context limits are implemented. Stale manual editor saves and import/reset with open editor buffers are blocked.
-- An explicit model action rejected with `stale_revision` may advance to the server's validated minimum revision and retry once while the context is unchanged. Existing quota/question limits remain active. Lost responses are regenerated, not recovered; no automatic retry after uncertain provider outcomes.
-- Failed turn/draft retries retain the route. Failed untouched expansion retries retain the exact goal/suggestion and expected state, then consume a new voluntary round. Cancellation preserves monotonic revisions/rounds and restores proposal review eligibility only under exact content/base/preference guards.
-- Validation diagnostics contain fixed codes, safe schema paths and counts only; client details show allowlisted codes. No raw source/provider text is logged for these failures.
+- Actual controls created the case, manually saved/approved sessions 1–3 and opened session 4. Empty unapproved sessions cannot be skipped through the new-session dialog.
+- Session 3 had no panel; session 4 displayed 32 gaps. Documenting referral source reduced the count to 31.
+- Sonnet produced a five-document proposal and a genuine optional treatment-history question. Full reload/login after server acknowledgement recovered the source, question, active round and pending proposal.
+- Explicit lack of recall/stop led to a draft without another question or expansion invitation. Known history remained partial.
+- A manual field-2 edit while a proposal existed disabled stale approval. Longer Sonnet regeneration hit the unchanged $0.25 request guard; explicit Flash selection succeeded. No automatic switch or quota bypass occurred.
+- The model summary incorrectly called first-time formulation/learning/supervision documents unchanged, while the recorded-base destination map correctly called them new. This motivated the computed overview above; model reasoning is unknown.
+- Root inspected all five session-4 outputs and approved them. Manual fields 2 and 3 were retained exactly.
+- Actual controls opened session 5 with the due panel and 31 gaps. Flash generated one grounded main question. A factual answer plus explicit no-intake-expansion/summary request led directly to a draft with no further question or expansion invitation.
+- Root reviewed the full nine-section/32-field intake headed through session 5, partial history, preserved manual fields, source-bounded current note, actual diffs and unchanged learning/supervision. **Session 5 remains pending approval for the final UI deployment check. Session 6 is not yet browser-verified.**
+- Workbench at 565 CSS pixels and the checked desktop DOM had no horizontal overflow. The captured desktop image did not show the full layout; it is not a complete visual sign-off.
 
-## Verified release evidence
+## Remaining release sequence
 
-All three independent audits and subsequent schema, quota, context and clinician-content addenda are complete. The final read-only closeout found no unresolved release blocker. Reports: `Verification_2026-10-16/FINAL_CLINICIAN_AUDIT.md`, `FINAL_CONTEXT_AUDIT.md`, `FINAL_WORKFLOW_AUDIT.md`, `SERVER_ONLY_AUDIT.md`, `SERVER_UI_REVIEW.md`.
+1. Freeze all code and run complete tests, typecheck and build; stage the computed-overview fix.
+2. Verify the final overview against saved bases in the actual browser; complete session-5 approval, session-6 overdue, reload and desktop/mobile checks on the dedicated fictional case. Record any untested cases.
+3. Update canonical guide/release evidence; regenerate workbench and paired handbook HTML/PDF. Verify all input/output hashes and visually recheck changed pages. Earlier .8 PDF review applies only to its recorded hash.
+4. Commit the frozen release, stage/promote Vercel, publish Pages, wait for CI, then verify public login/server recovery, workbench downloads and actual PDF download/hash parity.
+5. Replace staged continuity with exact final commit/deploy/CI/evidence only after success. Preserve chronology in progress.md.
 
-- Frozen source: prompt 2026-10-16.12; 250 tests across 19 files passed, including the opt-in public model catalogue check without inference. Typecheck and production build passed. The default CI catalogue test is conditional; full 250 refers to the local opt-in run.
-- Live checks cover Sonnet first questions and five-document drafting through the refined schema, and a Flash draft. Final .12 general source-to-intake reconciliation filled fields 4 and 6 without field-number hints. All five documents were read in the browser before approval.
-- Approval added exactly five versions, 124 to 129. Authenticated gzip GET on the promoted stable API returned HTTP200, revision69, seven fictional cases and129 document versions.
-- Fresh login on the published Pages origin recovered Lior's approved first-session note, two note versions, all five portal tabs and the updated intake fields 4/6. Server-saved status was visible. Backstage architecture, prompt/context tabs and handbook links were visible. Browser error logs were empty during these checks. Screenshot: `Verification_2026-10-16/sonnet-12-public.png`.
-- Current browser method: browser-client through Node REPL, in-app browser. Chrome discovery timed out earlier. No browser credentials or record snapshots are persisted locally by the application. Existing private QA access remains in ignored `.local/Access_2026-10-16/code.txt`; never print it.
+## Ownership and evidence
 
-## Handbook
+All agents share this checkout; preserve others' edits. build_ui owns overview/diff/UI and tests. build_prompts owns prompt/compiler/parity. final_context_audit now owns only these continuity documents; intake/domain code is frozen. Root owns integration, actual browser/live calls, context guide, canonical handbook/build, deployment and public evidence. No new permission question is pending.
 
-Edition 2026-10-16.7, prompt 2026-10-16.12, 51 pages, 71 source inputs. Shared fingerprint: `e35a64b2374b89645d89f98f83cc307eed154432a4ea54617d1ce97ec405c355`.
+Current reviews: Verification_2026-10-16/PROPOSAL_UI_REVIEW.md; CASE_ASSISTANT_INTEGRATION_REVIEW.md; CASE_ASSISTANT_CLINICAL_REVIEW.md; CASE_ASSISTANT_PDF_REVIEW.md; PORTAL_DESIGN_SKILLS_RESEARCH.md. Restore/accept, no-op approval, focus persistence and clinical wording findings were fixed with source/test re-review. The PDF review covers provisional .8 all-page contact sheets and nine detailed pages, not a future rebuilt artifact.
 
-All 71 committed input hashes and both outputs match. The preceding edition received independent all-page contact-sheet and nine-page detailed review. For this policy-only revision, root visually checked changed pages25/34; no new full-book visual review is claimed. No clipping or overlap was found on the changed pages. Layout checks found 22 chapters/TOC links, no broken anchors or desktop/mobile overflow, loaded fonts and no PDF text blocks outside page bounds.
+## Invariants and published baseline
 
-All four public HTML/PDF URLs returned200 and matched the frozen hashes. The actual browser download to `C:/Users/user/Downloads/handbook (4).pdf` matched PDF SHA256 `46b3a5b05e81f4879c6cd31fe3339ebc289c94c072e3df83e620035f75ac60a4`. Do not modify frozen canonical inputs without rebuilding HTML and PDF together. See `public-handbook-hashes.json` and `HANDBOOK_VISUAL_REVIEW.md`.
+Fictional fixtures only; no real patient data, secrets or private access files in agent context. App/manuals are Hebrew; chat is English. Neon is the durable workspace; active state/auth/editor buffers are memory-only. Only acknowledged saves are durable. No automatic localStorage/sessionStorage/IndexedDB fallback. Workspace transport remains 3,000,000 compressed bytes / 25,000,000 decoded bytes with complete history. Model-context limits remain separate.
 
-## Latest allowance release verification
+Limits remain **$10 per UTC day, $20 total, $0.25 per request, 100 operations per access code per UTC day**, no expiry and no reset of counters/keys/leases/receipts. OpenRouter allowance is separate. Lost model replies are explicitly regenerated, not recovered; guarded stale-revision retry is at most once per explicit action and retains the caps.
 
-Feature ece487b changes only trial quota policy, its tests and paired handbook. All250 tests/19files, typecheck and production build passed. Independent review confirms unchanged Lua scripts/key selection and consistent code/docs. Pages run38915957065 succeeded. Live public API reports provider/access/quota ready; actual browser reload/login recovered the server workspace with saved status and no observed browser errors. Authenticated gzip GET returned revision80, seven fictional cases and134 versions. That newer state was already present on login; this release check did not modify records.
+Published baseline: feature ece487b131f42918fb5e9dcf6cbfaf5c0830762b, documentation ce51a46, prompt .12 / handbook .7. Prior promoted Vercel: dpl_2TQBaQmNRmrSSF8ZEnPVMnvBRvpC; Pages documentation run38916406512 succeeded. Public portal: https://elad-refoua.github.io/iser-clinician-portal/ ; stable API/UI: https://iser-clinician-api.vercel.app/ . Verification_2026-10-16/telegram-completion.json records one earlier authorized notice. **Do not resend automatically or treat that receipt as delivery of this update.**
 
-The public handbook visibly shows $10/day, $20 total,100operations and no expiry. All four public artifact hashes and the actual browser-downloaded PDF match the new manifest. No paid inference was issued for this quota-only release; the prior live model checks below retain their original scope. No duplicate Telegram completion was sent. See `Verification_2026-10-16/TRIAL_ALLOWANCE_UPDATE.md`.
-
-## Known limitations for future work
-
-The release is a working fictional demonstration, not validated clinical software. Model drafts require review: neutral regeneration did not repair the missing complaint field; explicit general reconciliation did. Administrative field1 remained sparse, the complaint/referral classification needs review, and one summary overgeneralized other fields as missing. The model's explanation is not proof of faithful extraction.
-
-Only acknowledged server saves are durable; unsaved buffers can be lost. Interrupted model responses are regenerated rather than recovered. Durable retrieval of undelivered results and fully server-authoritative context assembly remain documented future extensions, not delivered features. Existing accounts share one fictional workspace.
-
-History: [progress.md](progress.md). Browser evidence: `Verification_2026-10-16/SERVER_CHAT_BROWSER_CHECKS.md`. Research: `Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md`. No outstanding permission question or release work remains.
+Known limits: extraction can omit supported intake details; model explanations are not verification. Server-authoritative context assembly and retrieval of undelivered model replies remain future work. One shared fictional workspace is not per-case access control. History: [progress.md](progress.md).

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { ArrowLeft, BookOpen, Check, CheckCheck, ChevronDown, Download, FilePenLine, GitBranch, Leaf, LoaderCircle, LockKeyhole, Plus, RotateCcw, Send, Settings2, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { DEFAULT_MODEL, MAX_MODEL_REQUEST_BYTES, GOAL_LABELS, MODELS, type ContextPacket, type DraftFollowUp, type DraftResult, type Goal, type Mode, type ModelResponse, type PortalState, type Session, type Trace, type TurnResult } from '../../packages/contracts';
-import { addUserMessage, advanceRequestRevision, applyTurn, approveSession, buildContext, cancelPreference, createPatient, createSession, currentVersion, exportState, forkBranch, importState, saveDraft, startExpansion, rollbackExpansion, compactModelContext } from '../../packages/domain';
+import { addUserMessage, advanceRequestRevision, applyTurn, approveSession, buildContext, cancelPreference, createPatient, createSession, currentVersion, exportState, forkBranch, importState, saveDraft, startExpansion, startIntakeCompletion, rollbackExpansion, compactModelContext } from '../../packages/domain';
+import { intakeReadiness, isIntakeCompletionFocus } from '../../packages/domain/intake-readiness';
 import { hasUnconfirmedWork, requiresLogin, stateSignature } from './workspace-state';
 import { createDemoState } from '../../fixtures/fictional';
 import Backstage from './Backstage';
@@ -16,6 +17,7 @@ import ResponseExplainer from './ResponseExplainer';
 import LoginScreen from './LoginScreen';
 import SessionConversation from './SessionConversation';
 import ReviewProposal from './ReviewProposal';
+import IntakeCompletion from './IntakeCompletion';
 import { canReconnectLocal, unfinishedSession } from './workflow-guards';
 import { canRetryExpansion, rememberExpansionRetry, retryAfterStaleRevision, type FailedExpansionRetry } from './model-retry';
 
@@ -81,6 +83,7 @@ export default function App() {
   const [newSessionOpen, setNewSessionOpen] = useState(false);
   const [newPatientOpen, setNewPatientOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(true);
+  const [intakeFieldEditor, setIntakeFieldEditor] = useState<number | null>(null);
   const pendingAction = useRef<PendingAction | null>(null);
   const requestRef = useRef<RequestRun | null>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
@@ -139,7 +142,7 @@ export default function App() {
   function select(next: Selection) {
     pendingAction.current = null;
     if (requestRef.current) cancel('ההמתנה בוטלה בעקבות המעבר. תשובה מאוחרת לא תיכנס לפגישה.');
-    selectionRef.current = next; setSelection(next); setError(''); setFailedTask(null); setFailedExpansion(null); setErrorCode('');
+    selectionRef.current = next; setSelection(next); setError(''); setFailedTask(null); setFailedExpansion(null); setErrorCode(''); setIntakeFieldEditor(null);
   }
 
   function choosePatient(patientId: string) {
@@ -276,8 +279,35 @@ export default function App() {
   }
 
   function beginExpansion(goal: Goal, selection?: DraftFollowUp) {
-    try { const previous = stateRef.current.sessions.find(item => item.id === session.id)!; void runAction('turn', startExpansion(stateRef.current, session.id, goal, selection), token, previous); }
+    try {
+      const previous = stateRef.current.sessions.find(item => item.id === session.id)!;
+      const next = selection && isIntakeCompletionFocus(buildContext(stateRef.current, session.id), selection)
+        ? startIntakeCompletion(stateRef.current, session.id, selection.fieldIds[0], previous.revision)
+        : startExpansion(stateRef.current, session.id, goal, selection);
+      void runAction('turn', next, token, previous);
+    }
     catch (failure) { setError(failure instanceof Error ? failure.message : 'לא ניתן לפתוח הרחבה כרגע.'); }
+  }
+
+  function openIntakeField(fieldId: number) {
+    if (busy || historical || hasUnsavedDocumentEdits()) return;
+    if (!intakeReadiness(buildContext(stateRef.current, session.id)).gaps.some(gap => gap.field.id === fieldId)) return;
+    setIntakeFieldEditor(fieldId);
+  }
+
+  function discussIntakeField(fieldId: number, text: string, expectedRevision: number): boolean {
+    if (busy || requestRef.current || historical || hasUnsavedDocumentEdits() || !text.trim()) return false;
+    try {
+      const current = stateRef.current.sessions.find(item => item.id === selectionRef.current.sessionId)!;
+      if (current.id !== session.id || current.revision !== expectedRevision) throw new Error('התיק השתנה. יש לבחור את ההשלמה מתוך המצב המעודכן.');
+      const gap = intakeReadiness(buildContext(stateRef.current, current.id)).gaps.find(item => item.field.id === fieldId && item.canDiscuss);
+      if (!gap) throw new Error('הנושא אינו זמין להשלמה בשיחה לפי המצב וההעדפות הנוכחיים.');
+      const withSource = addUserMessage(stateRef.current, current.id, `להשלמת האינטייק בנושא ${gap.label}, אני מוסיף את המידע הבא. נא לעזור לי להשלים ולארגן אותו בתוצרי התיק הרלוונטיים:\n\n${text.trim()}`);
+      const previous = withSource.sessions.find(item => item.id === current.id)!;
+      const next = startIntakeCompletion(withSource, current.id, fieldId, previous.revision);
+      void runAction('turn', next, token, previous);
+      return true;
+    } catch (failure) { setError(failure instanceof Error ? failure.message : 'לא ניתן לשלוח את ההשלמה כרגע.'); return false; }
   }
 
   function retryFailedAction() {
@@ -493,6 +523,9 @@ export default function App() {
         <SessionConversation session={session} patientName={patient.name} busy={busy} disabled={historical} modelLabel={MODELS.find(item => item.id === model)?.label || model}
           onComposerChange={value => update(previous => ({ ...previous, sessions: previous.sessions.map(item => item.id === session.id ? { ...item, composer: value } : item) }))}
           onSend={answer} onPrepare={() => void runAction('draft')} onSkip={skipQuestion} onCancel={() => cancel()} onExplain={() => setExplanationOpen(true)} />
+        <IntakeCompletion key={session.id} context={buildContext(state, session.id)} disabled={busy || editorDraftCount > 0} historical={historical} composer={session.composer}
+          onComposerChange={value => update(previous => ({ ...previous, sessions: previous.sessions.map(item => item.id === session.id ? { ...item, composer: value } : item) }))}
+          onManual={openIntakeField} onDiscuss={discussIntakeField} />
         {error && <div className="error-panel" role="alert"><strong>הפעולה לא הושלמה</strong><p>{error}</p>{failedExpansion && <p>{canRetryExpansion(state, selection, failedExpansion) ? 'ניסיון נוסף יפתח סבב הרחבה חדש לאותו נושא ולאותה הצעה.' : 'התיק השתנה. יש לבחור מחדש הצעת הרחבה מתוך הסיכום המעודכן.'}</p>}{errorCode && <details><summary>פרטי התקלה</summary><p>קוד תקלה: <bdi><code>{errorCode}</code></bdi></p></details>}<div className="button-row"><button className="secondary" disabled={busy || historical || Boolean(failedExpansion && !canRetryExpansion(state, selection, failedExpansion))} onClick={retryFailedAction}>{failedExpansion ? 'ניסיון נוסף לאותה הרחבה' : failedTask === 'turn' ? 'ניסיון נוסף לתגובה' : 'ניסיון נוסף לסיכום'}</button><button className="icon-button" onClick={() => setError('')} aria-label="סגירת הודעת השגיאה"><X size={17} /></button></div></div>}
         {session.pendingDraft && editorDraftCount > 0 && <div className="notice">יש עריכה ישירה שטרם נשמרה בתיק. יש לשמור או לבטל אותה לפני אישור הסיכום.</div>}
         {session.pendingDraft && <ReviewProposal pending={session.pendingDraft} state={state} session={session} busy={busy || historical || editorDraftCount > 0}
@@ -509,6 +542,11 @@ export default function App() {
     <footer className="site-footer"><span>מרווח · תיעוד בעזרת בינה מלאכותית · חומר בדיוני בלבד</span><span>{cloudError ? 'יש שינויים בזיכרון שטרם נשמרו בשרת.' : 'השמירה האוטומטית היא בשרת בלבד.'} <button onClick={exportDemo}>ייצוא עותק נוסף</button></span></footer>
     {toast && <div className="toast" role="status"><Check size={17} />{toast}<button className="icon-button" onClick={() => setToast('')} aria-label="סגירת הודעה"><X size={15} /></button></div>}
     {cloudDialog}
+    {intakeFieldEditor !== null && <Modal title="השלמה ידנית של האינטייק" wide onClose={() => { if (hasUnsavedDocumentEdits()) { notify('יש לשמור או לבטל את העריכה לפני סגירת החלון.'); return; } setIntakeFieldEditor(null); }}>
+      <div className="intake-completion-editor"><p>כאן עורכים את הגרסה השמורה של האינטייק. הצעות הבינה נשארות לעיון בנפרד. שמירת העריכה יוצרת גרסה חדשה ומחייבת עיון מחדש בהצעה קודמת.</p>
+        <DocumentEditor key={`${session.id}-intake-${intakeFieldEditor}`} state={state} update={update} patientId={patient.id} branchId={branch.id} kind="intake" sessionId={session.id} initialFieldId={intakeFieldEditor} onSaved={() => setIntakeFieldEditor(null)} notify={notify} />
+      </div>
+    </Modal>}
     {explanationOpen && <Modal title="איך נוצרה התשובה" wide onClose={() => setExplanationOpen(false)}><ResponseExplainer key={session.id} state={state} session={session} busy={busy} onOpenBackstage={() => { setExplanationOpen(false); setPage('backstage'); }} /></Modal>}
     {accessOpen && <Modal title="מודל השיחה" onClose={closeAccess}><p>כל תשובה חדשה נוצרת מהשיחה ומההקשר של התיק הנבחר.</p><label>המודל לתור הבא<select value={model} onChange={event => { if (busy) cancel(); setModel(event.target.value); }}>{MODELS.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><p className="muted">החלפה שומרת את התיק וההעדפות. פרטי כל הרצה מופיעים מאחורי הקלעים.</p><button className="primary" onClick={closeAccess}>חזרה לשיחה</button></Modal>}
     {settings && <Modal title="הגדרות המערכת" onClose={() => setSettings(false)}><div className="settings-section"><h3>השיחה עם הבינה</h3><p>כל תשובה חדשה וכל טיוטה שהבינה מכינה מופקות ממודל שפה. ההיסטוריה של הדמויות מספקת את ההקשר לשיחה.</p><button className="secondary" onClick={() => { setSettings(false); openLive(); }}>{token ? 'פרטי החיבור למודל' : 'פתיחת השיחה עם הבינה'}</button><label>המודל לתור הבא<select value={model} onChange={event => { if (busy) cancel(); setModel(event.target.value); }}>{MODELS.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label><p className="muted small-copy">החלפת מודל שומרת את התיק וההעדפות. כל מודל מקבל את אותו מבנה הקשר ואת כללי השיחה.</p></div><div className="settings-section"><h3>ענף ההדגמה</h3><label>ענף פעיל<select value={branch.id} onChange={event => chooseBranch(event.target.value)}>{state.branches.filter(item => item.patientId === patient.id).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><button className="text-button" onClick={() => { setSettings(false); setForkName(`התנסות מפגישה ${session.number}`); setForkOpen(true); }}><GitBranch size={17} />יצירת ענף מהפגישה הנוכחית</button></div><div className="settings-section"><h3>שמירה והעברה</h3><button className="secondary" onClick={openCloud}>פתיחת המאגר הפרטי</button><p>התיקים נפתחים ונשמרים בשרת בלבד, ואפשר לחזור אליהם ממכשיר אחר. עבודה שטרם נשמרה קיימת בזיכרון הלשונית בלבד ועלולה לאבד ברענון או בסגירה. ייצוא ידני כולל מקורות וגרסאות, ללא פרטי כניסה; טקסט שעדיין פתוח בעורך יש לשמור תחילה.</p><div className="button-row"><button className="secondary" onClick={exportDemo}><Download size={17} />ייצוא JSON</button><button className="secondary" onClick={() => fileInput.current?.click()}><Upload size={17} />ייבוא JSON</button></div>{cloudRef.current && <button className="text-button" onClick={() => { stopCloud(); setCloudStatus('השמירה מושהית'); setCloudError(''); setToken(''); setWorkspaceReady(false); setSettings(false); notify('יצאת מהמערכת. עבודה שטרם נשמרה נמצאת בזיכרון הלשונית בלבד.'); }}>יציאה מהמערכת</button>}</div><div className="settings-section"><button className="text-button danger" onClick={() => { setSettings(false); setReplacement({ state: initialState(), kind: 'reset' }); }}><RotateCcw size={17} />איפוס ההדגמה הבדיונית</button></div></Modal>}

@@ -14,7 +14,8 @@ LoginScreen gates the complete interface. POST /api/access accepts strict {usern
 |---|---|
 | App.tsx | State, selection, live requests, login/workspace lifecycle, approval, settings, preferences and import/export |
 | SessionConversation.tsx, chat-workflow.css | Quiet invitation, messages, single composer, request/cancel/error states |
-| ReviewProposal.tsx | AI summary, full note, expandable cumulative documents, sources, optional expansion and approval |
+| ReviewProposal.tsx, proposal-diff.ts | Plain-language change summary derived from actual baselines, additions/removals/replacements, destinations, optional expansion and approval |
+| IntakeCompletion.tsx, intake-completion.css | Session4+ gap overview, focused direct editing and optional live-model completion |
 | Documents.tsx, patient-portal.css | Patient portal, session history, five document tabs, direct editing, sources, versions, restore and proposal archive |
 | LoginScreen.tsx, login.css | Private login, visibility control, busy/errors and fictional-data notice |
 | CaseWelcome.tsx | Overview from stored material, continue/start choices and new-record entry |
@@ -39,6 +40,10 @@ The result is a pending proposal: five documents, sparse intake patches, a summa
 approveSession atomically creates five full document versions. Approval checks the pending ID, session revision, document bases and preferences. UI guards also block approval during a request, with unsent composer text, on historical sessions or while any direct editor is open. The archive records approval time and version IDs. A stale proposal must be regenerated, not silently rebased.
 
 Optional expansion is explicit, names a focusGoal and allows up to two questions per round. Main counters and topic blocks persist. Session 4 can receive an intake reminder; session 5 always has the full report structure with honest missing states. These are documentation aids, not treatment recommendations.
+
+From session4, intakeReadiness derives the visible gaps from scoped saved fields, a fresh working draft, and scoped pending fields. Excluded topics are hidden; blocked/skipped/not-recalled topics cannot start a conversational round; less-emphasis topics sort later. A panel choice opens the selected field in the existing guarded editor, or lets the clinician submit new source text before a real-model turn. No fixed question is supplied. The gap view identifies pending information and historical read-only state.
+
+Proposal comparisons resolve pending.baseVersionIds rather than comparing against whichever version happens to be current. Colored additions, removals and replacements also carry text labels; whitespace changes are identified explicitly. A clean version remains available. The prominent plain-language change summary and destination map use these same actual comparisons. The model authors the documents; its original summary remains in the response record for inspection, rather than determining which documents are new or updated.
 
 The next session cannot open while current conversation/proposal work is unfinished. A saved late manual correction to a historical note alone does not block it. New-record creation requires only a fictional name/code and optional day/time, with no calendar event creation.
 
@@ -68,4 +73,6 @@ Explicit JSON export downloads a user-requested file; it is not automatic persis
 
 Tests cover approval, scope, budget projection, reconciliation and stale-result guards on fictional fixtures. They do not prove browser behavior or clinical accuracy. Observations and review limits belong in Verification_2026-10-16/LIVE_FLOW_CHECKS.md and handbook release evidence. Backstage instruction examples are authored comparisons, not live experiments.
 
-Saved manual note edits can be approved through the portal without a new model call. The action is unavailable while any editor is open or the session contains a pending AI proposal, pending fields or unsent composer text. The handler rechecks the exact saved note version before approval.
+Saved manual note edits and current-session intake edits can be approved through the note portal without a new model call. The action is unavailable while any editor is open or the session contains a pending AI proposal, pending fields or unsent composer text. The handler rechecks the exact saved note and intake versions before approval.
+
+The separate Prompt_Workbench_2026-10-16 package contains the authoritative PROMPTS.md and explanatory CONTEXT.md. Backstage links to its generated HTML and Markdown downloads. Prompt synchronization is a build-time process; editing the context explanation does not alter runtime context selection.

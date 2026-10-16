@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
-    "test": "vitest run --root .",
+    "build": "npm run prompts:check && npm run prompt-workbench && tsc --noEmit && vite build",
+    "test": "npm run prompts:check && vitest run --root .",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1",
-    "handbook": "tsx scripts/build-handbook.ts"
+    "handbook": "npm run prompts:check && npm run prompt-workbench && tsx scripts/build-handbook.ts",
+    "prompts:sync": "tsx scripts/sync-prompts.ts",
+    "prompts:check": "tsx scripts/sync-prompts.ts --check",
+    "prompt-workbench": "tsx scripts/build-prompt-workbench.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
