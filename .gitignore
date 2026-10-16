@@ -1,0 +1,46 @@
+# Secrets and local service state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets*.json
+.vercel/
+.local/
+
+# Node and generated outputs
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Python and R
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# OS, editors, logs and temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+nul
+.idea/
+.vscode/
+*.log
+*.tmp
+*.bak
+
+# Large media and archives; add intentionally reviewed assets explicitly
+*.mp4
+*.mov
+*.mkv
+*.wav
+*.zip
+*.7z
