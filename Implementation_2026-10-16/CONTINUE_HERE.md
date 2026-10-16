@@ -1,81 +1,39 @@
 # Active implementation checkpoint — 2026-10-16
 
-## Current objective
-Deliver the complete live fictional clinician application, not the old prepared-response demo. Authorized: build, deploy Vercel/GitHub Pages, test OpenRouter within existing caps. No real patient data. No additional user input needed now.
+## Objective and authorization
 
-## Product contract
-- Username/password sign-in opens both model and persistent workspace. Username elad; password unchanged in ignored .local/Access_2026-10-16/code.txt. Never print credentials.
-- Quiet post-session conversation: one invitation/input; real LLM replies anchored in latest clinician text and scoped history; one open question per reply, max3 main + max2 per voluntary expansion.
-- AI proposes current note and four cumulative destinations, with a short summary and optional expansion/reminder. Explicit approval atomically creates the five document versions. Autosaved working conversation/draft is distinct from approved records.
-- Therapist portal (תיק המטופל) provides all five documents, session history/chat, direct editing, full version comparison/restore, source inspection. It remains available outside the interview.
-- Intake ledger has32 fields/9 sections. Session4 may gently remind actual missing topics; session5 always provides full structure with honest missing states. No invented completion or clinical direction.
-- General backstage contains prompt/context/execution explanation plus canonical present-state handbook and paired PDF. Developer chronology belongs in progress.md, not handbook prose.
+Finish the live fictional clinician portal, verify the staged release through the actual browser and LLM, publish the matching website/handbook pair, then send the authorized Telegram completion notice. Elad requires server-only automatic persistence. Implementation, Vercel/Pages deployment and fictional OpenRouter QA are authorized. A separate temporary $5/day spending-cap request is pending; elapsed time is not approval. App and handbook are Hebrew; chat is English.
 
-## Work ownership now
-Root: final integration, browser verification, handbook and publication. Domain/UI workers completed their changes. Prompt version 2026-10-16.9.
-Independent code review completed, with two P2 workflow fixes and focused regression tests. Context reviewer repaired request growth/budget reservations, but then hit the account usage limit before final review. Clinician reviewer supplied a preliminary positive assessment of the anchored question, then hit the same limit. Do not claim all independent reviews completed. Root is completing direct checks.
+Elad explicitly approved more AI operations (“אפשר גם יותר מה שצריך”). `LIMITS.dailyCalls` is now **40 per access code per UTC day**. Monetary limits remain **$2/day, $10 total, $0.25/request**. No Redis counter, receipt or budget was reset. Do not bypass these limits. Real patient data remains prohibited; use fictional fixtures only.
 
-## State and required next steps
-173 tests including the public catalogue check, TypeScript and build passed. Latest staged candidate dpl_GsUfcShUwideMzFBB18LcMVaoKZb READY. Live user checks complete for grounded questions, optional selected expansion, stop, proposal, explicit correction, approval, five documents, persistent reopen, direct edit/approval/restore, mobile and backstage. See LIVE_FLOW_CHECKS.md for findings and limits; .9 regeneration still carried an earlier summary error until explicitly corrected, so do not claim perfect model fidelity.
-Book edition.4 / prompt.9 now generated and reviewed:48 pages,59 source files, source f7242eb7634088a3e3851f87c13a4ff6bc78d273128cba507dbb5ae36c387f40. Both artifact hashes and all sources match. No real patient data, no increased cost limits.
-Published feature commit3fe8ce8c408af99ede3d50149fd3d421820e93f2. Vercel dpl_7iGt421J4GJ2E35GqaQ2kkBUYYrX promoted to stable API. Pages run38898205975 clean install/build/tests/deploy succeeded. Public Chrome login automatically loaded Neon; Eitan6versions and Adi corrected approved note verified. Public HTML/PDF on both origins match manifest, and the browser-downloaded PDF hash matches. No browser errors observed. No further setup required; private password unchanged. Final documentation-only commit records closeout, with no app/book input changes.
-Remaining limitation: independent context/clinician final reviews were interrupted by account quota, not completed. Do not describe direct QA as independent sign-off. No automatic future task is scheduled.
+## Current implementation
 
-## Continuity
-Read progress.md for history, Planning_2026-10-16/CONTEXTUAL_QUESTIONS_HE.md for anchored-question examples. Existing lower sections are historical. Browser after reset: cua.rewriteDocumentation(). Chrome id3; budgetFlowTab id469737103 latest candidate; liveFlowTab id469737100 earlier candidate. finalAccessCode is private. Several authorized paid calls have occurred; retain the existing caps. Do not print secrets.
+- Prompt **2026-10-16.11**. Full suite **240 tests across18files**, including the public catalogue check, and typecheck passed; staged production build passed. Provider output now uses nested anyOf to require empty values for unknown fields, without changing historical context or silently rewriting rejected text. Five new emitted-schema tests and independent read-only review passed.
+- Quiet post-session conversation with a prominent Hebrew **Send** action and a secondary summary action. The first question comes from the LLM. One grounded open question per turn; maximum three main questions and two per voluntary expansion round. Five proposed documents remain separate from approved records; approval commits the five together.
+- Neon is the durable workspace. Login loads server state before editing; a new empty workspace requires its first successful PUT. Browser state, auth and unsaved editor buffers are memory-only. No automatic IndexedDB/localStorage/sessionStorage persistence or fallback. Existing browser snapshots are not automatically deleted.
+- Lossless workspace gzip: **3,000,000 bytes wire**, **25,000,000 bytes decoded**. Full source/version/trace history is retained. CAS conflicts require explicit reconciliation; every acknowledged intermediate save refreshes the reconnect baseline.
+- Source and document provenance, derivative draft/staleness metadata, direct-draft preferences, restored-intake invalidation and shared edit/context limits are implemented. Stale manual editor saves and import/reset with open editor buffers are blocked.
+- An explicit model action rejected with `stale_revision` may advance to the server's validated minimum revision and retry once while the context is unchanged. Existing quota/question limits remain active. Lost responses are regenerated, not recovered; no automatic retry after uncertain provider outcomes.
+- Failed turn/draft retries retain the route. Failed untouched expansion retries retain the exact goal/suggestion and expected state, then consume a new voluntary round. Cancellation preserves monotonic revisions/rounds and restores proposal review eligibility only under exact content/base/preference guards.
+- Validation diagnostics contain fixed codes, safe schema paths and counts only; client details show allowlisted codes. No raw source/provider text is logged for these failures.
 
----
-## Prior persistence checkpoint (historical)
+## Reviews and evidence
 
-# המשכיות עבודה — 16.10.2026
+All **three independent audits are complete**: `Verification_2026-10-16/FINAL_CLINICIAN_AUDIT.md`, `FINAL_CONTEXT_AUDIT.md`, and `FINAL_WORKFLOW_AUDIT.md`. Follow-up reviews are `SERVER_ONLY_AUDIT.md` and `SERVER_UI_REVIEW.md`; fixes and their reproducible tests are recorded there. Audit completion is not a substitute for the final staged browser/LLM gate.
 
-מסמך המצב הנוכחי לאחר הרחבת פתיחת התיקים והשמירה המתמשכת. התוכנית המקורית ב-Planning_2026-10-16/MASTER_PLAN_HE.md; שינוי האחסון המחייב ב-PERSISTENCE_EXTENSION_HE.md באותה תיקייה. ההיסטוריה ב-progress.md, וראיות ההרחבה ב-Verification_2026-10-16/PERSISTENCE_CHECKS.md.
+Root owns deployment, actual-browser verification and release evidence. The latest staged candidate is `dpl_J2UDmhyzVQb3tvW6YM6dW6AN6iex` at https://iser-clinician-hck5ts76h-elad-refouas-projects.vercel.app . The last recorded stable publication is `122f30c4`; confirm current deployment status before publishing.
 
-## הרשאות וגבולות
-- אלעד אישר בנייה, פריסה ב-Vercel, פרסום GitHub/Pages ובדיקות OpenRouter בחומר בדיוני. אין צורך באישור חוזר לפעולות אלה.
-- לאחר בקשת שמירה לאורך זמן, אלעד בחר במפורש בדמויות בדיוניות בלבד. אין לקרוא או להשתמש במידע של מטופלים אמיתיים.
-- קוד הגישה הפרטי הוא credential לסביבת עבודה יחידה; אינו חשבון מטפל רב-משתמשים. לא לפרסם אותו.
-- מפתח OpenRouter ושאר הסודות נמצאים ב-Vercel. אין לשלוף או להדפיס אותם.
-- תקציבי inference: $10 כולל, $2 ליום, עד $0.25 לבקשה, 20 פעולות לקוד ביום. הרחבת האחסון נבדקה ללא בקשות מודל בתשלום.
+Recorded browser checks: server reload, mobile Send, new Shira19:30 schedule and reset editor guard passed. Sonnet.11 first question was grounded; its draft failed with unsupported_unknown_value, motivating the wire refinement. New-wire Sonnet draft hit $2/day reservation cap before inference. Explicit cheaper Flash request fit the existing cap and produced five reviewed documents; direct-draft patient-level less-learning preference was extracted. Approval created exactly five versions; saved status and reload/login recovery verified. Authenticated gzip GET:rev58,7cases,119versions. See SERVER_CHAT_BROWSER_CHECKS.md. Historical .10 failure cause remains unknown. No real data.
 
-## כתובות ושירותים
-- Pages: https://elad-refoua.github.io/iser-clinician-portal/
-- Repo: https://github.com/elad-refoua/iser-clinician-portal
-- API + mirror: https://iser-clinician-api.vercel.app/
-- Vercel project iser-clinician-api, prj_6xwSpHBFHPmQiszhGJLaJ1acDv9l, scope elad-refouas-projects, Node24.
-- Latest verified feature deployment: dpl_2s7RKnWV24kbLgcTjQroUAitih9V, READY. Final handbook deployment still pending at this checkpoint.
-- Neon iser-demo-records, Free free_v3, fra1, Production-only DEMO_ prefix. User accepted terms. DEMO_DATABASE_URL confirmed by name only; no credentials pulled.
-- Upstash iser-demo-quota remains counters/locks/hashed receipts only, no record content.
-- Private access instructions: .local/Access_2026-10-16/ACCESS.md, ignored. Same code opens the database or paid live demo. Old QA code invalid.
-- Local branch feat/clinician-portal is pushed as origin/main. CLI works; old Vercel MCP403 should not be retried needlessly.
+## Handbook and remaining release sequence
 
-## Product and storage now
-- Existing post-session flow: 3 wholly fictional seed cases, previous meetings, one question per turn, max3 main questions, voluntary intake round max2, five outputs, edits/version history, branching, preferences, source/context/prompt inspection.
-- New תיק חדש: required display name/code, optional recurring weekday/time only; own root branch and empty session1. No fabricated age/history. New sessions increment2,3... Patient switching no longer jumps to session5.
-- New authenticated GET/PUT /api/workspace: full fictional snapshot including source/document histories in Neon, no TTL,3MB request cap. Stable server-controlled DEMO_WORKSPACE_ID defaults owner-demo, independent of access-code rotation. Atomic expectedRevision CAS prevents stale writes.
-- Explicit connection through top פתיחת התיקים השמורים. Public anonymous use remains local. Cloud saving works independently of prepared/live model mode. Tokens remain memory-only and expire after1h; reopen/re-enter code to reconnect.
-- IndexedDB saves local work. Per-tab sessionStorage stores the last acknowledged baseline. Reconnect NEVER silently uploads differing local content. Clean unchanged local content may load newer remote; otherwise explicitchoice preserves oldlocal beforeadoption.
-- Sync errors/conflicts/auth failures create separate per-page recovery copies, updated while paused, no auto-deletion. Options→עותקים מקומיים לשחזור lists downloadable JSONs. A separate previous-before-cloud slot also exists. Import/reset warns that connectedserver is replaced too.
-- Prompt remains2026-10-16.4. Models Sonnet5.5(default),GPT6.1Sol,Gemini3.8Flash.
+Handbook **2026-10-16.5**, prompt **.11**, rebuilt49pages with70inputs. Source fingerprint `08f1a56bc52d4054763898979a67243a06b36dbbbd7610c1fef159104877a555`; all hashes match. Final visual recheck underway. Any canonical source edit requires rebuilding both outputs.
 
-## Verification completed
--127 tests passed,1 optionalcatalogue skip. TypeScript+productionbuild passed.
-- Actual deployedbrowser: newrecord Monday17:30; session1prepared draft+approval; session2; then serverrecovery fromdifferentorigin withindependentIndexedDB. Recovered bothsessions,schedule,content,andtwofirst-session versions.
-- Olderwindow edit wasblocked, newerremote textpreserved. FinalrecoveryUIdownload producedvalidJSON with4cases,16sessions,81versions andtheunsynchronizedmarker.
-- Mobile390px nohorizontaloverflow, newrecord/savecontrolsvisible. Screenshot persistent-record-mobile.png.
-- UnauthenticatedGET401/no-store. GitHubPagesCORSpreflight204exactorigin;unapprovedorigin403.
-- Independentreview identified reconnect/sharedIDB data-loss route andasyncadoptionrace; bothfixed, sixregressiontests added. Fourrecoverytests verifypageisolation andfileintegrity.
-- Originalrelease livechecks ofall3models,cleanadopterinstall,existingUI/import/editorpassedpreviously; notrerunpaidinference unnecessarily.
+1. Complete final book visual report, commit reviewed code/artifacts, stage/promote and push to Pages. Verify clean CI, public browser and artifact hashes.
+2. Await separate $5/day approval (10total/.25request unchanged) or UTC reset for remaining Sonnet draft test. Do not bypass or reset monetary caps. Forty operations/day is authorized and staged.
+3. If approved, implement a documented temporary daily increase, test/redeploy, run Sonnet draft QA and rebuild book evidence. Do not attribute Flash success to Sonnet.
+4. Send authorized Telegram completion only after all gates. **No completion Telegram has been sent.**
 
-## Current next steps
-1. Root: commit/push feature toPages; verifypublicPagesconnect/load/newrecord controls.
-2. Handbook agent: sourcefreeze received, edition2026-10-16.3, prompt.4,40sourceinputs includingallnewmodules. RegeneratepairedHTML/PDF,renderallpages,verifyLF/sourcehashes.
-3. Root: commitmatchedhandbook,deployVercel+Pages,verifypublicfilehashesandbrowserbook/download,update this checkpoint tocompleted.
-No more user input is needed. Preserve currentagentedits; do not restartplanning.
+Public endpoints: https://iser-clinician-api.vercel.app/ and https://elad-refoua.github.io/iser-clinician-portal/ . Chrome control previously timed out; the in-app browser/CUA route worked. Use existing private access handling without printing credentials. Telegram completion is authorized; follow the Telegram skill when sending. Do not repeat a successful delivery automatically.
 
-## Email investigation already resolved
-The Vercel email at12:13Israel concerned12:10faileddeployment dpl_2EMmNyK8hQqG2EQbXqnPWvgjNHAV, commit8e38fa9, TS2339 Preference.recordedAt. It hadalreadybeenfixed beforeemailarrival;sevenlaterdeployments succeeded. It wasnotacurrentoutage.
-
-## Tools and browser continuity
-Commands: npm test; npm run build; npm run handbook; vercel deploy --prod --yes --scope elad-refouas-projects; git push origin HEAD:main.
-Aftercompaction: cua.rewriteDocumentation(). SelectedChromeid3. recordsTab469737094 stableVercel; recoveryTab469737097 immutablepreviousdeployment withindependentstorage. Privatecode already held in REPL finalAccessCode; neverprint. Currenttabsarenotmarkedtosurvive yet. Viewportresetaftermobilecheck. NativeAXcontrolsare reliable; PlaywrightgetByLabel sometimesmissesanddownload eventtimedoutalthoughactualdownloadcompleted. Verify actualdownloadfile whennecessary; neverassumefailurefromeventalone.
+History and authorization chronology: [progress.md](progress.md). Research/code review: `Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md`. Durable retrieval of undelivered LLM results remains a documented future extension, not a delivered feature.

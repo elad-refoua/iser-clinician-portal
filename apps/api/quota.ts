@@ -1,7 +1,7 @@
 import { digest } from './auth.js';
 import { ApiError, boundedJson, type Environment } from './errors.js';
 
-export const LIMITS = { totalMicros: 10_000_000, dailyMicros: 2_000_000, requestMicros: 250_000, dailyCalls: 20, globalConcurrency: 2, leaseMs: 120_000 } as const;
+export const LIMITS = { totalMicros: 10_000_000, dailyMicros: 2_000_000, requestMicros: 250_000, dailyCalls: 40, globalConcurrency: 2, leaseMs: 120_000 } as const;
 export interface ReservationInput { codeId: string; sessionKey: string; requestId: string; payloadHash: string; micros: number; now: number; revision: number; questionCount: number; intakeCount: number; intakeRound: number }
 export interface Reservation { requestKey: string; day: string; sessionKey: string; questionCount: number; intakeCount: number; intakeRound: number }
 export interface QuotaStore {
@@ -22,7 +22,7 @@ local now = tonumber(ARGV[2]); local amount = tonumber(ARGV[3])
 redis.call('ZREMRANGEBYSCORE', KEYS[5], '-inf', now)
 if redis.call('EXISTS', KEYS[6]) == 1 or redis.call('ZCARD', KEYS[5]) >= tonumber(ARGV[9]) then return {'error', 'concurrency_limit'} end
 local prior = tonumber(redis.call('HGET', KEYS[7], 'committedRevision') or '-1')
-if tonumber(ARGV[11]) <= prior then return {'error', 'stale_revision'} end
+if tonumber(ARGV[11]) <= prior then return {'error', 'stale_revision', tostring(prior + 1)} end
 local total = tonumber(redis.call('GET', KEYS[2]) or '0')
 local day = tonumber(redis.call('GET', KEYS[3]) or '0')
 local calls = tonumber(redis.call('GET', KEYS[4]) or '0')
@@ -93,7 +93,11 @@ export class RedisQuotaStore implements QuotaStore {
     const keys = [requestKey, `${this.prefix}total`, `${this.prefix}day:${day}`, `${this.prefix}calls:${input.codeId}:${day}`, `${this.prefix}leases`, `${this.prefix}lease:${sessionKey}`, `${this.prefix}session:${sessionKey}`];
     const result = await this.command(['EVAL', RESERVE_LUA, keys.length, ...keys, input.payloadHash, input.now, input.micros, LIMITS.totalMicros, LIMITS.dailyMicros, LIMITS.requestMicros, LIMITS.dailyCalls, LIMITS.leaseMs, LIMITS.globalConcurrency, input.codeId, input.revision, input.questionCount, input.intakeCount, input.intakeRound]) as string[];
     if (!Array.isArray(result) || !['ok', 'error'].includes(result[0])) throw new ApiError(503, 'quota_store_unavailable');
-    if (result[0] === 'error') throw new ApiError(result[1].startsWith('request_') || result[1] === 'stale_revision' ? 409 : 429, result[1]);
+    if (result[0] === 'error') {
+      const minimumRevision = result[1] === 'stale_revision' ? Number(result[2]) : undefined;
+      if (result[1] === 'stale_revision' && (!Number.isSafeInteger(minimumRevision) || minimumRevision! <= input.revision)) throw new ApiError(503, 'quota_store_unavailable');
+      throw new ApiError(result[1].startsWith('request_') || result[1] === 'stale_revision' ? 409 : 429, result[1], minimumRevision);
+    }
     return { requestKey, day, sessionKey, questionCount: Number(result[1]), intakeCount: Number(result[2]), intakeRound: input.intakeRound };
   }
   async finalize(r: Reservation, result: { costMicros?: number; status: 'done' | 'failed' | 'uncertain'; asked: 'main' | 'intake' | null; revision: number }) {

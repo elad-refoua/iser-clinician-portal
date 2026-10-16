@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { PortalState } from '../../packages/contracts';
 import { exportState, importState } from '../../packages/domain';
+import { decodeWorkspacePayload, encodeWorkspacePayload, WORKSPACE_GZIP_TYPE, WorkspaceTransportError } from '../../packages/transport/workspace';
 
 export interface WorkspaceRecord { revision: number; updatedAt: string | null; state: PortalState | null }
 export type WorkspaceSyncStatus = 'pending' | 'saved' | 'error' | 'conflict' | 'auth';
@@ -52,17 +53,23 @@ async function workspaceRequest(apiURL: string, token: string, method: 'GET' | '
   try {
     const request = (async () => {
       if (signal?.aborted) throw new WorkspaceRequestError('workspace_cancelled');
+      const payload = body === undefined ? undefined : await encodeWorkspacePayload(body);
+      if (controller.signal.aborted) throw new WorkspaceRequestError('workspace_cancelled');
       const response = await fetch(`${apiURL.replace(/\/$/, '')}/api/workspace`, {
-        method, headers: { Authorization: `Bearer ${token}`, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
-        ...(body === undefined ? {} : { body }), signal: controller.signal, cache: 'no-store',
+        method, headers: { Authorization: `Bearer ${token}`, Accept: WORKSPACE_GZIP_TYPE, ...(payload ? { 'Content-Type': payload.contentType } : {}) },
+        ...(payload ? { body: payload.body } : {}), signal: controller.signal, cache: 'no-store',
       });
       if (!response.ok) throw httpError(response.status);
-      try { return await response.json(); }
-      catch { throw new WorkspaceRequestError('invalid_workspace_response'); }
+      try { return await decodeWorkspacePayload(response.body, response.headers.get('content-type') ?? '', response.headers.get('content-length')); }
+      catch (error) {
+        if (error instanceof WorkspaceTransportError && ['too_large', 'compression_unavailable'].includes(error.code)) throw error;
+        throw new WorkspaceRequestError('invalid_workspace_response');
+      }
     })();
     return await Promise.race([request, aborted]);
   } catch (error) {
     if (error instanceof WorkspaceRequestError) throw error;
+    if (error instanceof WorkspaceTransportError) throw new WorkspaceRequestError(error.code === 'too_large' ? 'workspace_too_large' : 'workspace_transport_unavailable');
     throw new WorkspaceRequestError('workspace_network_error');
   } finally {
     if (timer !== undefined) clearTimeout(timer);
@@ -169,7 +176,9 @@ export class WorkspaceSync {
           this.confirmedSnapshot = snapshot;
           this.uncertainWrite = false;
           if (this.pendingSnapshot === snapshot) this.pendingSnapshot = null;
-          if (this.pendingSnapshot === null) this.emit('saved');
+          // Expose every acknowledged baseline, including while a newer write is queued.
+          // Reconnecting must compare with our latest successful write, not the old load.
+          this.emit(this.pendingSnapshot === null ? 'saved' : 'pending');
         } catch (error) {
           if (this.stopped) return;
           // A lost response may have followed a successful write. Retrying retains the

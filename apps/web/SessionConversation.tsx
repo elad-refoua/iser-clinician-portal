@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { ArrowDown, ArrowUp, LoaderCircle } from 'lucide-react';
-import { MODELS, type Session } from '../../packages/contracts';
+import { MODELS, TEXT_LIMITS, type Session } from '../../packages/contracts';
 import './chat-workflow.css';
 
 interface SessionConversationProps {
@@ -43,6 +43,7 @@ export default function SessionConversation({ session, patientName, busy, disabl
   const hasUserText = session.messages.some(message => message.role === 'user' && message.text.trim());
   const lastMessage = session.messages.at(-1);
   const isQuestion = session.status === 'asking' && lastMessage?.role === 'assistant';
+  const readyToSummarize = !session.composer.trim() && (session.intakeActive ? session.intakeCount >= 2 : session.questionCount >= 3);
 
   useEffect(() => {
     const input = textarea.current;
@@ -76,8 +77,8 @@ export default function SessionConversation({ session, patientName, busy, disabl
     send();
   }
 
-  return <section className="session-conversation" aria-label={`תיעוד הפגישה עם ${patientName}`} dir="rtl">
-    {!hasMessages && <p className="chat-opening">אפשר לכתוב כאן את מה שהיה בפגישה עם {patientName}, במילים שלך.</p>}
+  return <section className="session-conversation" aria-label={`שיחה עם עוזר התיעוד — ${patientName}`} dir="rtl">
+    {!hasMessages && <p className="chat-opening">כאן אפשר לשוחח עם עוזר התיעוד על הפגישה עם {patientName}, במילים שלך.</p>}
     {hasMessages && <div className="chat-log-wrap">
       <div ref={log} className="chat-log" role="log" aria-label="השיחה על הפגישה" aria-live="polite" aria-relevant="additions" tabIndex={0}
         onScroll={event => {
@@ -101,21 +102,21 @@ export default function SessionConversation({ session, patientName, busy, disabl
     </div>}
     <form className="chat-compose" onSubmit={send} aria-busy={busy}>
       <label className="sr-only" htmlFor={inputId}>{isQuestion ? 'התשובה שלך' : 'מה היה בפגישה'}</label>
-      <textarea ref={textarea} id={inputId} value={session.composer} maxLength={16000} rows={hasMessages ? 2 : 4}
+      <textarea ref={textarea} id={inputId} value={session.composer} maxLength={TEXT_LIMITS.message} rows={hasMessages ? 2 : 4}
         disabled={disabled || busy} aria-describedby={helpId}
         placeholder={hasMessages ? 'אפשר להמשיך כאן…' : 'כותבים חופשי…'}
         onChange={event => onComposerChange(event.target.value)} onKeyDown={keyDown} />
       <div className="chat-compose-footer">
+        <button type="submit" className="chat-send" disabled={!canSend} aria-label="שליחה"><span>שליחה</span><ArrowUp size={20} aria-hidden="true" /></button>
         <span id={helpId} className="chat-keyboard"><bdi>Enter</bdi> לשליחה · <bdi>Shift + Enter</bdi> לשורה חדשה</span>
-        <button type="submit" className="chat-send" disabled={!canSend} aria-label="שליחת ההודעה לבינה"><ArrowUp size={20} aria-hidden="true" /><span>שליחה</span></button>
       </div>
     </form>
     {busy ? <div className="chat-waiting" role="status"><LoaderCircle size={16} className="chat-spinner" aria-hidden="true" /><span>ממתינים לתשובת <bdi>{modelLabel}</bdi>…</span><button type="button" onClick={onCancel}>ביטול ההמתנה</button></div>
       : <div className="chat-quiet-actions">
-        {(hasUserText || session.composer.trim()) && session.status !== 'approved' && <button type="button" disabled={disabled} onClick={onPrepare}>{session.pendingDraft ? 'עדכון הסיכום' : 'הכנת סיכום'}</button>}
+        {(hasUserText || session.composer.trim()) && session.status !== 'approved' && <button type="button" className={`chat-finish${readyToSummarize ? ' chat-finish-ready' : ''}`} disabled={disabled} onClick={onPrepare}>להכנת סיכום</button>}
         {isQuestion && !session.composer.trim() && <button type="button" disabled={disabled} onClick={onSkip}>לדלג על השאלה</button>}
         {session.traces.length > 0 && <button type="button" className="chat-explain" onClick={onExplain}>איך נוצרה התגובה?</button>}
       </div>}
-    {session.composer.length > 15000 && <p className="chat-length" role="status">{16000 - session.composer.length} תווים נוספים בהודעה הזו.</p>}
+    {session.composer.length > TEXT_LIMITS.message - 1000 && <p className="chat-length" role="status">{TEXT_LIMITS.message - session.composer.length} תווים נוספים בהודעה הזו.</p>}
   </section>;
 }

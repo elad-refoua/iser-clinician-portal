@@ -5,6 +5,7 @@ export interface PatientSchedule { dayOfWeek?: number; time?: string }
 export interface Patient { id: string; name: string; age?: number; schedule?: PatientSchedule; description: string; fictional: true }
 export interface Branch { id: string; patientId: string; name: string; parentId?: string; forkSession?: number; cutoffAt?: string }
 export interface Preference { id: string; topic: string; goal?: Goal; action: 'less' | 'block' | 'exclude'; scope: 'session' | 'patient'; sessionId?: string; patientId?: string; branchId?: string; recordedAt?: string }
+export type PreferenceUpdate = Omit<Preference, 'id' | 'sessionId' | 'patientId' | 'branchId' | 'recordedAt'>;
 export interface PreferenceCancellation { id: string; preferenceId: string; patientId: string; branchId: string; sessionId: string; recordedAt: string }
 export interface Source { id: string; patientId: string; branchId: string; sessionId?: string; sessionNumber?: number; text: string; recordedAt: string; kind: 'clinician' | 'manual' | 'seed' }
 export interface IntakeField { id: number; value: string; status: FieldStatus; sourceIds: string[]; remaining?: string }
@@ -19,19 +20,20 @@ export interface ContextPacket {
   baseRevision: number; asOf: string; stage: 'main' | 'intake' | 'draft'; questionCount: number; intakeCount: number;
   intakeRound?: number;
   focusGoal?: Goal; focusSelection?: DraftFollowUp; workingDraft?: DraftResult; pendingIntakeFields?: IntakeField[];
+  workingDraftMetadata?: { draftId: string; createdAt: string; reviewRevision: number; baseVersionIds: Partial<Record<Goal, string>>; stale: boolean; derivative: true };
   branchScope: {branchId: string; throughSession: number; cutoffAt?: string}[];
   preferences: Preference[]; skippedTopics: string[]; sources: Source[];
-  documents: { kind: Goal; versionId: string; content: string; fields?: IntakeField[]; sourceIds: string[] }[];
+  documents: { kind: Goal; versionId: string; content: string; fields?: IntakeField[]; sourceIds: string[]; author?: DocumentVersion['author']; approved?: boolean; createdAt?: string; reason?: string }[];
   messages: Message[];
 }
 export interface FieldUpdate { id: number; value: string; status: FieldStatus; sourceIds: string[]; remaining: string }
 export interface TurnResult {
   action: 'question' | 'draft'; utterance: string; topic: string; rationale: string;
-  fieldUpdates: FieldUpdate[]; preferenceUpdates: Omit<Preference, 'id' | 'sessionId' | 'patientId' | 'branchId' | 'recordedAt'>[];
+  fieldUpdates: FieldUpdate[]; preferenceUpdates: PreferenceUpdate[];
 }
 export interface DraftDocument { kind: Goal; content: string; sourceIds: string[] }
 export interface DraftFollowUp { goal: Goal; text: string; kind: 'expand' | 'next_session'; fieldIds: number[] }
-export interface DraftResult { documents: DraftDocument[]; fieldUpdates: FieldUpdate[]; rationale: string; summary?: string; followUps?: DraftFollowUp[] }
+export interface DraftResult { documents: DraftDocument[]; fieldUpdates: FieldUpdate[]; rationale: string; summary?: string; followUps?: DraftFollowUp[]; preferenceUpdates?: PreferenceUpdate[] }
 export interface ModelRequest { requestId: string; model: string; context: ContextPacket }
 export interface ModelResponse<T> { result: T; prompt: string; promptVersion: string; model: string; elapsedMs: number; effectiveContext?: ContextPacket; usage?: { input: number; output: number; cost?: number } }
 export const MODELS = [
@@ -43,3 +45,4 @@ export const DEFAULT_MODEL = MODELS[0].id;
 export const GOAL_LABELS: Record<Goal, string> = { note: 'רשומת הפגישה', formulation: 'המשגה', intake: 'אינטייק', gold: 'חומרי למידה', supervision: 'לקראת הדרכה' };
 
 export const MAX_MODEL_REQUEST_BYTES = 600_000;
+export const TEXT_LIMITS = { source: 100_000, document: 100_000, fieldValue: 30_000, fieldRemaining: 5_000, manualDocument: 99_900, message: 16_000 } as const;

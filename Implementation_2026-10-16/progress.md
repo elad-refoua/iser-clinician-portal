@@ -96,3 +96,27 @@ Adi live explicit correction succeeded and was approved; regeneration alone reta
 
 ### 2026-10-16 — publication verified
 Feature3fe8ce8 published; Pages run38898205975 succeeded (clean install,172pass/1conditional skip; local173pass). Vercel dpl_7iGt421J4GJ2E35GqaQ2kkBUYYrX READY and promoted. Public browser login opened persistent workspace, Eitan six versions and Adi corrected approved note verified. HTML/PDF downloaded from both public origins match manifest; actual browser PDF download hash also matches. No public browser errors observed. Saved live-portal-public.png. Final continuity/evidence docs updated separately from frozen book source. No additional user setup; two final independent reviews still limited by agent account quota.
+
+## 2026-10-16 — deeper independent release review
+User authorized final multi-agent audit and Telegram completion notice. Three independent reviewers completed clinical, context, and workflow reports. Found reproducible stale pending intake after restore, inconsistent accepted lengths, invalid local archive overwrite risk, transient reconnect logout, stale editor base, cancelled expansion invalidation, neutral-skip wording and direct-draft preference gaps. Coordinated fixes in progress. Browser recovered through CUA in-app browser after Chrome control timeouts. Telegram service health online; no completion message yet. See Verification_2026-10-16/DEEP_REVIEW_PLAN.md for acceptance criteria and researched design references.
+
+### Server-only steering
+Elad explicitly requires all persistence on server, none locally. UI worker pivoted to memory-only client and mandatory server loading. Local automatic storage/recovery modules being removed; legacy stored data not auto-deleted. Read-only server measurement: rev45,5cases,19sessions,113versions,22traces,1.696MB request. Server reviewer assessing bounded compression without dropping history. Full final QA pending.
+
+## 2026-10-16 — Conversation-first and server-only verification
+- Latest UX: prominent Hebrew Send action, quiet summary action, documentation-assistant conversation framing; no prepared first question.
+- All three independent reviews completed; fixes include source/derived context provenance, direct draft preferences, pending-intake restore, editor CAS, intermediate save acknowledgements, server-only memory client, bounded gzip transport, guarded stale-revision retry and exact failed-expansion focus.
+- Current source: prompt .11. Full235tests/17files plus typecheck/build passed. Research report reads pinned Vercel chatbot, assistant-ui and LangGraph code; durable undelivered-result retrieval remains a documented future extension.
+- Staged candidate dpl_2cxgSszmd7nDcs9VQxr2iEee73zY at https://iser-clinician-at1mwx2xs-elad-refouas-projects.vercel.app . Stable production still122f30c4.
+- Browser confirmed server reload of new Lior + manual formulation, prominent mobile Send, schedule19:30 in new Shira, and reset blocked while editing. Fictional only.
+- Live model .10 response rejected for unknown validation cause; .11 attempt blocked by daily20operationcap before inference. Asked Elad via asyncquestion to authorize40operations/day, same $2day/$10total/$.25request. No cap reset/raise yet. This blocks final live acceptance, not ongoing docs/UI checks.
+- Handbook .5 with prompt.11 and69sourceinputs building; final proof and publication pending. Telegram completion has NOT been sent.
+
+## 2026-10-16 — Explicit authorization to raise daily operations
+
+Elad explicitly approved additional AI operations: “אפשר גם יותר מה שצריך”. The daily operation limit was raised from 20 to 40 per access code per UTC day in `apps/api/quota.ts`. The monetary limits remain $2 per day, $10 total and $0.25 reserved per request. Concurrency, leases, stored receipts and consumed quotas are unchanged; no Redis reset occurred.
+
+The focused API suite passed all 32 tests and typecheck passed after the change. Current API and handbook cap descriptions now show 40. Earlier entries retain the historical 20-operation limit and the observed block. Deployment and a new live LLM check remain separate release steps; this entry does not claim that the new limit is already published or that the blocked request was completed.
+
+### 2026-10-16 13:15 UTC — live field-schema refinement and approval
+Staged40operations in dpl_61jeqvD4W24DNfS7ePtgHu4PwcTv. Sonnet.11firstquestion succeeded and was grounded. Draft rejected with confirmed unsupported_unknown_value, unlike the unexplained historical .10failure. Added provider nestedanyOf unknown-empty enforcement, preserving runtime rejection and old stored context; no text silently rewritten. Full240tests/18files and deployedbuild passed; independentread-onlyreview50tests passed. Candidate dpl_J2UDmhyzVQb3tvW6YM6dW6AN6iex containsfix. Sonnetdraft then blocked by unchanged$2/daycap beforeinference; separatetemporary$5approval requested and pending. CheaperFlashfitcurrentcap, generatedfiveoutputs, patient-level less-learning preference; reviewed/approved inbrowser. Server58/7cases/119versions, exactlyfiveadded. Reload/loginrecoveredapprovedrecord. Finalbook.5/.11:49pages,70inputs, fingerprint08f1a56bc52d4054763898979a67243a06b36dbbbd7610c1fef159104877a555, hashesmatch. Finalpublicrelease/remainingSonnetQA/Telegrampending. Allfictional; noreceiptreset.

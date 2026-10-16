@@ -1,5 +1,5 @@
 import type { PortalState } from '../../packages/contracts';
-import { stateSignature } from '../../packages/domain/storage';
+import { stateSignature } from './workspace-state';
 
 export function chooseWorkspaceAction(local: PortalState, remote: PortalState | null, baseSnapshot: string | null): 'connect' | 'load' | 'choose' {
   if (remote === null) return 'connect';

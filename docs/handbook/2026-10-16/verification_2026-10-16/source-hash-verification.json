@@ -1,6 +1,6 @@
 {
-  "sourceSha256": "f7242eb7634088a3e3851f87c13a4ff6bc78d273128cba507dbb5ae36c387f40",
-  "sources": 59,
+  "sourceSha256": "08f1a56bc52d4054763898979a67243a06b36dbbbd7610c1fef159104877a555",
+  "sources": 70,
   "outputs": 2,
   "allMatch": true,
   "checks": [
@@ -14,6 +14,10 @@
     },
     {
       "path": "docs/handbook/2026-10-16/release-evidence.md",
+      "matches": true
+    },
+    {
+      "path": "Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md",
       "matches": true
     },
     {
@@ -37,15 +41,11 @@
       "matches": true
     },
     {
-      "path": "packages/domain/storage.ts",
-      "matches": true
-    },
-    {
       "path": "packages/domain/intake-report.ts",
       "matches": true
     },
     {
-      "path": "packages/domain/recovery-storage.ts",
+      "path": "packages/transport/workspace.ts",
       "matches": true
     },
     {
@@ -77,7 +77,11 @@
       "matches": true
     },
     {
-      "path": "apps/web/RecoveryCopies.tsx",
+      "path": "apps/web/workspace-state.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/web/document-editing.ts",
       "matches": true
     },
     {
@@ -113,6 +117,10 @@
       "matches": true
     },
     {
+      "path": "apps/web/model-retry.ts",
+      "matches": true
+    },
+    {
       "path": "apps/web/chat-workflow.css",
       "matches": true
     },
@@ -129,7 +137,35 @@
       "matches": true
     },
     {
+      "path": "tests/context-integrity.test.ts",
+      "matches": true
+    },
+    {
       "path": "tests/workflow-guards.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/document-editing.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/server-only-workflow.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/session-conversation.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/workspace-sync.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/workspace.test.ts",
+      "matches": true
+    },
+    {
+      "path": "tests/model-retry.test.ts",
       "matches": true
     },
     {
@@ -149,6 +185,10 @@
       "matches": true
     },
     {
+      "path": "tests/wire-field-schema.test.ts",
+      "matches": true
+    },
+    {
       "path": "tests/experience-model.test.ts",
       "matches": true
     },
@@ -162,6 +202,10 @@
     },
     {
       "path": "apps/api/auth.ts",
+      "matches": true
+    },
+    {
+      "path": "apps/api/errors.ts",
       "matches": true
     },
     {

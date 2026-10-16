@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDemoState } from '../fixtures/fictional';
 import type { PortalState } from '../packages/contracts';
-import { stateSignature } from '../packages/domain/storage';
+import { stateSignature } from '../apps/web/workspace-state';
 import { chooseWorkspaceAction } from '../apps/web/workspace-choice';
 
 const baseline = createDemoState();

@@ -1,25 +1,18 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, CalendarDays, Check, ChevronDown, FileText, History, MessageCircle, PencilLine, Save, ScanText, X } from 'lucide-react';
-import { GOAL_LABELS, type DocumentVersion, type FieldStatus, type Goal, type IntakeField, type PendingDraft, type PortalState, type Session } from '../../packages/contracts';
+import { GOAL_LABELS, TEXT_LIMITS, type DocumentVersion, type FieldStatus, type Goal, type IntakeField, type PendingDraft, type PortalState, type Session } from '../../packages/contracts';
 import { acceptProposal, approveSession, buildContext, currentVersion, documentHistory, editDocument, emptyIntakeFields, intakeFields, intakeSections, pendingDraftIsCurrent, rejectProposal, renderIntake, restoreVersion } from '../../packages/domain';
 import { renderIntakeReport } from '../../packages/domain/intake-report';
 import { CopyButton, dateLabel, DocumentText, Modal, navigateTabs, SourceViewer, timeLabel, VersionMeta } from './ui';
 import { scheduleLabel } from './NewPatient';
 import { documentExcerpt } from './experience-model';
+import { editorDrafts, writeEditorDraft, removeEditorDraft, subscribeEditorDrafts, getEditorDraftCount, hasUnsavedDocumentEdits, saveEditorDraft } from './document-editing';
+export { clearEditorDrafts, hasUnsavedDocumentEdits, subscribeEditorDrafts, getEditorDraftCount } from './document-editing';
 import './patient-portal.css';
 
 const statuses: Record<FieldStatus, string> = { documented: 'תועד', partial: 'תועד חלקית', unknown: 'לא הוזכר', not_assessed: 'לא נבדק', not_recalled: 'לא זכור', conflict: 'קיימת סתירה', not_applicable: 'לא רלוונטי' };
 const goals: Goal[] = ['note', 'intake', 'formulation', 'supervision', 'gold'];
 type Update = (operation: (state: PortalState) => PortalState) => boolean;
-const editorDrafts = new Map<string, { text: string; fields: IntakeField[] }>();
-const editorDraftListeners = new Set<() => void>();
-function emitEditorDrafts() { editorDraftListeners.forEach(listener => listener()); }
-function writeEditorDraft(key: string, value: { text: string; fields: IntakeField[] }) { editorDrafts.set(key, value); emitEditorDrafts(); }
-function removeEditorDraft(key: string) { editorDrafts.delete(key); emitEditorDrafts(); }
-export function subscribeEditorDrafts(listener: () => void) { editorDraftListeners.add(listener); return () => { editorDraftListeners.delete(listener); }; }
-export function getEditorDraftCount() { return editorDrafts.size; }
-export function clearEditorDrafts() { editorDrafts.clear(); emitEditorDrafts(); }
-export function hasUnsavedDocumentEdits() { return editorDrafts.size > 0; }
 
 export function DocumentEditor({ state, update, patientId, branchId, kind, sessionId, notify }: { state: PortalState; update: Update; patientId: string; branchId: string; kind: Goal; sessionId?: string; notify: (message: string) => void }) {
   const current = currentVersion(state, patientId, branchId, kind, sessionId);
@@ -27,6 +20,8 @@ export function DocumentEditor({ state, update, patientId, branchId, kind, sessi
   const [editing, setEditing] = useState(editorDrafts.has(draftKey));
   const [text, setText] = useState(editorDrafts.get(draftKey)?.text ?? current?.content ?? '');
   const [fields, setFields] = useState<IntakeField[]>(editorDrafts.get(draftKey)?.fields ?? current?.fields ?? emptyIntakeFields());
+  const [baseVersionId, setBaseVersionId] = useState<string | null>(() => editorDrafts.has(draftKey) ? editorDrafts.get(draftKey)!.baseVersionId : current?.id ?? null);
+  const staleEdit = editing && baseVersionId !== (current?.id ?? null);
   const [history, setHistory] = useState(false);
   const [sourceIds, setSourceIds] = useState<string[] | null>(null);
   const [pendingProposal, setPendingProposal] = useState<DocumentVersion | null>(null);
@@ -43,24 +38,26 @@ export function DocumentEditor({ state, update, patientId, branchId, kind, sessi
   useEffect(() => { if (!editing) { setText(current?.content || ''); setFields(current?.fields || emptyIntakeFields()); } }, [current?.id, editing]);
 
   function beginEditing() {
-    writeEditorDraft(draftKey, { text, fields });
+    const base = current?.id ?? null;
+    setBaseVersionId(base);
+    writeEditorDraft(draftKey, { text, fields, baseVersionId: base });
     setEditing(true);
     if (kind === 'intake') setIntakeView('fields');
   }
 
   function changeText(next: string) {
-    writeEditorDraft(draftKey, { text: next, fields });
+    writeEditorDraft(draftKey, { text: next, fields, baseVersionId });
     setText(next);
   }
 
   function changeField(id: number, changes: Partial<IntakeField>) {
     const next = fields.map(field => field.id === id ? { ...field, ...changes } : field);
-    writeEditorDraft(draftKey, { text, fields: next });
+    writeEditorDraft(draftKey, { text, fields: next, baseVersionId });
     setFields(next);
   }
 
   function save() {
-    if (!update(previous => editDocument(previous, patientId, branchId, kind, kind === 'intake' ? renderIntake(fields) : text, kind === 'intake' ? fields : undefined, sessionId))) return;
+    if (!update(previous => saveEditorDraft(previous, draftKey, patientId, branchId, kind, sessionId))) return;
     removeEditorDraft(draftKey);
     setEditing(false);
     notify('נוצרה גרסה חדשה עם העריכה שלך.');
@@ -85,14 +82,16 @@ export function DocumentEditor({ state, update, patientId, branchId, kind, sessi
           const label = intakeFields.find(item => item.id === id)?.label || String(id);
           return <div className="intake-field" key={id}>
             <div className="row-between"><label htmlFor={`field-${id}`}>{id}. {label}</label>{!editing && <span className={`tag field-${field.status}`}>{statuses[field.status]}</span>}</div>
-            {editing ? <><textarea id={`field-${id}`} value={field.value} rows={3} onChange={event => changeField(id, { value: event.target.value })} /><div className="field-row"><label>מצב המידע<select value={field.status} onChange={event => changeField(id, { status: event.target.value as FieldStatus })}>{Object.entries(statuses).map(([value, title]) => <option value={value} key={value}>{title}</option>)}</select></label><label>מה עוד פתוח<input value={field.remaining || ''} onChange={event => changeField(id, { remaining: event.target.value })} /></label></div></> : <><p className="preserve-lines">{field.value || 'לא נמסר מידע.'}</p>{field.remaining && <p className="muted">נותר לברר: {field.remaining}</p>}{field.sourceIds.length > 0 && <button className="text-button" onClick={() => setSourceIds(field.sourceIds)}><ScanText size={14} />מקורות לשדה</button>}</>}
+            {editing ? <><textarea id={`field-${id}`} value={field.value} maxLength={TEXT_LIMITS.fieldValue} rows={3} onChange={event => changeField(id, { value: event.target.value })} /><div className="field-row"><label>מצב המידע<select value={field.status} onChange={event => changeField(id, { status: event.target.value as FieldStatus })}>{Object.entries(statuses).map(([value, title]) => <option value={value} key={value}>{title}</option>)}</select></label><label>מה עוד פתוח<input value={field.remaining || ''} maxLength={TEXT_LIMITS.fieldRemaining} onChange={event => changeField(id, { remaining: event.target.value })} /></label></div></> : <><p className="preserve-lines">{field.value || 'לא נמסר מידע.'}</p>{field.remaining && <p className="muted">נותר לברר: {field.remaining}</p>}{field.sourceIds.length > 0 && <button className="text-button" onClick={() => setSourceIds(field.sourceIds)}><ScanText size={14} />מקורות לשדה</button>}</>}
           </div>;
         })}
       </details>)}</div>}
       {intakeView === 'report' && <DocumentText text={editing ? intakePreview() : current?.content || intakePreview()} />}
     </>}
-    {kind !== 'intake' && (editing ? <label className="edit-area">עריכת {GOAL_LABELS[kind]}<textarea className="document-input" value={text} onChange={event => changeText(event.target.value)} rows={15} /></label> : <DocumentText text={current?.content || ''} />)}
-    <div className="document-footer">{editing ? <><p className="muted small-copy">העריכה עדיין לא נשמרה. שמירה יוצרת גרסה חדשה; הנוסח הקודם נשאר בהיסטוריה.</p><div className="button-row"><button className="primary" onClick={save}><Save size={17} />שמירת העריכה</button><button className="text-button" onClick={() => { removeEditorDraft(draftKey); setEditing(false); }}>ביטול עריכה</button></div></> : <CopyButton text={current?.content || ''} notify={notify} />}</div>
+    {kind !== 'intake' && (editing ? <label className="edit-area">עריכת {GOAL_LABELS[kind]}<textarea className="document-input" maxLength={TEXT_LIMITS.manualDocument} value={text} onChange={event => changeText(event.target.value)} rows={15} /></label> : <DocumentText text={current?.content || ''} />)}
+    {staleEdit && <div className="error-panel" role="alert"><p>נשמרה גרסה חדשה מאז תחילת העריכה. הטקסט שלך נשאר פתוח, אך אי אפשר לשמור אותו על בסיס הגרסה הישנה. אפשר להעתיק אותו, לבטל את העריכה ולפתוח את הנוסח העדכני.</p><CopyButton text={kind === 'intake' ? renderIntake(fields) : text} notify={notify} /></div>}
+    {editing && <p className="muted small-copy" role="status">{kind === 'intake' ? `עד ${TEXT_LIMITS.fieldValue.toLocaleString('en-US')} תווים לשדה; עד ${TEXT_LIMITS.fieldRemaining.toLocaleString('en-US')} להשלמה. גם הדוח המלא נבדק לפני שמירה.` : `${text.length.toLocaleString('en-US')} מתוך ${TEXT_LIMITS.manualDocument.toLocaleString('en-US')} תווים.`}</p>}
+    <div className="document-footer">{editing ? <><p className="muted small-copy">העריכה נמצאת בזיכרון הלשונית בלבד. שמירה יוצרת גרסה חדשה ומעבירה אותה לשמירה בשרת; יש להמתין לאישור השמירה בראש המסך.</p><div className="button-row"><button className="primary" disabled={staleEdit} onClick={save}><Save size={17} />שמירת העריכה</button><button className="text-button" onClick={() => { removeEditorDraft(draftKey); setEditing(false); }}>ביטול עריכה</button></div></> : <CopyButton text={current?.content || ''} notify={notify} />}</div>
     {!editing && canApproveEdit && <div className="notice"><p>העריכה נשמרה כגרסה חדשה. אפשר לאשר את הנוסח השמור לאחר עיון; אין צורך להפעיל את הבינה שוב.</p><button className="secondary" disabled={openEditorCount > 0} onClick={() => {
       if (hasUnsavedDocumentEdits() || !sessionId || !current) return;
       if (!update(previous => {
@@ -102,13 +101,13 @@ export function DocumentEditor({ state, update, patientId, branchId, kind, sessi
       })) return;
       notify('העריכה לרשומה אושרה ונשמרה בגרסה חדשה.');
     }}><Check size={16} />אישור העריכה לרשומה</button></div>}
-    {history && <VersionHistory versions={historyVersions} currentId={current?.id} branchId={branchId} onClose={() => setHistory(false)} onRestore={id => { if (!update(previous => restoreVersion(previous, id))) return; setHistory(false); notify('הגרסה שנבחרה שוחזרה כגרסה חדשה.'); }} />}
+    {history && <VersionHistory versions={historyVersions} currentId={current?.id} branchId={branchId} restoreDisabled={editing} onClose={() => setHistory(false)} onRestore={id => { if (editing) return; if (!update(previous => restoreVersion(previous, id))) return; setHistory(false); notify('הגרסה שנבחרה שוחזרה כגרסה חדשה.'); }} />}
     {sourceIds && <SourceViewer ids={sourceIds} state={state} onClose={() => setSourceIds(null)} />}
-    {pendingProposal && <Modal title="השוואת הצעת העדכון" wide onClose={() => setPendingProposal(null)}><p className="muted">ההצעה לא החליפה את העריכה שלך. קבלה יוצרת גרסה חדשה שניתנת לעריכה ולשחזור.</p><div className="comparison"><article><h3>הנוסח הנוכחי</h3><DocumentText text={current?.content || ''} /></article><article><h3>הצעת העדכון</h3><DocumentText text={pendingProposal.content} /></article></div><div className="button-row"><button className="primary" onClick={() => { if (!update(previous => acceptProposal(previous, pendingProposal.id))) return; setPendingProposal(null); notify('ההצעה התקבלה כגרסה חדשה.'); }}><Check size={17} />קבלת ההצעה</button><button className="secondary" onClick={() => { if (!update(previous => rejectProposal(previous, pendingProposal.id))) return; setPendingProposal(null); notify('ההצעה נדחתה. הנוסח שלך נשמר.'); }}><X size={17} />שמירת הנוסח שלי</button></div></Modal>}
+    {pendingProposal && <Modal title="השוואת הצעת העדכון" wide onClose={() => setPendingProposal(null)}><p className="muted">ההצעה לא החליפה את העריכה שלך. קבלה יוצרת גרסה חדשה שניתנת לעריכה ולשחזור.</p><div className="comparison"><article><h3>הנוסח הנוכחי</h3><DocumentText text={current?.content || ''} /></article><article><h3>הצעת העדכון</h3><DocumentText text={pendingProposal.content} /></article></div><div className="button-row"><button className="primary" disabled={editing} onClick={() => { if (editing) return; if (!update(previous => acceptProposal(previous, pendingProposal.id))) return; setPendingProposal(null); notify('ההצעה התקבלה כגרסה חדשה.'); }}><Check size={17} />קבלת ההצעה</button><button className="secondary" onClick={() => { if (!update(previous => rejectProposal(previous, pendingProposal.id))) return; setPendingProposal(null); notify('ההצעה נדחתה. הנוסח שלך נשמר.'); }}><X size={17} />שמירת הנוסח שלי</button></div></Modal>}
   </section>;
 }
 
-function VersionHistory({ versions, currentId, branchId, onClose, onRestore }: { versions: DocumentVersion[]; currentId?: string; branchId: string; onClose: () => void; onRestore: (id: string) => void }) {
+function VersionHistory({ versions, currentId, branchId, restoreDisabled, onClose, onRestore }: { versions: DocumentVersion[]; currentId?: string; branchId: string; restoreDisabled: boolean; onClose: () => void; onRestore: (id: string) => void }) {
   const sorted = [...versions].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   const [leftId, setLeftId] = useState(sorted.at(-2)?.id || sorted.at(-1)?.id || '');
   const [rightId, setRightId] = useState(currentId || sorted.at(-1)?.id || '');
@@ -116,8 +115,8 @@ function VersionHistory({ versions, currentId, branchId, onClose, onRestore }: {
   const right = sorted.find(version => version.id === rightId);
   const options = sorted.map((version, index) => <option key={version.id} value={version.id}>גרסה {index + 1} · {dateLabel(version.createdAt)} · {version.author === 'clinician' ? 'עריכת מטפל' : version.author === 'seed' ? 'הדגמה' : 'עוזר'}{version.id === currentId ? ' · נוכחית' : ''}{version.branchId !== branchId ? ' · בסיס מהענף המקורי' : ''}</option>);
   return <Modal title="היסטוריית גרסאות והשוואה" wide onClose={onClose}>
-    <p className="muted">כל שמירה היא תמונת מצב מלאה. שחזור אינו מוחק גרסאות מאוחרות.</p>
-    {sorted.length === 0 ? <p>עדיין לא נשמרו גרסאות למסמך הזה.</p> : <div className="comparison">{([{ side: 'left', version: left, value: leftId, change: setLeftId }, { side: 'right', version: right, value: rightId, change: setRightId }] as const).map(item => <article key={item.side}><label>בחירת גרסה<select value={item.value} onChange={event => item.change(event.target.value)}>{options}</select></label>{item.version && <><p className="tag historical-label">{item.version.id === currentId ? 'הגרסה הנוכחית' : 'גרסה היסטורית'}</p><DocumentText text={item.version.content} /><p className="muted small-copy">{item.version.reason}</p>{item.version.branchId !== branchId && <p className="muted small-copy">גרסת בסיס מהענף המקורי, נכון לנקודת הפיצול. אפשר לערוך את העותק הנוכחי בענף הפעיל.</p>}{item.version.id !== currentId && item.version.branchId === branchId && <button className="secondary" onClick={() => onRestore(item.version!.id)}><History size={16} />שחזור גרסה זו</button>}</>}</article>)}</div>}
+    <p className="muted">כל שמירה היא תמונת מצב מלאה. שחזור אינו מוחק גרסאות מאוחרות.</p>{restoreDisabled && <p role="status">אפשר לעיין בגרסאות. כדי לשחזר יש לשמור או לבטל תחילה את העריכה הפתוחה.</p>}
+    {sorted.length === 0 ? <p>עדיין לא נשמרו גרסאות למסמך הזה.</p> : <div className="comparison">{([{ side: 'left', version: left, value: leftId, change: setLeftId }, { side: 'right', version: right, value: rightId, change: setRightId }] as const).map(item => <article key={item.side}><label>בחירת גרסה<select value={item.value} onChange={event => item.change(event.target.value)}>{options}</select></label>{item.version && <><p className="tag historical-label">{item.version.id === currentId ? 'הגרסה הנוכחית' : 'גרסה היסטורית'}</p><DocumentText text={item.version.content} /><p className="muted small-copy">{item.version.reason}</p>{item.version.branchId !== branchId && <p className="muted small-copy">גרסת בסיס מהענף המקורי, נכון לנקודת הפיצול. אפשר לערוך את העותק הנוכחי בענף הפעיל.</p>}{item.version.id !== currentId && item.version.branchId === branchId && <button className="secondary" disabled={restoreDisabled} onClick={() => onRestore(item.version!.id)}><History size={16} />שחזור גרסה זו</button>}</>}</article>)}</div>}
   </Modal>;
 }
 

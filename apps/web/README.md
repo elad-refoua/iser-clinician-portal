@@ -6,7 +6,7 @@ React/TypeScript, Hebrew RTL, entirely fictional adults and sessions. The root R
 
 Vite's root is apps/web. VITE_API_URL is the public API origin, with same-origin /api when absent. PAGES_BASE is supplied to the root Vite configuration. Handbook links use import.meta.env.BASE_URL.
 
-LoginScreen gates the complete interface. POST /api/access accepts strict {username, password} and returns a one-hour bearer token kept in page memory. The username defaults to elad; the private password is never committed. Login opens the shared workspace before presenting the case overview, with explicit reconciliation when local and remote work differ. Neon, Redis and authentication are required for the full flow. Provider/database credentials never reach the browser.
+LoginScreen gates the complete interface. POST /api/access accepts strict {username, password} and returns a one-hour bearer token kept in page memory. The username defaults to elad; the private password is never committed. Login opens the shared workspace before presenting the case overview, with explicit reconciliation when unsaved page-memory work and server work differ. Neon, Redis and authentication are required for the full flow. Provider/database credentials never reach the browser.
 
 ## Interface and ownership
 
@@ -22,7 +22,7 @@ LoginScreen gates the complete interface. POST /api/access accepts strict {usern
 | NewPatient.tsx | Name/code and optional weekly day/time; separate root and empty session 1 |
 | workspace-sync.ts, workspace-choice.ts | Validated reads, serial saves and explicit reconciliation |
 | workflow-guards.ts | Unfinished-session guard and same-baseline reconnect check |
-| RecoveryCopies.tsx | List/download isolated page-writer recovery snapshots |
+| workspace-state.ts, document-editing.ts | Pure memory comparisons, unsaved-state guards and editor base-version tracking |
 | Backstage.tsx | Architecture, exact prompts/context/results, authored instruction examples, handbook/PDF |
 | ui.tsx | Dialogs, document renderer, copy and source viewer |
 
@@ -30,9 +30,9 @@ Domain code owns context selection, provenance, versions and branch/time rules. 
 
 ## Conversation and approval
 
-After choosing a patient/session, the clinician sees one writing invitation. Enter sends; Shift+Enter inserts a newline. Each send requests a real model turn. Questions resolve one concrete gap grounded in the latest contribution and existing context. Zero to three main questions are permitted. Skipping, stopping or requesting a summary does not require filling fields.
+After choosing a patient/session, the clinician sees one quiet invitation to talk with the documentation assistant. The prominent action is **שליחה** (Send); Enter sends and Shift+Enter inserts a newline. **להכנת סיכום** remains secondary, with modest emphasis at the question cap. Each send requests a real model turn, starting with the first reply. Questions resolve one concrete gap grounded in the latest contribution and existing context. Zero to three main questions are permitted. Skipping, stopping or requesting a summary does not require filling fields.
 
-A turn returning action=draft triggers a separate draft request. A deliberate summary/revision can directly request the draft. There is no automatic paid retry or model switch. Failed operations preserve contributions and expose a controlled error with an explicit next action.
+A turn returning action=draft triggers a separate draft request. A deliberate summary/revision can directly request the draft. Provider errors do not trigger automatic paid retries or model switches. Failed operations preserve contributions and offer an explicit retry of the failed operation (reply or summary). A stale-revision rejection occurs before reservation/provider work: within that explicit action only, the unchanged current session may advance once to the server's minimum revision and retry. All quotas and question counters still apply. This creates a new response; it does not retrieve an undelivered previous response.
 
 The result is a pending proposal: five documents, sparse intake patches, a summary and optional follow-ups. Intake is rendered from 32 structured fields. applyTurn stages fields; saveDraft stages the proposal. Neither changes saved documents. A new proposal archives its predecessor.
 
@@ -54,13 +54,15 @@ buildContext filters by patient, branch ancestry, session and recorded-time cuto
 
 Responses return effectiveContext after server counter adjustments; traces save it as server-origin context. Older client-origin traces remain labeled. A source in input is not proof of use; citations require semantic review. rationale is a short explanation, not hidden reasoning.
 
-State saves to IndexedDB after a 450 ms debounce with serialized writes. Connected changes queue to the workspace API with expectedRevision. נשמר במאגר means the latest snapshot received acknowledgement. The server holds one complete current snapshot including version/proposal histories, not every previous snapshot. Workspace bodies are capped at 3,000,000 bytes.
+All durable state is saved on the server. The app does not read or write IndexedDB, localStorage, sessionStorage or cookies for cases, drafts or credentials. A fresh login loads Neon before exposing the editor. Only a server-confirmed empty workspace initializes the fictional seed cases; its first save must succeed before editing.
 
-Reconnect compares the remote, local work and this tab's confirmed baseline. Empty/equal states connect; clean local work can adopt newer remote state after a recovery copy. Divergence requires choice. If the remote still equals this tab's baseline, the user can explicitly continue and save local work; the remote is reread before reconnect, and compare-and-swap guards the write. Offline work is not silently merged/uploaded.
+Changes queue after a short debounce to the workspace API with expectedRevision. נשמר בשרת means the current snapshot has received acknowledgement. The confirmed baseline and active work exist only in page memory. Composer text is included in server snapshots; an open document editor remains a temporary buffer until Save.
 
-An expired model operation retains its action and state stamp. It resumes after login/reconciliation only if selection, sources, versions and preferences still match. Adopting another remote copy cancels that continuation with an explanation. Cancellation stops the browser wait, not necessarily billing.
+Reconnect compares server state, in-memory work and the page's last confirmed baseline. Clean work can load newer server content; divergent work requires an explicit choice. A safe resume rereads the server and retains compare-and-swap. A transient GET failure does not clear valid authentication or overwrite work. Conflicts/expiry/errors pause writes with clear retry/reconnect/export actions. beforeunload warns when work or a direct editor remains unconfirmed; it is not a backup.
 
-Cloud conflict/expiry/failure pauses writes and stores a page-specific recovery copy. Further changes update it; another tab cannot overwrite its key. Settings export recovery copies without replacing state. before-cloud-load retains the prior snapshot before remote adoption. Neither is an external backup. JSON import/reset require confirmation and replace connected remote state too.
+An expired model operation retains its action and state stamp in memory. It resumes after login/reconciliation only if selection, sources, versions and preferences still match. Adopting another server copy cancels that continuation. Cancellation stops the browser wait, not necessarily provider billing. Cancelling an untouched expansion restores the ability to approve the existing proposal.
+
+Explicit JSON export downloads a user-requested file; it is not automatic persistence. Import/reset require confirmation and replace server state too. No legacy browser snapshot is read, migrated or deleted automatically. The server retains the latest complete workspace with full document/proposal histories, not every prior workspace snapshot or every keystroke. The bounded lossless transport preserves content; its limits and validation are documented in apps/api/README.md.
 
 ## Verification
 

@@ -1,5 +1,5 @@
 export class ApiError extends Error {
-  constructor(public status: number, public code: string) { super(code); }
+  constructor(public status: number, public code: string, public minimumRevision?: number) { super(code); }
 }
 
 export type Environment = Record<string, string | undefined>;

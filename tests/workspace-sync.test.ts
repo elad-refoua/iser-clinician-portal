@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createDemoState } from '../fixtures/fictional';
 import type { PortalState } from '../packages/contracts';
 import { readWorkspace, WorkspaceRequestError, WorkspaceSync, type WorkspaceSyncEvent } from '../apps/web/workspace-sync';
+import { decodeWorkspacePayload, encodeWorkspacePayload, WORKSPACE_GZIP_TYPE, WORKSPACE_WIRE_MAX_BYTES } from '../packages/transport/workspace';
 
 const at = '2026-10-16T13:00:00.000Z';
 const apiURL = 'https://example.invalid/';
@@ -24,6 +25,11 @@ function setup(confirmedState: PortalState | null = null, timeoutMs?: number) {
   return { sync, events };
 }
 function saved(revision: number) { return Response.json({ revision, updatedAt: at }); }
+async function sent(fetcher: ReturnType<typeof vi.fn>, index = 0): Promise<any> {
+  const init = fetcher.mock.calls[index][1] as RequestInit;
+  const headers = new Headers(init.headers);
+  return decodeWorkspacePayload(new Response(init.body).body, headers.get('Content-Type')!);
+}
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('workspace reads', () => {
@@ -36,6 +42,25 @@ describe('workspace reads', () => {
     expect(await readWorkspace(apiURL, token)).toEqual({ revision: 3, updatedAt: at, state: value });
     expect(fetcher.mock.calls[0][0]).toBe('https://example.invalid/api/workspace');
     expect(fetcher.mock.calls[0][1]).toMatchObject({ method: 'GET', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+  });
+
+  it('requests and decodes the compressed representation with complete content', async () => {
+    const value = state('דוגמה בדיונית לבדיקה');
+    const payload = await encodeWorkspacePayload(JSON.stringify({ revision: 3, updatedAt: at, state: value }));
+    const fetcher = vi.fn().mockResolvedValue(new Response(payload.body, { headers: { 'Content-Type': payload.contentType } }));
+    vi.stubGlobal('fetch', fetcher);
+    expect(await readWorkspace(apiURL, token)).toEqual({ revision: 3, updatedAt: at, state: value });
+    expect(fetcher.mock.calls[0][1].headers.Accept).toBe(WORKSPACE_GZIP_TYPE);
+  });
+
+  it('rejects oversized and corrupt server responses before returning a workspace', async () => {
+    const oversized = new Response(new Uint8Array([1]), { headers: { 'Content-Type': WORKSPACE_GZIP_TYPE, 'Content-Length': String(WORKSPACE_WIRE_MAX_BYTES + 1) } });
+    const read = vi.spyOn(oversized.body!, 'getReader');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(oversized)
+      .mockResolvedValueOnce(new Response(new Uint8Array([1, 2, 3]), { headers: { 'Content-Type': WORKSPACE_GZIP_TYPE } })));
+    await expect(readWorkspace(apiURL, token)).rejects.toMatchObject({ code: 'workspace_too_large' });
+    expect(read).not.toHaveBeenCalled();
+    await expect(readWorkspace(apiURL, token)).rejects.toMatchObject({ code: 'invalid_workspace_response' });
   });
 
   it('rejects malformed metadata, mismatched empty state, and invalid archive contents', async () => {
@@ -70,11 +95,11 @@ describe('workspace autosave controller', () => {
     sync.requestSave(state('first'));
     sync.requestSave(state('intermediate'));
     const latest = state('latest'); sync.requestSave(latest); latest.sessions[0].composer = 'mutated after request';
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toMatchObject({ expectedRevision: 0 });
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+    expect(await sent(fetcher)).toMatchObject({ expectedRevision: 0 });
     first.resolve(saved(1));
     await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
-    const next = JSON.parse(fetcher.mock.calls[1][1].body);
+    const next = await sent(fetcher, 1);
     expect(next.expectedRevision).toBe(1);
     expect(next.state.sessions[0].composer).toBe('latest');
     expect(events.some(event => event.status === 'saved')).toBe(false);
@@ -118,6 +143,7 @@ describe('workspace autosave controller', () => {
     const fetcher = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise); vi.stubGlobal('fetch', fetcher);
     const { sync, events } = setup();
     sync.requestSave(state('one')); sync.requestSave(state('two'));
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
     first.reject(new TypeError('sensitive network detail'));
     await vi.waitFor(() => expect(events.at(-1)).toMatchObject({ status: 'error', error: 'workspace_network_error' }));
     sync.requestSave(state('three'));
@@ -125,8 +151,8 @@ describe('workspace autosave controller', () => {
     expect(sync.revision).toBe(0); expect(sync.getConfirmedState()).toBeNull();
     expect(events.some(event => event.status === 'saved')).toBe(false);
     expect(sync.retry()).toBe(true);
-    expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(fetcher.mock.calls[1][1].body).state.sessions[0].composer).toBe('three');
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+    expect((await sent(fetcher, 1)).state.sessions[0].composer).toBe('three');
     second.resolve(saved(1));
     await vi.waitFor(() => expect(events.at(-1)).toMatchObject({ status: 'saved', revision: 1 }));
     sync.stop();
@@ -137,11 +163,12 @@ describe('workspace autosave controller', () => {
     const fetcher = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise); vi.stubGlobal('fetch', fetcher);
     const { sync, events } = setup(original);
     sync.requestSave(state('possibly saved')); sync.requestSave(original);
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
     first.reject(new Error('connection lost'));
     await vi.waitFor(() => expect(events.at(-1)?.status).toBe('error'));
     sync.retry();
-    expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(fetcher.mock.calls[1][1].body)).toMatchObject({ expectedRevision: 4, state: original });
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+    expect(await sent(fetcher, 1)).toMatchObject({ expectedRevision: 4, state: original });
     second.resolve(Response.json({ error: 'workspace_conflict' }, { status: 409 }));
     await vi.waitFor(() => expect(events.at(-1)?.status).toBe('conflict'));
     expect(events.some(event => event.status === 'saved')).toBe(false);
@@ -166,6 +193,7 @@ describe('workspace autosave controller', () => {
   it('aborts and suppresses all late callbacks after stop', async () => {
     const first = deferred<Response>(); const fetcher = vi.fn().mockReturnValue(first.promise); vi.stubGlobal('fetch', fetcher);
     const { sync, events } = setup(); sync.requestSave(state('one')); sync.requestSave(state('two'));
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
     const count = events.length; sync.stop();
     expect((fetcher.mock.calls[0][1].signal as AbortSignal).aborted).toBe(true);
     first.resolve(saved(1));
@@ -176,13 +204,13 @@ describe('workspace autosave controller', () => {
   });
 
   it('times out a hanging fetch without showing saved or automatically retrying', async () => {
-    vi.useFakeTimers();
     const first = deferred<Response>(); const fetcher = vi.fn().mockReturnValue(first.promise); vi.stubGlobal('fetch', fetcher);
-    const { sync, events } = setup(null, 25); sync.requestSave(state('one'));
-    await vi.advanceTimersByTimeAsync(26);
+    const { sync, events } = setup(null, 100); sync.requestSave(state('one'));
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(events.at(-1)?.status).toBe('error'));
     expect(events.at(-1)).toMatchObject({ status: 'error', error: 'workspace_timeout', revision: 0 });
     expect((fetcher.mock.calls[0][1].signal as AbortSignal).aborted).toBe(true);
-    first.resolve(saved(1)); await vi.advanceTimersByTimeAsync(100);
+    first.resolve(saved(1)); await new Promise(resolve => setTimeout(resolve, 0));
     expect(events.some(event => event.status === 'saved')).toBe(false);
     expect(fetcher).toHaveBeenCalledTimes(1); sync.stop();
   });

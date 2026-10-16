@@ -3,29 +3,22 @@ import { importState } from '../../packages/domain/index.js';
 import { authenticate } from './auth.js';
 import { ApiError, type Environment } from './errors.js';
 import { workspaceStore, type WorkspaceStore, type WorkspaceSnapshot } from './workspace-store.js';
+import { decodeWorkspacePayload, encodeWorkspacePayload, WORKSPACE_DECODED_MAX_BYTES, WORKSPACE_GZIP_TYPE, WORKSPACE_WIRE_MAX_BYTES, WorkspaceTransportError } from '../../packages/transport/workspace.js';
 
-export const WORKSPACE_MAX_BYTES = 3_000_000;
+export const WORKSPACE_MAX_BYTES = WORKSPACE_WIRE_MAX_BYTES;
 export interface WorkspaceDependencies { env?: Environment; store?: WorkspaceStore; now?: () => number }
 const revisionSchema = z.number().int().min(0).max(2_147_483_646);
 const saveSchema = z.object({ expectedRevision: revisionSchema, state: z.unknown() }).strict();
 const snapshotSchema = z.object({ revision: z.number().int().min(0).max(2_147_483_647), updatedAt: z.string().datetime({ offset: true }).nullable(), state: z.unknown() }).strict();
 
 async function readBody(request: Request): Promise<unknown> {
-  if (!(request.headers.get('content-type') ?? '').toLowerCase().startsWith('application/json')) throw new ApiError(415, 'json_required');
-  if (Number(request.headers.get('content-length') ?? 0) > WORKSPACE_MAX_BYTES) throw new ApiError(413, 'request_too_large');
-  if (!request.body) throw new ApiError(400, 'invalid_json');
-  const reader = request.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > WORKSPACE_MAX_BYTES) throw new ApiError(413, 'request_too_large');
-      chunks.push(value);
-    }
-    try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); }
-    catch { throw new ApiError(400, 'invalid_json'); }
-  } finally { await reader.cancel().catch(() => undefined); }
+    return await decodeWorkspacePayload(request.body, request.headers.get('content-type') ?? '', request.headers.get('content-length'));
+  } catch (error) {
+    if (error instanceof WorkspaceTransportError && error.code === 'too_large') throw new ApiError(413, 'request_too_large');
+    if (error instanceof WorkspaceTransportError && error.code === 'unsupported_type') throw new ApiError(415, 'json_required');
+    throw new ApiError(400, 'invalid_json');
+  }
 }
 
 function cors(request: Request, env: Environment): Headers {
@@ -65,18 +58,27 @@ export async function handleWorkspace(request: Request, dependencies: WorkspaceD
     if (!workspaceId.trim() || workspaceId.length > 160) throw new ApiError(503, 'workspace_not_configured');
     if (request.method === 'GET') {
       const store = dependencies.store ?? workspaceStore(env);
-      return Response.json(checkedSnapshot(await store.load(workspaceId)), { headers });
+      const snapshot = checkedSnapshot(await store.load(workspaceId));
+      const compressed = (request.headers.get('accept') ?? '').split(',').some(type => type.split(';')[0].trim() === WORKSPACE_GZIP_TYPE);
+      const payload = await encodeWorkspacePayload(JSON.stringify(snapshot), compressed);
+      headers.set('Content-Type', payload.contentType);
+      return new Response(payload.body, { headers });
     }
     const input = saveSchema.safeParse(await readBody(request));
     if (!input.success) throw new ApiError(400, 'workspace_invalid_request');
     let state;
     try { state = importState(JSON.stringify(input.data.state)); }
     catch { throw new ApiError(400, 'workspace_invalid_state'); }
+    // Reject a write that this protocol could not subsequently read back. The small
+    // margin covers the store timestamp and envelope metadata without dropping history.
+    const readable = await encodeWorkspacePayload(JSON.stringify({ revision: input.data.expectedRevision + 1, updatedAt: new Date(now()).toISOString(), state }));
+    if (readable.body.byteLength > WORKSPACE_MAX_BYTES - 1024 || readable.decodedBytes > WORKSPACE_DECODED_MAX_BYTES - 1024) throw new ApiError(413, 'request_too_large');
     const store = dependencies.store ?? workspaceStore(env);
     const version = await store.save(workspaceId, input.data.expectedRevision, state);
     if (!version) throw new ApiError(409, 'workspace_conflict');
     return Response.json({ revision: version.revision, updatedAt: version.updatedAt }, { headers });
   } catch (error) {
+    if (error instanceof WorkspaceTransportError) return Response.json({ error: error.code === 'too_large' ? 'request_too_large' : 'workspace_request_failed' }, { status: error.code === 'too_large' ? 413 : 500, headers });
     return Response.json({ error: error instanceof ApiError ? error.code : 'workspace_request_failed' }, { status: error instanceof ApiError ? error.status : 500, headers });
   }
 }

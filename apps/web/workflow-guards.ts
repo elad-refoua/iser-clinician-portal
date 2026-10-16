@@ -1,5 +1,5 @@
 import type { PortalState, Session } from '../../packages/contracts';
-import { stateSignature } from '../../packages/domain/storage';
+import { stateSignature } from './workspace-state';
 
 /** A saved retrospective manual edit is not an unfinished conversation. */
 export function unfinishedSession(state: PortalState, patientId: string, branchId: string): Session | undefined {

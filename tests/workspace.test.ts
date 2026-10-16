@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { gzipSync } from 'node:zlib';
 import type { PortalState } from '../packages/contracts/index.js';
 import { createDemoState } from '../fixtures/fictional/index.js';
-import { addUserMessage, createPatient, editDocument } from '../packages/domain/index.js';
+import { addUserMessage, buildContext, compactModelContext, createPatient, createSession, editDocument, importState } from '../packages/domain/index.js';
 import { digest, issueToken } from '../apps/api/auth.js';
 import { ApiError, type Environment } from '../apps/api/errors.js';
 import { handleWorkspace, WORKSPACE_MAX_BYTES } from '../apps/api/workspace.js';
 import { NeonWorkspaceStore, type WorkspaceSnapshot, type WorkspaceStore, type WorkspaceVersion } from '../apps/api/workspace-store.js';
+import { decodeWorkspacePayload, encodeWorkspacePayload, WORKSPACE_DECODED_MAX_BYTES, WORKSPACE_GZIP_TYPE } from '../packages/transport/workspace.js';
 
 const { neonMock } = vi.hoisted(() => ({ neonMock: vi.fn() }));
 vi.mock('@neondatabase/serverless', () => ({ neon: neonMock }));
@@ -68,6 +70,53 @@ describe('authenticated fictional workspace API', () => {
     expect(deps.store.records.get('owner-demo')!.state!.versions.filter(v => v.patientId === created.patient.id)).toHaveLength(2);
     const next = await handleWorkspace(request('PUT', { expectedRevision: 1, state }), deps);
     expect(await next.json()).toEqual({ revision: 2, updatedAt: timestamp });
+  });
+
+  it('round-trips a workspace larger than the platform payload limit without dropping traces or versions', async () => {
+    const created = createSession(createDemoState(), 'fictional-tamar', 'fictional-tamar-main', 5);
+    let state = addUserMessage(created.state, created.session.id, 'תיאור בדיוני לבדיקת שמירה דחוסה בלבד');
+    state = editDocument(state, 'fictional-tamar', 'fictional-tamar-main', 'note', 'גרסה בדיונית ראשונה', undefined, created.session.id);
+    state = editDocument(state, 'fictional-tamar', 'fictional-tamar-main', 'note', 'גרסה בדיונית שנייה', undefined, created.session.id);
+    const context = compactModelContext(buildContext(state, created.session.id));
+    const session = state.sessions.find(item => item.id === created.session.id)!;
+    for (let index = 0; index < 70; index++) session.traces.push({
+      id: `fictional-size-trace-${index}`, at: context.asOf, mode: 'live', model: 'fictional-no-inference',
+      promptVersion: 'fictional-size-test', prompt: 'Fictional instruction. '.repeat(3500), contextOrigin: 'server', context,
+      response: { action: 'draft', utterance: 'טיוטת בדיקה בדיונית', topic: '', rationale: 'בדיקת שמירה בלבד', fieldUpdates: [], preferenceUpdates: [] }, elapsedMs: 0,
+    });
+    expect(importState(JSON.stringify(state))).toEqual(state);
+    const json = JSON.stringify({ expectedRevision: 0, state });
+    expect(Buffer.byteLength(json)).toBeGreaterThan(4_500_000);
+    const compressed = await encodeWorkspacePayload(json);
+    expect(compressed.body.byteLength).toBeLessThan(WORKSPACE_MAX_BYTES);
+    const deps = dependencies();
+    const saved = await handleWorkspace(new Request('https://demo.vercel.app/api/workspace', {
+      method: 'PUT', headers: { Authorization: `Bearer ${issueToken(env, now).token}`, 'Content-Type': compressed.contentType }, body: compressed.body,
+    }), deps);
+    expect(saved.status).toBe(200);
+    const loaded = await handleWorkspace(request('GET', undefined, { headers: { Accept: WORKSPACE_GZIP_TYPE } }), deps);
+    expect(loaded.status).toBe(200);
+    expect(loaded.headers.get('Content-Type')).toBe(WORKSPACE_GZIP_TYPE);
+    expect(loaded.headers.get('Content-Encoding')).toBeNull();
+    const result = await decodeWorkspacePayload(loaded.body, loaded.headers.get('Content-Type')!);
+    expect(result).toEqual({ revision: 1, updatedAt: timestamp, state });
+    expect((await handleWorkspace(request('GET'), deps)).status).toBe(413);
+    expect(deps.store.records.get('owner-demo')?.state).toEqual(state);
+  });
+
+  it('bounds decoded gzip bytes and rejects corrupt compressed input before touching storage', async () => {
+    const deps = dependencies();
+    for (const [body, expectedStatus] of [
+      [new Uint8Array([1, 2, 3]), 400],
+      [gzipSync(Buffer.from(`"${'x'.repeat(WORKSPACE_DECODED_MAX_BYTES)}"`)), 413],
+    ] as const) {
+      const response = await handleWorkspace(new Request('https://demo.vercel.app/api/workspace', {
+        method: 'PUT', headers: { Authorization: `Bearer ${issueToken(env, now).token}`, 'Content-Type': WORKSPACE_GZIP_TYPE }, body,
+      }), deps);
+      expect(response.status).toBe(expectedStatus);
+    }
+    expect(deps.store.saves).toEqual([]);
+    expect(deps.store.loads).toEqual([]);
   });
 
   it('allows one competing first save and rejects stale overwrites without changing saved content', async () => {

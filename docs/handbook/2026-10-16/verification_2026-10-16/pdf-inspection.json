@@ -1,25 +1,25 @@
 {
   "pdf": "C:\\Users\\user\\Desktop\\projects\\ISER-oct-26\\apps\\web\\public\\handbook.pdf",
-  "pages": 48,
+  "pages": 49,
   "page_data": [
     {
       "page": 1,
-      "characters": 431,
+      "characters": 432,
       "outside_page_blocks": []
     },
     {
       "page": 2,
-      "characters": 756,
+      "characters": 763,
       "outside_page_blocks": []
     },
     {
       "page": 3,
-      "characters": 1119,
+      "characters": 1572,
       "outside_page_blocks": []
     },
     {
       "page": 4,
-      "characters": 2521,
+      "characters": 2551,
       "outside_page_blocks": []
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "page": 11,
-      "characters": 1856,
+      "characters": 1849,
       "outside_page_blocks": []
     },
     {
@@ -64,117 +64,117 @@
     },
     {
       "page": 13,
-      "characters": 2212,
+      "characters": 2239,
       "outside_page_blocks": []
     },
     {
       "page": 14,
-      "characters": 2782,
+      "characters": 2721,
       "outside_page_blocks": []
     },
     {
       "page": 15,
-      "characters": 1596,
+      "characters": 319,
       "outside_page_blocks": []
     },
     {
       "page": 16,
-      "characters": 2251,
+      "characters": 1596,
       "outside_page_blocks": []
     },
     {
       "page": 17,
-      "characters": 2856,
+      "characters": 2251,
       "outside_page_blocks": []
     },
     {
       "page": 18,
-      "characters": 541,
+      "characters": 2797,
       "outside_page_blocks": []
     },
     {
       "page": 19,
-      "characters": 2162,
+      "characters": 308,
       "outside_page_blocks": []
     },
     {
       "page": 20,
-      "characters": 2543,
+      "characters": 2162,
       "outside_page_blocks": []
     },
     {
       "page": 21,
-      "characters": 2767,
+      "characters": 2543,
       "outside_page_blocks": []
     },
     {
       "page": 22,
-      "characters": 3154,
+      "characters": 2722,
       "outside_page_blocks": []
     },
     {
       "page": 23,
-      "characters": 1822,
+      "characters": 3170,
       "outside_page_blocks": []
     },
     {
       "page": 24,
-      "characters": 1986,
+      "characters": 1994,
       "outside_page_blocks": []
     },
     {
       "page": 25,
-      "characters": 1486,
+      "characters": 1986,
       "outside_page_blocks": []
     },
     {
       "page": 26,
-      "characters": 2826,
+      "characters": 1854,
       "outside_page_blocks": []
     },
     {
       "page": 27,
-      "characters": 3235,
+      "characters": 2157,
       "outside_page_blocks": []
     },
     {
       "page": 28,
-      "characters": 2458,
+      "characters": 1243,
       "outside_page_blocks": []
     },
     {
       "page": 29,
-      "characters": 284,
+      "characters": 2530,
       "outside_page_blocks": []
     },
     {
       "page": 30,
-      "characters": 1470,
+      "characters": 1495,
       "outside_page_blocks": []
     },
     {
       "page": 31,
-      "characters": 2452,
+      "characters": 2684,
       "outside_page_blocks": []
     },
     {
       "page": 32,
-      "characters": 664,
+      "characters": 1418,
       "outside_page_blocks": []
     },
     {
       "page": 33,
-      "characters": 1938,
+      "characters": 1947,
       "outside_page_blocks": []
     },
     {
       "page": 34,
-      "characters": 1542,
+      "characters": 2120,
       "outside_page_blocks": []
     },
     {
       "page": 35,
-      "characters": 2711,
+      "characters": 2712,
       "outside_page_blocks": []
     },
     {
@@ -184,61 +184,66 @@
     },
     {
       "page": 37,
-      "characters": 2878,
+      "characters": 2852,
       "outside_page_blocks": []
     },
     {
       "page": 38,
-      "characters": 2778,
+      "characters": 3058,
       "outside_page_blocks": []
     },
     {
       "page": 39,
-      "characters": 2808,
+      "characters": 3061,
       "outside_page_blocks": []
     },
     {
       "page": 40,
-      "characters": 818,
+      "characters": 826,
       "outside_page_blocks": []
     },
     {
       "page": 41,
-      "characters": 2002,
+      "characters": 2078,
       "outside_page_blocks": []
     },
     {
       "page": 42,
-      "characters": 3195,
+      "characters": 3059,
       "outside_page_blocks": []
     },
     {
       "page": 43,
-      "characters": 941,
+      "characters": 1517,
       "outside_page_blocks": []
     },
     {
       "page": 44,
-      "characters": 2182,
+      "characters": 2076,
       "outside_page_blocks": []
     },
     {
       "page": 45,
-      "characters": 2183,
+      "characters": 2490,
       "outside_page_blocks": []
     },
     {
       "page": 46,
-      "characters": 4010,
+      "characters": 532,
       "outside_page_blocks": []
     },
     {
       "page": 47,
-      "characters": 1575,
+      "characters": 4027,
       "outside_page_blocks": []
     },
     {
       "page": 48,
+      "characters": 2072,
+      "outside_page_blocks": []
+    },
+    {
+      "page": 49,
       "characters": 894,
       "outside_page_blocks": []
     }

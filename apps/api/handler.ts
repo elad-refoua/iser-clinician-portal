@@ -5,7 +5,7 @@ import { authConfigured, authenticate, digest, issueToken, verifyCredentials } f
 import { ApiError, type Environment } from './errors.js';
 import { RedisQuotaStore, redisConfigured, type QuotaStore, type Reservation } from './quota.js';
 import { callProvider, getModels, prepareProviderRequest, ProviderError } from './provider.js';
-import { normalizeWireResult, responseSchema, shouldFinish, validateRequest, validateResult } from './validation.js';
+import { normalizeWireResult, responseSchema, shouldFinish, validateRequest, validateResult, ValidationError } from './validation.js';
 
 export type Route = 'access' | 'models' | 'turn' | 'draft';
 export interface Dependencies { env?: Environment; fetcher?: typeof fetch; quota?: QuotaStore; now?: () => number }
@@ -98,7 +98,10 @@ export async function handle(request: Request, route: Route, dependencies: Depen
       throw error;
     }
   } catch (error) {
-    return Response.json({ error: error instanceof ApiError ? error.code : 'request_failed' }, { status: error instanceof ApiError ? error.status : 500, headers });
+    if (error instanceof ValidationError) console.warn('validation_failed', { route, code: error.code, ...error.diagnostics });
+    return Response.json({ error: error instanceof ApiError ? error.code : 'request_failed',
+      ...(error instanceof ApiError && error.code === 'stale_revision' && Number.isSafeInteger(error.minimumRevision) && error.minimumRevision! > 0 ? { minimumRevision: error.minimumRevision } : {}),
+    }, { status: error instanceof ApiError ? error.status : 500, headers });
   }
 }
 async function finalizeFailure(quota: QuotaStore, reservation: Reservation, sent: boolean, cost: number | undefined, revision: number) {

@@ -1,16 +1,15 @@
 # Handbook verification — 2026-10-16
 
-Edition 2026-10-16.4; prompt 2026-10-16.9.
-Source fingerprint: `f7242eb7634088a3e3851f87c13a4ff6bc78d273128cba507dbb5ae36c387f40`.
+Edition 2026-10-16.5; prompt 2026-10-16.11.
+Source fingerprint: `08f1a56bc52d4054763898979a67243a06b36dbbbd7610c1fef159104877a555`.
 
-- HTML and PDF generated together with the repository's locked Puppeteer dependency.
-- All 59 input and both output hashes match build-manifest.json. Text source inputs were normalized to LF before generation; binary font unchanged.
--22 chapters and22 TOC links; no broken anchors; embedded Hebrew font loaded; no document overflow at1440px or390px.
--48 A4 PDF pages rendered. No extracted text blocks outside page bounds. All48 pages reviewed at contact-sheet scale; full-size samples11,21,33,39,46 reviewed for portal instructions, deployment setup, evidence, exact prompts and TypeScript contracts. Hebrew text, tables, mixed-direction code and page footers remain readable.
-- Scope is all-page contact-sheet review plus sampled detailed inspection, not word-by-word review of every rendered page. A few short chapter continuation pages are retained to preserve text size and section starts.
-- Live workflow evidence and independent review limitations are stated in the book and in Verification_2026-10-16/LIVE_FLOW_CHECKS.md. Public download/hash verification is a separate release step.
+- HTML and PDF generated together from70 source inputs; every source and both output hashes recomputed and matched. Text inputs use LF; the binary font is unchanged.
+-22 chapters and22 TOC links, zero broken anchors, embedded Hebrew font loaded, no document overflow at desktop1440px or mobile390px.
+-49 A4 pages rendered; zero extracted text blocks outside page bounds.
+- Independent final review inspected all five contact sheets and full-resolution pages25,29,33,34,46,47,48. The earlier provisional review also inspected eleven detailed samples. No blocking clipping, overlap, missing glyph or unreadable table/code defect was found. Sparse continuation pages6,15,19,46 remain a nonblocking pagination limitation.
+- Final printed budget is40 operations/day. Evidence distinguishes Sonnet.11 first question, Flash.11 draft/approval on the refined schema, and the budget-blocked final Sonnet draft check. No claim of clinical validation or perfect semantic fidelity.
+- Scope: all-page contact review plus sampled detailed inspection, not word-by-word PDF verification or assistive-technology testing. See Verification_2026-10-16/HANDBOOK_VISUAL_REVIEW.md for attributed observations.
+- Public artifact checks are a separate deployment gate, recorded in Verification_2026-10-16/public-handbook-hashes.json and SERVER_CHAT_BROWSER_CHECKS.md when completed.
 
-HTML SHA256: `cebcd72308872ca3c803d942efee81d9b025577356b9b550fe1a6dfaa4a4c3d2`.
-PDF SHA256: `e3cb0bff2460777836180538d076ebfee4a81257289a140fe8ecf14bc02b68a1`.
-
-Public release check: Pages and stable Vercel serve byte-identical HTML/PDF matching the manifest. Browser opened HTML edition.4/prompt.9; actual PDF download matched SHA256 above. See Verification_2026-10-16/public-handbook-hashes.json and LIVE_FLOW_CHECKS.md.
+HTML SHA256: `31ca7b1ddd55573469b9568752801efe04d321f5fdc1479270efee5fc9c0aae8`.
+PDF SHA256: `b0453c1eac448bca577caebccabd209fae6572de77ded81beb0a3a4934872565`.

@@ -5,7 +5,7 @@ import { authenticate, digest, issueToken } from '../apps/api/auth.js';
 import { ApiError } from '../apps/api/errors.js';
 import { getModels, prepareProviderRequest, type CatalogModel } from '../apps/api/provider.js';
 import { LIMITS, RedisQuotaStore, redisConfigured, type QuotaStore, type Reservation, type ReservationInput } from '../apps/api/quota.js';
-import { responseSchema, shouldFinish, validateRequest, validateResult } from '../apps/api/validation.js';
+import { responseSchema, shouldFinish, validateRequest, validateResult, ValidationError } from '../apps/api/validation.js';
 
 const now = Date.parse('2026-10-16T12:00:00Z');
 it('distinguishes finishing a round from fresh optional intake and quoted narrative', () => {
@@ -42,7 +42,7 @@ class TestQuota implements QuotaStore {
     const old = this.records.get(i.requestId);
     if (old) throw new ApiError(409, old.hash === i.payloadHash ? `request_${old.status}` : 'request_id_conflict');
     if (this.active.has(i.sessionKey) || this.active.size >= LIMITS.globalConcurrency) throw new ApiError(429, 'concurrency_limit');
-    if (i.revision <= this.committed) throw new ApiError(409, 'stale_revision');
+    if (i.revision <= this.committed) throw new ApiError(409, 'stale_revision', this.committed + 1);
     if (this.calls >= LIMITS.dailyCalls) throw new ApiError(429, 'daily_call_limit');
     if (this.total + i.micros > LIMITS.totalMicros) throw new ApiError(429, 'total_budget_exceeded');
     if (this.daily + i.micros > LIMITS.dailyMicros) throw new ApiError(429, 'daily_budget_exceeded');
@@ -161,7 +161,7 @@ describe('API boundaries', () => {
     c.sources[0].recordedAt = '2026-10-15T13:00:00Z'; expect(() => validateRequest(requestBody(c), 'turn')).toThrow('source_outside_context');
   });
   it('returns all five document kinds and accepts sparse valid field patches', () => {
-    const result: DraftResult = { documents: ['note', 'formulation', 'intake', 'gold', 'supervision'].map(kind => ({ kind: kind as any, content: 'לא נמסר מידע נוסף.', sourceIds: [] })), fieldUpdates: [], rationale: 'חומר מוגבל.', summary: 'הטיוטה מרכזת את המידע שנמסר.', followUps: [] };
+    const result: DraftResult = { documents: ['note', 'formulation', 'intake', 'gold', 'supervision'].map(kind => ({ kind: kind as any, content: 'לא נמסר מידע נוסף.', sourceIds: [] })), fieldUpdates: [], rationale: 'חומר מוגבל.', summary: 'הטיוטה מרכזת את המידע שנמסר.', followUps: [], preferenceUpdates: [] };
     expect(validateResult(result, 'draft', context())).toEqual(result);
     result.documents[4].kind = 'note'; expect(() => validateResult(result, 'draft', context())).toThrow('missing_document_kind');
   });
@@ -205,6 +205,30 @@ describe('API boundaries', () => {
     const reserved = quota.total; expect(reserved).toBeGreaterThan(0);
     expect(await json(await handle(request('turn', requestBody()), 'turn', deps))).toEqual({ error: 'request_uncertain' });
     expect(quota.total).toBe(reserved); expect(p.count()).toBe(1);
+  });
+  it('supplies a safe retry revision before charging and preserves the cap after a lost question', async () => {
+    const quota = new TestQuota(); quota.questions = 2;
+    const p = provider(); const deps = { env, quota, fetcher: p.fetcher, now: () => now };
+    // The client loses this response; the server has already counted its question.
+    expect((await handle(request('turn', requestBody()), 'turn', deps)).status).toBe(200);
+    expect(quota.questions).toBe(3); expect(p.count()).toBe(1);
+    const priorCost = quota.total; const priorCalls = quota.calls;
+    const rejected = await handle(request('turn', requestBody(context(), 'explicit-retry')), 'turn', deps);
+    expect(rejected.status).toBe(409);
+    expect(await json(rejected)).toEqual({ error: 'stale_revision', minimumRevision: 3 });
+    expect(quota.total).toBe(priorCost); expect(quota.calls).toBe(priorCalls); expect(p.count()).toBe(1);
+    const rebased = context(); rebased.baseRevision = 3;
+    const completed = await json(await handle(request('turn', requestBody(rebased, 'rebased-explicit-retry')), 'turn', deps));
+    expect(completed.result.action).toBe('draft');
+    expect(completed.effectiveContext.questionCount).toBe(3);
+    expect(quota.questions).toBe(3); expect(p.count()).toBe(1); expect(quota.total).toBe(priorCost);
+  });
+  it('validates the Redis-provided minimum revision instead of exposing malformed recovery metadata', async () => {
+    const input: ReservationInput = { codeId: 'test', sessionKey: 'session', requestId: 'retry', payloadHash: 'test-hash', micros: 1, now, revision: 2, questionCount: 0, intakeCount: 0, intakeRound: 0 };
+    for (const minimum of ['3', '2', 'not-a-number']) {
+      const store = new RedisQuotaStore({ KV_REST_API_URL: 'https://redis.example', KV_REST_API_TOKEN: 'fictional-token' }, vi.fn(async () => Response.json({ result: ['error', 'stale_revision', minimum] })) as unknown as typeof fetch);
+      await expect(store.reserve(input)).rejects.toMatchObject(minimum === '3' ? { status: 409, code: 'stale_revision', minimumRevision: 3 } : { status: 503, code: 'quota_store_unavailable' });
+    }
   });
   it('charges known usage even when model output is rejected without applying it', async () => {
     const quota = new TestQuota(); const result = turn(); result.fieldUpdates = [{ id: 1, value: 'invented', status: 'documented', sourceIds: ['unknown'], remaining: '' }];
@@ -254,8 +278,59 @@ describe('API boundaries', () => {
 });
 
 it('rejects compound interrogatives but permits one question with coordinated nouns', () => {
-  for (const utterance of ['מה נאמר בפגישה, ואיך סוכם להמשיך?', 'מה תיאר המטופל ומה עשית?', 'מה השתנה; כיצד הגבת?']) {
+  for (const utterance of ['מה נאמר בפגישה, ואיך סוכם להמשיך?', 'מה תיאר המטופל ומה עשית?', 'מה השתנה; כיצד הגבת?', 'כתבת שהשתתק, מה קרה ואיך הגבת?', 'מה תיאר על הפער בין הציפייה למציאות ומה עשית?', 'ספר מה קרה ואיך הגבת?', 'תאר מה אמר, ומה עשית?', 'ספר מה קרה, איך הגבת?', 'תאר מה אמר; כיצד הגבת?', 'ספרי מה קרה, איך הגבת?', 'תארי מה אמר; כיצד הגבת?']) {
     expect(() => validateResult({ ...turn(), utterance }, 'turn', context())).toThrow('invalid_question');
   }
-  expect(validateResult({ ...turn(), utterance: 'מה חשוב לך לשמור לגבי מטרות והעדפות?' }, 'turn', context())).toBeTruthy();
+  for (const utterance of ['מה חשוב לך לשמור לגבי מטרות והעדפות?', 'כתבת שהשתתק כשהזכרת את הבדיקה, מה קרה באותו רגע?', 'מה סיפר על הפער בין מה שרצה ומה שקרה בפועל?', 'כתבת שהוא השתתק. מה תיאר באותו רגע？']) {
+    expect(validateResult({ ...turn(), utterance }, 'turn', context())).toBeTruthy();
+  }
+});
+
+it('keeps the one-question, open-form and nonempty-topic checks', () => {
+  for (const utterance of ['האם הוא תיאר שינוי?', 'כתבת שהשתתק, האם תיאר שינוי?', 'מה תיאר? מה השתנה?', 'מה תיאר']) {
+    expect(() => validateResult({ ...turn(), utterance }, 'turn', context())).toThrow('invalid_question');
+  }
+  expect(() => validateResult({ ...turn(), topic: ' ' }, 'turn', context())).toThrow('invalid_question');
+});
+
+it('reports schema paths and rule counts without clinical content or unknown key names', () => {
+  const sensitive = 'FICTIONAL_CONTENT_MUST_NOT_APPEAR_IN_DIAGNOSTICS';
+  let schemaError: ValidationError | undefined;
+  try { validateResult({ ...turn(), utterance: sensitive.repeat(50), [sensitive]: sensitive }, 'turn', context()); }
+  catch (error) { schemaError = error as ValidationError; }
+  expect(schemaError).toBeInstanceOf(ValidationError);
+  expect(schemaError!.diagnostics).toMatchObject({ stage: 'output', issueCount: 2 });
+  expect(schemaError!.diagnostics.issues).toContainEqual({ code: 'too_big', path: ['utterance'] });
+  expect(JSON.stringify(schemaError!.diagnostics)).not.toContain(sensitive);
+  let questionError: ValidationError | undefined;
+  try { validateResult({ ...turn(), utterance: 'מה השתנה ומה תיארת?' }, 'turn', context()); }
+  catch (error) { questionError = error as ValidationError; }
+  expect(questionError!.diagnostics).toMatchObject({ stage: 'output', issues: [{ code: 'invalid_question', path: ['utterance'] }], counts: { questionMarks: 1, questionClauses: 2, closedClauses: 0, emptyTopic: 0 } });
+});
+
+it('keeps unknown values empty and explicit non-assessment or failed recall sourced', () => {
+  const patch = { id: 1, value: '', status: 'unknown' as const, sourceIds: [], remaining: 'לא נמסר מידע' };
+  expect(validateResult({ ...turn(), fieldUpdates: [patch] }, 'turn', context())).toBeTruthy();
+  expect(() => validateResult({ ...turn(), fieldUpdates: [{ ...patch, value: 'לא נמסר מידע' }] }, 'turn', context())).toThrow('unsupported_unknown_value');
+  for (const status of ['not_assessed', 'not_recalled'] as const) {
+    let error: ValidationError | undefined;
+    try { validateResult({ ...turn(), fieldUpdates: [{ ...patch, status }] }, 'turn', context()); }
+    catch (failure) { error = failure as ValidationError; }
+    expect(error!.diagnostics.issues).toEqual([{ code: 'unsourced_field', path: ['fieldUpdates', 0, 'sourceIds'] }]);
+    expect(validateResult({ ...turn(), fieldUpdates: [{ ...patch, status, sourceIds: ['s1'] }] }, 'turn', context())).toBeTruthy();
+  }
+});
+
+it('logs safe output diagnostics but returns only the fixed error code without applying a question', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const p = provider({ ...turn(), fieldUpdates: [{ id: 1, value: 'FICTIONAL_UNSOURCED_CONTENT', status: 'not_recalled', sourceIds: [], remaining: '' }] });
+    const quota = new TestQuota();
+    const response = await handle(request('turn', requestBody()), 'turn', { env, quota, fetcher: p.fetcher, now: () => now });
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: 'unsourced_field' });
+    expect(warn).toHaveBeenCalledWith('validation_failed', expect.objectContaining({ route: 'turn', code: 'unsourced_field', stage: 'output', issues: [{ code: 'unsourced_field', path: ['fieldUpdates', 0, 'sourceIds'] }] }));
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('FICTIONAL_UNSOURCED_CONTENT');
+    expect(quota.questions).toBe(0); expect(p.count()).toBe(1);
+  } finally { warn.mockRestore(); }
 });

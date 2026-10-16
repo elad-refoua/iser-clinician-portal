@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Branch, ContextPacket, DocumentVersion, DraftFollowUp, DraftResult, FieldUpdate, Goal, IntakeField, Patient, PendingDraft, PortalState, Preference, PreferenceCancellation, Session, Source, TurnResult } from '../contracts';
+import { TEXT_LIMITS } from '../contracts/index.js';
 import { emptyIntakeFields, renderIntake } from '../prompts/intake-schema.js';
 import { renderIntakeReport } from './intake-report.js';
 export { emptyIntakeFields, renderIntake, intakeFields, intakeSections, fieldStatusLabels } from '../prompts/intake-schema.js';
@@ -125,6 +126,7 @@ export function createSession(state: PortalState, patientId: string, branchId: s
   if (!Number.isInteger(number) || number < 1 || number > 1000) throw new Error('מספר פגישה חייב להיות בין 1 ל־1000.');
   const existing = state.sessions.find(s => s.patientId === patientId && s.branchId === branchId && s.number === number);
   if (existing) return { state, session: existing };
+  if (state.sessions.length >= archiveLimits.sessions) throw new Error('הגענו למגבלת הפגישות בהדגמה. יש לייצא גיבוי לפני המשך העבודה.');
   const branch = state.branches.find(b => b.id === branchId)!;
   if (branch.parentId && number <= (branch.forkSession ?? 0)) throw new Error('ברצף חלופי מתחילים אחרי נקודת הפיצול.');
   const session: Session = { id: uid('session'), patientId, branchId, number, startedAt: now(), revision: 0, status: 'writing', messages: [], composer: '', questionCount: 0, intakeCount: 0, intakeRound: 0, intakeActive: false, skippedTopics: [], traces: [] };
@@ -135,7 +137,8 @@ export function addUserMessage(state: PortalState, sessionId: string, text: stri
   const session = sessionOf(state, sessionId); const clean = text.trim();
   if (!clean) return state;
   assertCurrentSession(state, session);
-  if (clean.length > 16000) throw new Error('אפשר לשמור עד 16,000 תווים בהודעה אחת.');
+  if (clean.length > TEXT_LIMITS.message) throw new Error('אפשר לשמור עד 16,000 תווים בהודעה אחת.');
+  if (state.sources.length >= archiveLimits.sources || session.messages.length >= 500) throw new Error('הגענו למגבלת המקורות או ההודעות בהדגמה. יש לייצא גיבוי לפני המשך העבודה.');
   const at = now();
   const source: Source = { id: uid('source'), patientId: session.patientId, branchId: session.branchId, sessionId, sessionNumber: session.number, text: clean, recordedAt: at, kind: 'clinician' };
   return updateSession({ ...state, sources: [...state.sources, source] }, { ...session, closedAt: undefined, status: session.status === 'approved' ? 'draft' : session.status, revision: session.revision + 1, composer: '', messages: [...session.messages, { id: uid('message'), role: 'user', text: clean, sourceId: source.id, at }] });
@@ -163,7 +166,7 @@ export function buildContext(state: PortalState, sessionId: string, stage?: Cont
     .filter(v => v.sourceIds.every(id => ids.has(id)) && (!v.fields || v.fields.every(f => f.sourceIds.every(id => ids.has(id)))));
   const documents = goals.flatMap(kind => {
     const version = latest(eligible.filter(v => v.kind === kind && (kind !== 'note' || v.sessionId === s.id)));
-    return version ? [{ kind, versionId: version.id, content: version.content, sourceIds: version.sourceIds, ...(version.fields ? { fields: structuredClone(version.fields) } : {}) }] : [];
+    return version ? [{ kind, versionId: version.id, content: version.content, sourceIds: version.sourceIds, author: version.author, approved: version.approved, createdAt: version.createdAt, reason: version.reason, ...(version.fields ? { fields: structuredClone(version.fields) } : {}) }] : [];
   });
   const preferences = preferencesAt(state, s.patientId, s.branchId, s.number, asOf, s.id, !nextSession(state, s) && s.status !== 'approved');
   const pending = (s.pendingFields ?? []).filter(f => f.sourceIds.every(id => ids.has(id)));
@@ -171,7 +174,12 @@ export function buildContext(state: PortalState, sessionId: string, stage?: Cont
     && s.pendingDraft.result.documents.every(d => d.sourceIds.every(id => ids.has(id)))
     && s.pendingDraft.result.fieldUpdates.every(f => f.sourceIds.every(id => ids.has(id))) ? structuredClone(s.pendingDraft.result) : undefined;
   return { patientId: s.patientId, patientName: state.patients.find(p => p.id === s.patientId)!.name, branchId: s.branchId, sessionId: s.id, sessionNumber: s.number, baseRevision: s.revision, asOf, stage: stage ?? (s.intakeActive ? 'intake' : 'main'), questionCount: s.questionCount, intakeCount: s.intakeCount, intakeRound: s.intakeRound ?? 0, branchScope: scope, sources, documents, messages: structuredClone(s.messages.filter(m => atOrBefore(m.at, asOf))), skippedTopics: [...s.skippedTopics], preferences,
-    ...(s.focusGoal ? { focusGoal: s.focusGoal } : {}), ...(s.focusSelection ? { focusSelection: structuredClone(s.focusSelection) } : {}), ...(workingDraft ? { workingDraft } : {}),
+    ...(s.focusGoal ? { focusGoal: s.focusGoal } : {}), ...(s.focusSelection ? { focusSelection: structuredClone(s.focusSelection) } : {}), ...(workingDraft ? { workingDraft, workingDraftMetadata: {
+      draftId: s.pendingDraft!.id, createdAt: s.pendingDraft!.createdAt, reviewRevision: s.pendingDraft!.reviewRevision, baseVersionIds: structuredClone(s.pendingDraft!.baseVersionIds), derivative: true as const,
+      stale: Boolean(nextSession(state, s) || s.pendingDraft!.reviewRevision !== s.revision || !s.pendingDraft!.preferenceSnapshot
+        || preferenceSignature(s.pendingDraft!.preferenceSnapshot) !== preferenceSignature(preferences)
+        || goals.some(goal => currentVersion(state, s.patientId, s.branchId, goal, goal === 'note' ? s.id : undefined)?.id !== s.pendingDraft!.baseVersionIds[goal])),
+    } } : {}),
     ...(pending.length ? { pendingIntakeFields: mergeFields(documents.find(d => d.kind === 'intake')?.fields ?? emptyIntakeFields(), pending) } : {}) };
 }
 
@@ -224,6 +232,22 @@ function accumulateUpdates(previous: FieldUpdate[], updates: FieldUpdate[]): Fie
   for (const field of updates) fields.set(field.id, structuredClone(field));
   return [...fields.values()].sort((a, b) => a.id - b.id);
 }
+function clearPendingFields(state: PortalState, patientId: string, branchId: string, fieldIds: Set<number>): PortalState {
+  return { ...state, sessions: state.sessions.map(s => s.patientId === patientId && s.branchId === branchId && s.pendingFields
+    ? { ...s, pendingFields: s.pendingFields.filter(field => !fieldIds.has(field.id)) } : s) };
+}
+function applyPreferenceUpdates(state: PortalState, session: Session, updates: NonNullable<DraftResult['preferenceUpdates']>): PortalState {
+  const checked = z.array(preferenceUpdateSchema).max(10).safeParse(updates);
+  if (!checked.success) throw new Error('העדפות התיעוד אינן תקינות.');
+  const existing = preferencesAt(state, session.patientId, session.branchId, session.number, now(), session.id);
+  const additions: Preference[] = [];
+  for (const preference of checked.data) {
+    if ([...existing, ...additions].some(p => p.topic === preference.topic && p.goal === preference.goal && p.action === preference.action && p.scope === preference.scope)) continue;
+    additions.push({ ...preference, id: uid('preference'), patientId: session.patientId, branchId: session.branchId, sessionId: session.id, recordedAt: now() });
+  }
+  if (state.preferences.length + additions.length > 1000) throw new Error('הגענו למגבלת ההעדפות בהדגמה. יש לייצא גיבוי לפני המשך העבודה.');
+  return { ...state, preferences: [...state.preferences, ...additions] };
+}
 function preferenceSignature(preferences: Preference[]) {
   return JSON.stringify([...preferences].sort((a, b) => a.id.localeCompare(b.id)).map(p => [p.id, p.topic, p.goal ?? null, p.action, p.scope, p.sessionId ?? null, p.patientId ?? null, p.branchId ?? null, p.recordedAt ?? null]));
 }
@@ -241,18 +265,46 @@ export function startExpansion(state: PortalState, sessionId: string, goal: Goal
   if ((s.intakeRound ?? 0) >= 10) throw new Error('הגענו למספר ההרחבות לפגישה. אפשר לערוך את המסמכים ישירות.');
   return updateSession(state, { ...s, revision: s.revision + 1, closedAt: undefined, status: 'asking', intakeActive: true, focusGoal: goal, focusSelection: selection ? structuredClone(selection) : undefined, intakeCount: 0, intakeRound: (s.intakeRound ?? 0) + 1 });
 }
+export function rollbackExpansion(state: PortalState, sessionId: string, expectedRevision: number, previousSession: Session): PortalState {
+  const current = sessionOf(state, sessionId);
+  if (previousSession.id !== sessionId || previousSession.patientId !== current.patientId || previousSession.branchId !== current.branchId
+    || expectedRevision < previousSession.revision + 1 || current.revision !== expectedRevision || !current.intakeActive
+    || (current.intakeRound ?? 0) !== (previousSession.intakeRound ?? 0) + 1) return state;
+  const content = (session: Session) => JSON.stringify([session.messages, session.pendingFields, session.pendingDraft, session.draftHistory, session.traces, session.composer, session.skippedTopics, session.questionCount]);
+  if (content(current) !== content(previousSession)) return state;
+  const revision = current.revision + 1;
+  const pending = previousSession.pendingDraft;
+  const canRestoreReview = pending && pending.reviewRevision === previousSession.revision && pending.preferenceSnapshot
+    && preferenceSignature(pending.preferenceSnapshot) === preferenceSignature(buildContext(state, sessionId).preferences)
+    && goals.every(goal => currentVersion(state, current.patientId, current.branchId, goal, goal === 'note' ? sessionId : undefined)?.id === pending.baseVersionIds[goal]);
+  return updateSession(state, { ...current, revision, status: previousSession.status, closedAt: previousSession.closedAt,
+    intakeActive: previousSession.intakeActive, intakeCount: previousSession.intakeCount,
+    focusGoal: previousSession.focusGoal, focusSelection: previousSession.focusSelection,
+    ...(canRestoreReview ? { pendingDraft: { ...pending, reviewRevision: revision } } : {}) });
+}
+/** Advance only the request revision after the server rejects an already-completed revision.
+ * Existing proposal review revisions remain unchanged, so the advance cannot approve stale work. */
+export function advanceRequestRevision(state: PortalState, sessionId: string, expectedRevision: number, minimumRevision: number): PortalState {
+  const session = checkRevision(state, sessionId, expectedRevision);
+  assertCurrentSession(state, session);
+  if (!Number.isSafeInteger(minimumRevision) || minimumRevision <= session.revision) throw new Error('גרסת הבקשה שהתקבלה מהשרת אינה תקינה.');
+  return updateSession(state, { ...session, revision: minimumRevision });
+}
 export function applyTurn(state: PortalState, sessionId: string, baseRevision: number, result: TurnResult): PortalState {
   const s = checkRevision(state, sessionId, baseRevision); const context = buildContext(state, sessionId);
   assertCurrentSession(state, s);
   checkUpdates(context, result.fieldUpdates);
+  if (s.messages.length >= 500) throw new Error('הגענו למגבלת ההודעות בהדגמה. יש לייצא גיבוי לפני המשך העבודה.');
   if (result.action === 'question' && (s.intakeActive ? s.intakeCount >= 2 : s.questionCount >= 3)) throw new Error('הגענו למספר השאלות שנבחר. אפשר לעבור לטיוטה.');
-  const preferences = result.preferenceUpdates.map(p => ({ ...p, id: uid('preference'), patientId: s.patientId, branchId: s.branchId, sessionId: s.id, recordedAt: now() }));
-  const next = { ...state, preferences: [...state.preferences, ...preferences] };
+  const next = applyPreferenceUpdates(state, s, result.preferenceUpdates);
   return updateSession(next, { ...s, pendingFields: accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates), revision: s.revision + 1, closedAt: undefined, status: result.action === 'question' ? 'asking' : 'draft', messages: [...s.messages, { id: uid('message'), role: 'assistant', text: result.utterance, at: now() }], questionCount: s.questionCount + (result.action === 'question' && !s.intakeActive ? 1 : 0), intakeCount: s.intakeCount + (result.action === 'question' && s.intakeActive ? 1 : 0) });
 }
 export function saveDraft(state: PortalState, sessionId: string, baseRevision: number, result: DraftResult): PortalState {
-  const s = checkRevision(state, sessionId, baseRevision); const context = buildContext(state, sessionId, 'draft');
+  const s = checkRevision(state, sessionId, baseRevision);
   assertCurrentSession(state, s);
+  if (!draftResultSchema.safeParse(result).success) throw new Error('הטיוטה חורגת ממגבלות התיעוד או שאינה תקינה.');
+  const next = updateSession(applyPreferenceUpdates(state, s, result.preferenceUpdates ?? []), { ...s, closedAt: undefined });
+  const context = buildContext(next, sessionId, 'draft');
   checkDraft(context, result);
   if ((s.draftHistory?.length ?? 0) + (s.pendingDraft ? 1 : 0) >= 100) throw new Error('הגענו למגבלת גרסאות הטיוטה בפגישה. יש לייצא גיבוי לפני המשך העבודה.');
   const pendingFields = accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates);
@@ -260,16 +312,21 @@ export function saveDraft(state: PortalState, sessionId: string, baseRevision: n
   const reviewResult = structuredClone(result);
   // The structured ledger renders the intake so missing information stays explicit.
   reviewResult.documents = reviewResult.documents.map(doc => doc.kind === 'intake' ? { ...doc, content: `# אינטייק — עד פגישה ${s.number}\n\nמבנה הדוח מלא. מידע חסר נשאר גלוי.\n\n${renderIntakeReport(fields, context.preferences)}`, sourceIds: distinct(fields.flatMap(f => f.sourceIds)) } : doc);
+  if (reviewResult.documents.some(doc => doc.content.length > TEXT_LIMITS.document)) throw new Error('דוח האינטייק המלא חורג ממגבלת 100,000 תווים. ההצעה הקודמת נשארה שמורה.');
   const pendingDraft: PendingDraft = { id: uid('draft'), createdAt: now(), baseVersionIds: Object.fromEntries(context.documents.map(doc => [doc.kind, doc.versionId])), result: reviewResult, fields: structuredClone(fields), reviewRevision: s.revision + 1, preferenceSnapshot: structuredClone(context.preferences) };
-  return updateSession(state, { ...s, revision: s.revision + 1, closedAt: undefined, status: 'draft', intakeActive: false, focusGoal: undefined, focusSelection: undefined, pendingFields, pendingDraft, draftHistory: [...(s.draftHistory ?? []), ...(s.pendingDraft ? [s.pendingDraft] : [])] });
+  return updateSession(next, { ...s, revision: s.revision + 1, closedAt: undefined, status: 'draft', intakeActive: false, focusGoal: undefined, focusSelection: undefined, pendingFields, pendingDraft, draftHistory: [...(s.draftHistory ?? []), ...(s.pendingDraft ? [s.pendingDraft] : [])] });
 }
 
-export function editDocument(state: PortalState, patientId: string, branchId: string, kind: Goal, content: string, fields?: IntakeField[], sessionId?: string): PortalState {
+export function editDocument(state: PortalState, patientId: string, branchId: string, kind: Goal, content: string, fields?: IntakeField[], sessionId?: string, expectedBaseVersionId?: string | null): PortalState {
   checkBranch(state, patientId, branchId);
   const session = sessionId ? sessionOf(state, sessionId) : undefined;
   if (session && (session.patientId !== patientId || session.branchId !== branchId)) throw new Error('המסמך שייך לתיק אחר.');
   if (kind === 'note' && !session) throw new Error('יש לבחור פגישה לעריכת רשומה.');
   const previous = currentVersion(state, patientId, branchId, kind, sessionId); const at = now(); const sourceId = uid('manual');
+  if (expectedBaseVersionId !== undefined && (previous?.id ?? null) !== expectedBaseVersionId) throw new Error('המסמך השתנה מאז פתיחת העורך. העריכה שלך נשארה פתוחה; יש להשוות לנוסח העדכני לפני השמירה.');
+  if (kind !== 'intake' && content.length > TEXT_LIMITS.manualDocument) throw new Error(`אפשר לשמור עד ${TEXT_LIMITS.manualDocument.toLocaleString('en-US')} תווים בעריכה ישירה.`);
+  if (fields && (!z.array(fieldSchema).length(32).safeParse(fields).success || new Set(fields.map(field => field.id)).size !== 32)) throw new Error('שדות האינטייק חורגים ממגבלות התיעוד או שאינם תקינים.');
+  if (state.sources.length >= archiveLimits.sources || state.versions.length >= 10000) throw new Error('האחסון הגיע למגבלת ההדגמה. יש לייצא גיבוי לפני עריכה נוספת.');
   const normalized = fields?.map(field => {
     const old = previous?.fields?.find(f => f.id === field.id);
     return JSON.stringify(old) === JSON.stringify(field) ? { ...field } : { ...field, sourceIds: [sourceId] };
@@ -278,11 +335,10 @@ export function editDocument(state: PortalState, patientId: string, branchId: st
   const reportSessionId = sessionId ?? state.sessions.filter(s => s.patientId === patientId && s.branchId === branchId).sort((a, b) => b.number - a.number)[0]?.id;
   const rendered = kind === 'intake' && normalized ? renderIntakeReport(normalized, preferencesAt(state, patientId, branchId, 1000, at, reportSessionId)) : content;
   const source: Source = { id: sourceId, patientId, branchId, ...(session ? { sessionId: session.id, sessionNumber: session.number } : {}), text: `עריכה ישירה של המטפל — ${kind}\n\n${rawContent}`, recordedAt: at, kind: 'manual' };
+  if (source.text.length > TEXT_LIMITS.source || rendered.length > TEXT_LIMITS.document) throw new Error('התוכן המלא של העריכה חורג ממגבלת 100,000 תווים. העריכה נשארה פתוחה ולא נשמרה.');
   const version: DocumentVersion = { id: uid('version'), patientId, branchId, kind, ...(session ? { sessionId: session.id, sessionNumber: session.number } : {}), content: rendered, ...(normalized ? { fields: normalized } : {}), sourceIds: distinct([...(normalized ? normalized.flatMap(f => f.sourceIds) : []), sourceId]), createdAt: at, author: 'clinician', reason: 'עריכה ישירה של המטפל', approved: false, ...(previous ? { baseVersionId: previous.id } : {}) };
   const manuallyChangedFields = new Set(normalized?.filter(field => field.sourceIds.includes(sourceId)).map(field => field.id) ?? []);
-  const edited = invalidate({ ...state, sources: [...state.sources, source], versions: [...state.versions, version],
-    sessions: state.sessions.map(s => kind === 'intake' && s.patientId === patientId && s.branchId === branchId && s.pendingFields
-      ? { ...s, pendingFields: s.pendingFields.filter(field => !manuallyChangedFields.has(field.id)) } : s) }, patientId, branchId);
+  const edited = invalidate(clearPendingFields({ ...state, sources: [...state.sources, source], versions: [...state.versions, version] }, patientId, branchId, manuallyChangedFields), patientId, branchId);
   return kind === 'note' && session ? reopenNote(edited, session.id) : edited;
 }
 
@@ -291,7 +347,9 @@ export function restoreVersion(state: PortalState, versionId: string): PortalSta
   if (!original) throw new Error('הגרסה לא נמצאה.');
   const current = currentVersion(state, original.patientId, original.branchId, original.kind, original.sessionId);
   const restored: DocumentVersion = { ...structuredClone(original), ...(original.kind !== 'note' && current ? { sessionId: current.sessionId, sessionNumber: current.sessionNumber } : {}), id: uid('version'), createdAt: now(), author: 'clinician', approved: false, proposal: false, rejected: false, baseVersionId: current?.id, reason: `שחזור מלא של גרסה ${original.id}` };
-  const next = invalidate({ ...state, versions: [...state.versions, restored] }, original.patientId, original.branchId);
+  if (state.versions.length >= 10000) throw new Error('הגענו למגבלת גרסאות המסמכים. יש לייצא גיבוי לפני המשך העבודה.');
+  const next = invalidate(clearPendingFields({ ...state, versions: [...state.versions, restored] }, original.patientId, original.branchId,
+    new Set(original.kind === 'intake' ? (original.fields ?? []).map(field => field.id) : [])), original.patientId, original.branchId);
   return original.kind === 'note' ? reopenNote(next, original.sessionId) : next;
 }
 export function acceptProposal(state: PortalState, versionId: string): PortalState {
@@ -299,6 +357,7 @@ export function acceptProposal(state: PortalState, versionId: string): PortalSta
   if (!proposal) throw new Error('ההצעה אינה זמינה.');
   const current = currentVersion(state, proposal.patientId, proposal.branchId, proposal.kind, proposal.kind === 'note' ? proposal.sessionId : undefined);
   if (current?.id !== proposal.baseVersionId) throw new Error('המסמך נערך מאז יצירת ההצעה. יש להכין הצעה מול הגרסה העדכנית.');
+  if (state.versions.length >= 10000) throw new Error('הגענו למגבלת גרסאות המסמכים. יש לייצא גיבוי לפני המשך העבודה.');
   const accepted: DocumentVersion = { ...structuredClone(proposal), id: uid('version'), createdAt: now(), author: 'clinician', approved: false, proposal: false, rejected: false, reason: 'המטפל קיבל הצעת עדכון לאחר השוואה' };
   const next = invalidate({ ...state, versions: [...state.versions.map(v => v.id === versionId ? { ...v, rejected: true } : v), accepted] }, proposal.patientId, proposal.branchId);
   return proposal.kind === 'note' ? reopenNote(next, proposal.sessionId) : next;
@@ -333,11 +392,14 @@ export function approveSession(state: PortalState, sessionId: string, expectedDr
   if (s.pendingFields?.length) throw new Error('נאסף מידע שטרם נכלל בסיכום לעיון. יש להכין סיכום מעודכן לפני האישור.');
   const latestDocs = goals.map(kind => currentVersion(state, s.patientId, s.branchId, kind, kind === 'note' ? sessionId : undefined)).filter((v): v is DocumentVersion => Boolean(v && v.sessionId === sessionId));
   if (!latestDocs.some(v => v.kind === 'note')) throw new Error('יש ליצור או לערוך רשומה לפני האישור.');
+  if (state.versions.length + latestDocs.length > 10000) throw new Error('הגענו למגבלת גרסאות המסמכים. יש לייצא גיבוי לפני המשך העבודה.');
   const approved = latestDocs.map(v => ({ ...structuredClone(v), id: uid('version'), createdAt: at, approved: true, author: 'clinician' as const, baseVersionId: v.id, reason: 'אישור המטפל לפגישת התיעוד' }));
   return updateSession({ ...state, versions: [...state.versions, ...approved] }, { ...s, revision: s.revision + 1, status: 'approved', closedAt: s.closedAt && nextSession(state, s) ? s.closedAt : at, intakeActive: false });
 }
 export function forkBranch(state: PortalState, sessionId: string, name: string): { state: PortalState; branch: Branch } {
   const s = sessionOf(state, sessionId);
+  if (state.branches.length >= archiveLimits.branches) throw new Error('הגענו למגבלת הרצפים בהדגמה. יש לייצא גיבוי לפני המשך העבודה.');
+  if (name.trim().length > 200) throw new Error('שם הרצף יכול להכיל עד 200 תווים.');
   const cutoffAt = temporalBoundary(state, s);
   const branch: Branch = { id: uid('branch'), patientId: s.patientId, name: name.trim() || `רצף חלופי אחרי פגישה ${s.number}`, parentId: s.branchId, forkSession: s.number, cutoffAt };
   return { state: { ...state, branches: [...state.branches, branch] }, branch };
@@ -346,15 +408,19 @@ export function forkBranch(state: PortalState, sessionId: string, name: string):
 const identifier = z.string().min(1).max(160);
 const date = z.string().datetime({ offset: true });
 const kind = z.enum(['note', 'formulation', 'intake', 'gold', 'supervision']);
-const fieldSchema = z.object({ id: z.number().int().min(1).max(32), value: z.string().max(30000), status: z.enum(['documented', 'partial', 'unknown', 'not_assessed', 'not_recalled', 'conflict', 'not_applicable']), sourceIds: z.array(identifier).max(200), remaining: z.string().max(5000).optional() }).strict();
+const fieldSchema = z.object({ id: z.number().int().min(1).max(32), value: z.string().max(TEXT_LIMITS.fieldValue), status: z.enum(['documented', 'partial', 'unknown', 'not_assessed', 'not_recalled', 'conflict', 'not_applicable']), sourceIds: z.array(identifier).max(200), remaining: z.string().max(TEXT_LIMITS.fieldRemaining).optional() }).strict();
 const preferenceSchema = z.object({ id: identifier, topic: z.string().max(200), goal: kind.optional(), action: z.enum(['less', 'block', 'exclude']), scope: z.enum(['session', 'patient']), sessionId: identifier.optional(), patientId: identifier.optional(), branchId: identifier.optional(), recordedAt: date.optional() }).strict();
+const preferenceUpdateSchema = z.object({ topic: z.string().min(1).max(200), goal: kind.optional(), action: z.enum(['less', 'block', 'exclude']), scope: z.enum(['session', 'patient']) }).strict();
+const draftBasesSchema = z.object({ note: identifier.optional(), formulation: identifier.optional(), intake: identifier.optional(), gold: identifier.optional(), supervision: identifier.optional() }).strict();
+const workingDraftMetadataSchema = z.object({ draftId: identifier, createdAt: date, reviewRevision: z.number().int().min(0), baseVersionIds: draftBasesSchema, stale: z.boolean(), derivative: z.literal(true) }).strict();
 const focusSelectionSchema = z.object({ goal: kind, text: z.string().min(1).max(1200), kind: z.literal('expand'), fieldIds: z.array(z.number().int().min(1).max(32)).max(32) }).strict().refine(value => new Set(value.fieldIds).size === value.fieldIds.length);
 const draftResultSchema = z.object({
   documents: z.array(z.object({ kind, content: z.string().max(100000), sourceIds: z.array(identifier).max(10000) }).strict()).length(5),
   fieldUpdates: z.array(fieldSchema.extend({ remaining: z.string().max(5000) })).max(32), rationale: z.string().max(10000), summary: z.string().max(1600).optional(),
   followUps: z.array(z.object({ goal: kind, text: z.string().max(1200), kind: z.enum(['expand', 'next_session']), fieldIds: z.array(z.number().int().min(1).max(32)).max(32) }).strict()).max(3).optional(),
+  preferenceUpdates: z.array(preferenceUpdateSchema).max(10).optional(),
 }).strict();
-const pendingDraftSchema = z.object({ id: identifier, createdAt: date, baseVersionIds: z.object({ note: identifier.optional(), formulation: identifier.optional(), intake: identifier.optional(), gold: identifier.optional(), supervision: identifier.optional() }).strict(), result: draftResultSchema, fields: z.array(fieldSchema).length(32), reviewRevision: z.number().int().min(0), preferenceSnapshot: z.array(preferenceSchema).max(1000).optional(), approvedAt: date.optional(), approvedVersionIds: z.array(identifier).length(5).optional() }).strict();
+const pendingDraftSchema = z.object({ id: identifier, createdAt: date, baseVersionIds: draftBasesSchema, result: draftResultSchema, fields: z.array(fieldSchema).length(32), reviewRevision: z.number().int().min(0), preferenceSnapshot: z.array(preferenceSchema).max(1000).optional(), approvedAt: date.optional(), approvedVersionIds: z.array(identifier).length(5).optional() }).strict();
 const archiveSchema = z.object({
   schemaVersion: z.literal(1),
   patients: z.array(z.object({ id: identifier, name: patientNameSchema, age: z.number().int().min(18).max(120).optional(), schedule: patientScheduleSchema.optional(), description: z.string().max(2000), fictional: z.literal(true) }).strict()).min(1).max(archiveLimits.patients),
@@ -466,11 +532,11 @@ export function importState(json: string): PortalState {
   }
   for (const s of state.sessions) for (const message of s.messages) if (message.sourceId && !state.sources.some(source => source.id === message.sourceId && source.patientId === s.patientId && source.branchId === s.branchId && source.sessionId === s.id && source.text === message.text)) throw new Error('הודעה אינה תואמת למקור השמור.');
   // Traces are diagnostic snapshots, never executable. Validate their structure before the UI reads them.
-  const traceDocument = z.object({ kind, versionId: identifier, content: z.string().max(100000), sourceIds: z.array(identifier).max(10000), fields: z.array(fieldSchema).max(32).optional() }).strict();
+  const traceDocument = z.object({ kind, versionId: identifier, content: z.string().max(TEXT_LIMITS.document), sourceIds: z.array(identifier).max(10000), fields: z.array(fieldSchema).max(32).optional(), author: z.enum(['clinician', 'assistant', 'seed']).optional(), approved: z.boolean().optional(), createdAt: date.optional(), reason: z.string().max(2000).optional() }).strict();
   const preferenceUpdate = z.object({ topic: z.string().max(200), goal: kind.optional(), action: z.enum(['less', 'block', 'exclude']), scope: z.enum(['session', 'patient']) }).strict();
   const traceSchema = z.object({ id: identifier, at: date, mode: z.enum(['prepared', 'live']), model: z.string().max(200), promptVersion: z.string().max(200), prompt: z.string().max(100000), contextOrigin: z.enum(['server', 'client']).optional(), context: z.object({
     patientId: identifier, patientName: z.string().max(200), branchId: identifier, sessionId: identifier, sessionNumber: z.number().int().min(1).max(1000),
-    baseRevision: z.number().int().min(0), asOf: date, stage: z.enum(['main', 'intake', 'draft']), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), focusGoal: kind.optional(), focusSelection: focusSelectionSchema.optional(), workingDraft: draftResultSchema.optional(), pendingIntakeFields: z.array(fieldSchema).max(32).optional(),
+    baseRevision: z.number().int().min(0), asOf: date, stage: z.enum(['main', 'intake', 'draft']), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), focusGoal: kind.optional(), focusSelection: focusSelectionSchema.optional(), workingDraft: draftResultSchema.optional(), workingDraftMetadata: workingDraftMetadataSchema.optional(), pendingIntakeFields: z.array(fieldSchema).max(32).optional(),
     sources: archiveSchema.shape.sources, documents: z.array(traceDocument).max(5), messages: archiveSchema.shape.sessions.element.shape.messages, preferences: archiveSchema.shape.preferences,
     skippedTopics: z.array(z.string().max(200)).max(100), branchScope: z.array(z.object({ branchId: identifier, throughSession: z.number().int().min(1).max(1000), cutoffAt: date.optional() }).strict()).min(1).max(300),
   }).strict(), response: z.union([
@@ -490,7 +556,10 @@ export function importState(json: string): PortalState {
       || context.documents.some(doc => !doc.sourceIds.every(id => ids.has(id)) || (doc.fields && !validFields(doc.fields)) || !state.versions.some(v => {
         const access = inScope(v, scope);
         const sameContent = v.content === doc.content || (v.kind === 'intake' && compactIntakeText(v.content, v.fields, context.preferences) === doc.content);
-        return v.id === doc.versionId && v.patientId === s.patientId && v.kind === doc.kind && sameContent && JSON.stringify(v.fields) === JSON.stringify(doc.fields) && access && atOrBefore(v.createdAt, context.asOf) && (!access.cutoffAt || atOrBefore(v.createdAt, access.cutoffAt));
+        return v.id === doc.versionId && v.patientId === s.patientId && v.kind === doc.kind && sameContent && JSON.stringify(v.fields) === JSON.stringify(doc.fields)
+          && (doc.author === undefined || doc.author === v.author) && (doc.approved === undefined || doc.approved === v.approved)
+          && (doc.createdAt === undefined || doc.createdAt === v.createdAt) && (doc.reason === undefined || doc.reason === v.reason)
+          && access && atOrBefore(v.createdAt, context.asOf) && (!access.cutoffAt || atOrBefore(v.createdAt, access.cutoffAt));
       }))
       || context.messages.some(m => m.sourceId && !context.sources.some(source => source.id === m.sourceId && source.sessionId === s.id && source.text === m.text))
       || context.preferences.some(p => {

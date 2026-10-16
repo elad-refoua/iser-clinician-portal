@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDemoState } from '../fixtures/fictional';
 import { createSession } from '../packages/domain';
-import { stateSignature } from '../packages/domain/storage';
+import { stateSignature } from '../apps/web/workspace-state';
 import { canReconnectLocal, unfinishedSession } from '../apps/web/workflow-guards';
 
 const patientId = 'fictional-tamar';

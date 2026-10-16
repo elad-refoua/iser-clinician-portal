@@ -17,7 +17,7 @@ function session(state: PortalState, id: string) { return state.sessions.find(s 
 function field(state: PortalState, id: number, value: string): FieldUpdate { return { id, value, status: 'partial', remaining: 'נדרש בירור בהמשך', sourceIds: [state.sources.at(-1)!.id] }; }
 function draft(state: PortalState, id: string, updates: FieldUpdate[] = []): DraftResult {
   const result = preparedDraft(buildContext(state, id, 'draft'));
-  return { ...result, fieldUpdates: updates, summary: 'הוכנה רשומת הפגישה ועדכון להמשגה.', followUps: [{ goal: 'intake', text: 'אפשר להשלים את הרקע הרפואי.', kind: 'expand', fieldIds: [10] }] };
+  return { ...result, fieldUpdates: updates, summary: 'הוכנה רשומת הפגישה ועדכון להמשגה.', followUps: [{ goal: 'intake', text: 'אפשר להשלים את הרקע הרפואי.', kind: 'expand', fieldIds: [10] }], preferenceUpdates: [] };
 }
 afterEach(() => vi.useRealTimers());
 
