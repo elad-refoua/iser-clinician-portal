@@ -1,0 +1,22 @@
+# Local-only plans, recommendations, credentials and QA material never leave this checkout.
+.local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets*.json
+node_modules
+dist
+coverage
+*.tsbuildinfo
+__pycache__
+.venv
+venv
+.idea
+.vscode
+*.log
+*.tmp
+*.bak
+nul

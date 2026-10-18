@@ -8,6 +8,15 @@ export interface Preference { id: string; topic: string; goal?: Goal; action: 'l
 export type PreferenceUpdate = Omit<Preference, 'id' | 'sessionId' | 'patientId' | 'branchId' | 'recordedAt'>;
 export interface PreferenceCancellation { id: string; preferenceId: string; patientId: string; branchId: string; sessionId: string; recordedAt: string }
 export interface Source { id: string; patientId: string; branchId: string; sessionId?: string; sessionNumber?: number; text: string; recordedAt: string; kind: 'clinician' | 'manual' | 'seed' }
+export interface EvidenceItem {
+  sourceId: string; quote: string;
+  attribution: 'clinician_report' | 'patient_report_relayed' | 'clinician_observation' | 'clinician_interpretation' | 'unspecified';
+  kind: 'event' | 'background' | 'intervention' | 'response' | 'plan' | 'correction' | 'uncertainty';
+  temporalReference: string; fieldIds: number[]; destinations: Goal[];
+  uncertainty: 'explicit' | 'ambiguous' | 'unspecified';
+}
+export interface QuestionAnchor { sourceIds: string[]; fieldIds: number[] }
+export interface IntakeAuthority { fieldId: number; cutoffAt: string; retainedSourceIds: string[] }
 export interface IntakeField { id: number; value: string; status: FieldStatus; sourceIds: string[]; remaining?: string }
 export interface DocumentVersion { id: string; patientId: string; branchId: string; kind: Goal; sessionId?: string; sessionNumber?: number; content: string; fields?: IntakeField[]; sourceIds: string[]; createdAt: string; author: 'clinician' | 'assistant' | 'seed'; reason: string; baseVersionId?: string; approved: boolean; proposal?: boolean; rejected?: boolean }
 export interface Message { id: string; role: 'user' | 'assistant'; text: string; sourceId?: string; at: string }
@@ -23,6 +32,8 @@ export interface ContextPacket {
   workingDraftMetadata?: { draftId: string; createdAt: string; reviewRevision: number; baseVersionIds: Partial<Record<Goal, string>>; stale: boolean; derivative: true };
   branchScope: {branchId: string; throughSession: number; cutoffAt?: string}[];
   preferences: Preference[]; skippedTopics: string[]; sources: Source[];
+  evidenceMap?: EvidenceItem[];
+  intakeAuthority?: IntakeAuthority[];
   documents: { kind: Goal; versionId: string; content: string; fields?: IntakeField[]; sourceIds: string[]; author?: DocumentVersion['author']; approved?: boolean; createdAt?: string; reason?: string }[];
   messages: Message[];
 }
@@ -30,10 +41,11 @@ export interface FieldUpdate { id: number; value: string; status: FieldStatus; s
 export interface TurnResult {
   action: 'question' | 'draft'; utterance: string; topic: string; rationale: string;
   fieldUpdates: FieldUpdate[]; preferenceUpdates: PreferenceUpdate[];
+  evidenceMap?: EvidenceItem[]; questionAnchor?: QuestionAnchor;
 }
 export interface DraftDocument { kind: Goal; content: string; sourceIds: string[] }
 export interface DraftFollowUp { goal: Goal; text: string; kind: 'expand' | 'next_session'; fieldIds: number[] }
-export interface DraftResult { documents: DraftDocument[]; fieldUpdates: FieldUpdate[]; rationale: string; summary?: string; followUps?: DraftFollowUp[]; preferenceUpdates?: PreferenceUpdate[] }
+export interface DraftResult { documents: DraftDocument[]; fieldUpdates: FieldUpdate[]; rationale: string; summary?: string; followUps?: DraftFollowUp[]; preferenceUpdates?: PreferenceUpdate[]; evidenceMap?: EvidenceItem[] }
 export interface ModelRequest { requestId: string; model: string; context: ContextPacket }
 export interface ModelResponse<T> { result: T; prompt: string; promptVersion: string; model: string; elapsedMs: number; effectiveContext?: ContextPacket; usage?: { input: number; output: number; cost?: number } }
 export const MODELS = [

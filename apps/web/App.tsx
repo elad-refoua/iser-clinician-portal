@@ -11,6 +11,9 @@ import { dateLabel, Modal } from './ui';
 import { apiErrorMessage, safeApiErrorCode } from './api-errors';
 import NewPatient, { scheduleLabel, type NewPatientDetails } from './NewPatient';
 import { readWorkspace, WorkspaceSync, type WorkspaceRecord } from './workspace-sync';
+import type { OperationDetail, OperationSummary } from '../../packages/contracts/operations';
+import { acknowledgeOperation, applyOperation, dismissOperation, draftChildId, findDraftChild, listOperations, OperationError, operationDisposition, readOperation, rejectedBeforeOperation, startOperation, terminalOperationError, waitForOperation } from './model-operations';
+import OperationRecovery from './OperationRecovery';
 import { chooseWorkspaceAction } from './workspace-choice';
 import CaseWelcome from './CaseWelcome';
 import ResponseExplainer from './ResponseExplainer';
@@ -26,8 +29,8 @@ const GOALS: Goal[] = ['note', 'formulation', 'intake', 'gold', 'supervision'];
 const STATUS = { writing: 'בכתיבה', asking: 'בהשלמה', draft: 'טיוטה', approved: 'מאושרת' };
 type Page = 'session' | 'dossier' | 'backstage';
 type Selection = { patientId: string; branchId: string; sessionId: string };
-type RequestRun = { id: string; controller: AbortController; selection: Selection; model: string; mode: Mode; expansion?: { previous: Session; revision: number; goal: Goal; focusSelection?: DraftFollowUp } };
-type PendingAction = { task: 'turn' | 'draft'; supplied?: PortalState; selection: Selection; stamp: string; composer: string };
+type RequestRun = { id: string; controller: AbortController; selection: Selection; model: string; mode: Mode; operationId?: string; operationStarted?: boolean; operation?: OperationDetail; expansion?: { previous: Session; revision: number; goal: Goal; focusSelection?: DraftFollowUp } };
+type PendingAction = { task: 'turn' | 'draft'; supplied?: PortalState; selection: Selection; stamp: string; composer: string; operationId?: string };
 const populatedRoot = (state: PortalState, patientId: string) => state.branches.find(branch => branch.patientId === patientId && !branch.parentId && state.sessions.some(session => session.branchId === branch.id))!;
 const stamp = (state: PortalState, sessionId: string) => {
   const session = state.sessions.find(item => item.id === sessionId);
@@ -74,6 +77,10 @@ export default function App() {
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [error, setError] = useState('');
   const [failedTask, setFailedTask] = useState<'turn' | 'draft' | null>(null);
+  const [operations, setOperations] = useState<OperationSummary[]>([]);
+  const [operationError, setOperationError] = useState('');
+  const [failedOperationId, setFailedOperationId] = useState<string | null>(null);
+  const [operationPreview, setOperationPreview] = useState<OperationDetail | null>(null);
   const [failedExpansion, setFailedExpansion] = useState<FailedExpansionRetry | null>(null);
   const [errorCode, setErrorCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -126,23 +133,103 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', unload);
   }, [busy]);
 
+  async function refreshOperations(accessToken = token) {
+    if (!accessToken) return;
+    try { setOperations(await listOperations(API_URL, accessToken)); setOperationError(''); }
+    catch { setOperationError('לא ניתן לבדוק כרגע את הפעולות השמורות. אפשר לנסות שוב; לא נשלחת בקשה חדשה למודל.'); }
+  }
+
+  useEffect(() => {
+    if (!token || !workspaceReady) return;
+    let active = true;
+    const refresh = async () => {
+      try { const found = await listOperations(API_URL, token); if (active) { setOperations(found); setOperationError(''); } }
+      catch { if (active) setOperationError('בדיקת הפעולות השמורות לא הושלמה. אפשר לבדוק שוב בלי להפעיל את המודל מחדש.'); }
+    };
+    void refresh(); const timer = window.setInterval(() => void refresh(), 15000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [token, workspaceReady]);
+
+  async function recoverOperation(id: string, accessToken = token) {
+    if (requestRef.current || hasUnsavedDocumentEdits() || !cloudRef.current) return;
+    const controller = new AbortController();
+    const run: RequestRun = { id: crypto.randomUUID(), controller, selection: { ...selectionRef.current }, model, mode, operationId: id, operationStarted: true };
+    requestRef.current = run; setBusy(true); setError(''); setFailedOperationId(null);
+    let continuation: { childId: string; existing: boolean; sessionId: string; stamp: string } | undefined;
+    try {
+      let operation = await readOperation(API_URL, accessToken, id, controller.signal);
+      operation = await waitForOperation(API_URL, accessToken, operation, controller.signal);
+      if (controller.signal.aborted || requestRef.current?.id !== run.id) return;
+      const disposition = operationDisposition(stateRef.current, operation);
+      if (disposition === 'stale' || operation.status !== 'succeeded') { setOperationPreview(operation); return; }
+      const next = applyOperation(stateRef.current, operation);
+      replaceState(next);
+      const revision = await cloudRef.current!.flush(next);
+      const appliedSession = next.sessions.find(item => item.id === operation.sessionId)!;
+      const needsDraft = operation.task === 'turn' && operation.response && 'action' in operation.response.result && operation.response.result.action === 'draft'
+        && appliedSession.traces.at(-1)?.id === operation.id && appliedSession.revision === operation.baseRevision + 1;
+      // Keep a transition discoverable until its child is persisted and applied.
+      if (!needsDraft) await acknowledgeOperation(API_URL, accessToken, id, revision);
+      if (controller.signal.aborted || requestRef.current?.id !== run.id) return;
+      const selected = { patientId: operation.patientId, branchId: operation.branchId, sessionId: operation.sessionId };
+      selectionRef.current = selected; setSelection(selected); setWelcomeOpen(false); setPage('session');
+      notify(disposition === 'applied' ? 'התשובה כבר נמצאת בשיחה ונשמרה בשרת.' : 'התשובה השמורה צורפה לשיחה. הצעות למסמכים ממתינות לאישורך.');
+      const current = stateRef.current.sessions.find(item => item.id === operation.sessionId)!;
+      if (needsDraft) {
+        const child = await findDraftChild(API_URL, accessToken, operation.id, controller.signal);
+        continuation = { childId: draftChildId(operation.id), existing: Boolean(child), sessionId: current.id, stamp: stamp(stateRef.current, current.id) };
+      }
+    } catch (failure) {
+      if (failure instanceof OperationError && failure.status === 401) {
+        const current = stateRef.current.sessions.find(item => item.id === selectionRef.current.sessionId)!;
+        pendingAction.current = { task: 'turn', operationId: id, selection: { ...selectionRef.current }, stamp: stamp(stateRef.current, current.id), composer: current.composer };
+        stopCloud(); setWorkspaceReady(false); setToken(''); setAccessError('הכניסה הסתיימה. לאחר כניסה נפתח את הפעולה שכבר נשמרה.');
+      }
+      if (!(failure instanceof DOMException && failure.name === 'AbortError')) {
+        setFailedOperationId(id); setError(failure instanceof Error ? failure.message : 'לא ניתן לפתוח כרגע את הפעולה השמורה.');
+      }
+    } finally {
+      if (requestRef.current?.id === run.id) { requestRef.current = null; setBusy(false); }
+      void refreshOperations(accessToken);
+    }
+    if (continuation && !controller.signal.aborted && !requestRef.current && selectionRef.current.sessionId === continuation.sessionId && stamp(stateRef.current, continuation.sessionId) === continuation.stamp) {
+      if (continuation.existing) await recoverOperation(continuation.childId, accessToken);
+      else await runAction('draft', undefined, accessToken, undefined, continuation.childId);
+      const current = stateRef.current.sessions.find(item => item.id === continuation.sessionId);
+      if (!controller.signal.aborted && current?.traces.some(trace => trace.id === continuation.childId) && cloudRef.current) {
+        try {
+          const revision = await cloudRef.current.flush(stateRef.current);
+          await acknowledgeOperation(API_URL, accessToken, id, revision);
+        } catch {
+          setOperationError('אישור השמירה עדיין לא הושלם. הפעולה נשארת זמינה להמשך, בלי ליצור תשובה חדשה.');
+        }
+        void refreshOperations(accessToken);
+      }
+    }
+  }
+
+  async function closeOperation(id: string) {
+    try { await dismissOperation(API_URL, token, id); setOperationPreview(null); await refreshOperations(); }
+    catch (failure) { setOperationError(failure instanceof Error ? failure.message : 'לא ניתן לסגור את ההודעה כרגע.'); }
+  }
+
   function returnFromEmptyExpansion(run: RequestRun | null) {
-    if (!run?.expansion) return false;
+    if (!run?.expansion || run.operationStarted) return false;
     const restored = rollbackExpansion(stateRef.current, run.selection.sessionId, run.expansion.revision, run.expansion.previous);
     if (restored === stateRef.current) return false;
     replaceState(restored); pendingAction.current = null;
     return true;
   }
 
-  function cancel(message = 'ההמתנה בוטלה. הטקסט שכתבת נשאר בשיחה; מצב השמירה מופיע בראש המסך.') {
+  function cancel(message = 'ההמתנה במסך הופסקה. פעולה שכבר התקבלה בשרת ממשיכה שם; אפשר לחזור לתשובה מתוך הפעולות השמורות.') {
     const run = requestRef.current;
     run?.controller.abort(); returnFromEmptyExpansion(run); requestRef.current = null; setBusy(false); notify(message);
   }
 
   function select(next: Selection) {
     pendingAction.current = null;
-    if (requestRef.current) cancel('ההמתנה בוטלה בעקבות המעבר. תשובה מאוחרת לא תיכנס לפגישה.');
-    selectionRef.current = next; setSelection(next); setError(''); setFailedTask(null); setFailedExpansion(null); setErrorCode(''); setIntakeFieldEditor(null);
+    if (requestRef.current) cancel();
+    selectionRef.current = next; setSelection(next); setError(''); setFailedTask(null); setFailedOperationId(null); setFailedExpansion(null); setErrorCode(''); setIntakeFieldEditor(null);
   }
 
   function choosePatient(patientId: string) {
@@ -189,16 +276,35 @@ export default function App() {
     return addUserMessage(next, sessionId, active.composer.trim());
   }
 
-  async function callModel<T extends TurnResult | DraftResult>(task: 'turn' | 'draft', context: ContextPacket, run: RequestRun, accessToken: string): Promise<ModelResponse<T>> {
-    const body = JSON.stringify({ requestId: crypto.randomUUID(), model: run.model, context });
+  async function callModel<T extends TurnResult | DraftResult>(task: 'turn' | 'draft', context: ContextPacket, run: RequestRun, accessToken: string, requestedId?: string): Promise<ModelResponse<T>> {
+    const operationId = requestedId ?? crypto.randomUUID();
+    const body = JSON.stringify({ requestId: operationId, task, model: run.model, context });
     if (new TextEncoder().encode(body).byteLength > MAX_MODEL_REQUEST_BYTES) throw new Error('ההקשר גדול ממגבלת ההפעלה הנוכחית. לא נשלחה בקשה ולא הושמט מידע. כל התיק נשאר זמין לעריכה ולייצוא; מצב השמירה בשרת מופיע בראש המסך.');
-    const response = await fetch(`${API_URL}/api/${task}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, signal: run.controller.signal, body });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw Object.assign(new Error(apiErrorMessage(payload.error, response.status)), { status: response.status, code: payload.error, minimumRevision: payload.minimumRevision });
-    return payload;
+    const sync = cloudRef.current;
+    if (!sync) throw new OperationError('operation_workspace_required');
+    const workspaceRevision = await sync.flush(stateRef.current);
+    if (run.controller.signal.aborted || requestRef.current?.id !== run.id) throw new DOMException('Waiting stopped', 'AbortError');
+    run.operationId = operationId; run.operationStarted = true;
+    let created: OperationDetail;
+    try { created = await startOperation(API_URL, accessToken, { requestId: operationId, task, model: run.model, context, workspaceRevision }, run.controller.signal); }
+    catch (failure) {
+      // These responses reject before journal insertion. Retrying must not poll an absent ID.
+      if (rejectedBeforeOperation(failure)) {
+        run.operationStarted = false; run.operationId = undefined;
+      }
+      throw failure;
+    }
+    run.operation = created;
+    const operation = await waitForOperation(API_URL, accessToken, created, run.controller.signal);
+    run.operation = operation;
+    if (operation.status !== 'succeeded' || !operation.response) {
+      if (operation.status === 'failed') { run.operationStarted = false; run.operationId = undefined; }
+      throw terminalOperationError(operation);
+    }
+    return operation.response as ModelResponse<T>;
   }
 
-  async function runAction(task: 'turn' | 'draft', supplied?: PortalState, accessToken = token, expansionPrevious?: Session) {
+  async function runAction(task: 'turn' | 'draft', supplied?: PortalState, accessToken = token, expansionPrevious?: Session, requestedId?: string) {
     if (requestRef.current) return;
     const selected = stateRef.current.sessions.find(item => item.id === selectionRef.current.sessionId)!;
     if (stateRef.current.sessions.some(item => item.branchId === selected.branchId && item.number > selected.number)) { setError('להמשך שיחה מפגישה קודמת יש ליצור ענף נפרד. אפשר עדיין לערוך את הרשומה ישירות.'); return; }
@@ -210,9 +316,9 @@ export default function App() {
     replaceState(working);
     const startedSession = working.sessions.find(item => item.id === selected.id)!;
     const run: RequestRun = { id: crypto.randomUUID(), controller: new AbortController(), selection: { ...selectionRef.current }, model, mode, ...(expansionPrevious && startedSession.focusGoal ? { expansion: { previous: expansionPrevious, revision: startedSession.revision, goal: startedSession.focusGoal, focusSelection: startedSession.focusSelection ? structuredClone(startedSession.focusSelection) : undefined } } : {}) };
-    requestRef.current = run; setBusy(true); setError(''); setFailedTask(null); setFailedExpansion(null); setErrorCode('');
+    requestRef.current = run; setBusy(true); setError(''); setFailedTask(null); setFailedOperationId(null); setFailedExpansion(null); setErrorCode('');
     let attemptedTask = task;
-    async function execute(kind: 'turn' | 'draft'): Promise<void> {
+    async function execute(kind: 'turn' | 'draft', stableId?: string): Promise<void> {
       attemptedTask = kind;
       let active!: Session; let context!: ContextPacket; let beforeStamp = ''; let started = 0;
       const response = await retryAfterStaleRevision(async () => {
@@ -220,17 +326,18 @@ export default function App() {
         context = compactModelContext(buildContext(working, active.id, kind === 'draft' ? 'draft' : active.intakeActive ? 'intake' : 'main'));
         beforeStamp = stamp(working, active.id);
         started = performance.now();
-        try { return await callModel<TurnResult | DraftResult>(kind, context, run, accessToken); }
+        try { return await callModel<TurnResult | DraftResult>(kind, context, run, accessToken, stableId); }
         catch (failure) {
           if (failure && typeof failure === 'object' && 'status' in failure && failure.status === 401 && requestRef.current?.id === run.id) {
             const current = stateRef.current.sessions.find(item => item.id === run.selection.sessionId)!;
-            pendingAction.current = { task: kind, selection: { ...run.selection }, stamp: stamp(stateRef.current, current.id), composer: current.composer };
+            pendingAction.current = { task: kind, selection: { ...run.selection }, stamp: stamp(stateRef.current, current.id), composer: current.composer, ...(run.operationStarted && run.operationId ? { operationId: run.operationId } : {}) };
             stopCloud(); setWorkspaceReady(false); setToken('');
             setAccessError('הכניסה הסתיימה. הדברים שכתבת נשארו בשיחה בזיכרון הלשונית; אחרי כניסה נמשיך באותה פעולה.');
           }
           throw failure;
         }
       }, minimumRevision => {
+        if (stableId) return false;
         if (requestRef.current?.id !== run.id || selectionRef.current.sessionId !== active.id
           || stamp(stateRef.current, active.id) !== beforeStamp || minimumRevision <= context.baseRevision) return false;
         working = advanceRequestRevision(stateRef.current, active.id, context.baseRevision, minimumRevision);
@@ -241,25 +348,33 @@ export default function App() {
       });
       if (requestRef.current?.id !== run.id || selectionRef.current.sessionId !== active.id) return;
       if (stamp(stateRef.current, active.id) !== beforeStamp) throw new Error('התיק השתנה בזמן ההמתנה. התשובה לא הוחלה; אפשר לבקש שוב עם הגרסה המעודכנת.');
-      const trace: Trace = { id: crypto.randomUUID(), at: new Date().toISOString(), mode: run.mode, model: response.model, promptVersion: response.promptVersion, prompt: response.prompt, contextOrigin: response.effectiveContext ? 'server' : 'client', context: response.effectiveContext || context, response: response.result, elapsedMs: response.elapsedMs ?? performance.now() - started, usage: response.usage };
-      working = kind === 'draft' ? saveDraft(stateRef.current, active.id, context.baseRevision, response.result as DraftResult) : applyTurn(stateRef.current, active.id, context.baseRevision, response.result as TurnResult);
-      working = { ...working, sessions: working.sessions.map(item => item.id === active.id ? { ...item, traces: [...item.traces, trace] } : item) };
+      working = applyOperation(stateRef.current, run.operation!);
       replaceState(working);
-      if (kind === 'turn' && (response.result as TurnResult).action === 'draft') await execute('draft');
+      const savedRevision = await cloudRef.current!.flush(working);
+      const completedId = run.operation!.id;
+      const needsDraft = kind === 'turn' && (response.result as TurnResult).action === 'draft';
+      if (!needsDraft) await acknowledgeOperation(API_URL, accessToken, completedId, savedRevision);
+      run.operationStarted = false; run.operationId = undefined;
+      if (needsDraft) {
+        await execute('draft', draftChildId(completedId));
+        const revision = await cloudRef.current!.flush(stateRef.current);
+        await acknowledgeOperation(API_URL, accessToken, completedId, revision);
+      }
     }
-    try { await execute(task); }
+    try { await execute(task, requestedId); }
     catch (failure) {
       if (requestRef.current?.id === run.id) {
         const rolledBack = returnFromEmptyExpansion(run);
         if (!(failure instanceof DOMException && failure.name === 'AbortError')) {
           setFailedTask(attemptedTask);
+          setFailedOperationId(run.operationStarted ? run.operationId ?? null : null);
           setFailedExpansion(rolledBack && run.expansion ? rememberExpansionRetry(stateRef.current, run.selection, run.expansion.goal, run.expansion.focusSelection) : null);
           setErrorCode(safeApiErrorCode(failure && typeof failure === 'object' && 'code' in failure ? failure.code : undefined));
           setError(failure instanceof Error ? failure.message : 'התגובה לא התקבלה. אפשר לנסות שוב או לעבור לטיוטה ידנית.');
         }
       }
     }
-    finally { if (requestRef.current?.id === run.id) { requestRef.current = null; setBusy(false); } }
+    finally { if (requestRef.current?.id === run.id) { requestRef.current = null; setBusy(false); } void refreshOperations(accessToken); }
   }
 
   function answer(event?: FormEvent) {
@@ -329,7 +444,8 @@ export default function App() {
     if (!pending) return;
     const active = stateRef.current.sessions.find(item => item.id === selectionRef.current.sessionId)!;
     if (pending.selection.patientId === selectionRef.current.patientId && pending.selection.branchId === selectionRef.current.branchId && pending.selection.sessionId === active.id && pending.stamp === stamp(stateRef.current, active.id) && pending.composer === active.composer) {
-      void runAction(pending.task, pending.supplied, accessToken);
+      if (pending.operationId) void recoverOperation(pending.operationId, accessToken);
+      else void runAction(pending.task, pending.supplied, accessToken);
     } else notify('התיק השתנה בזמן הכניסה. אפשר לשלוח מחדש מתוך המצב המעודכן.');
   }
 
@@ -518,6 +634,7 @@ export default function App() {
     {cloudError && <div className="cloud-notice" role="alert"><p>{cloudError}</p><div className="button-row"><button className="secondary small" disabled={cloudBusy} onClick={openCloud}>חיבור מחדש למאגר</button><button className="text-button" onClick={exportDemo}>ייצוא העבודה כאן</button></div></div>}
     <main id="main" className={`workspace ${page !== 'session' ? 'workspace-wide' : 'workspace-session'}`}>
       {page === 'session' && <div className="quiet-session">
+        <OperationRecovery operations={operations.filter(item => item.id !== requestRef.current?.operationId)} state={state} disabled={busy || editorDraftCount > 0} error={operationError} onOpen={id => void recoverOperation(id)} onRefresh={() => void refreshOperations()} />
         <div className="quiet-session-meta"><span>{patient.name} · פגישה {session.number} · {dateLabel(session.startedAt)}</span><div><button className="text-button" onClick={() => setPreferencesOpen(true)}><SlidersHorizontal size={14} />העדפות לשיחה</button><button className="text-button" onClick={() => setPage('dossier')}>תיק המטופל<ArrowLeft size={14} /></button></div></div>
         {historical && <div className="notice"><div><strong>פגישה קודמת</strong><p>אפשר לקרוא את השיחה ולערוך את הרשומה בתיק. להמשך חלופי אפשר לפתוח ענף נפרד.</p></div><button className="secondary small" onClick={() => { setForkName(`התנסות מפגישה ${session.number}`); setForkOpen(true); }}><GitBranch size={16} />יצירת ענף</button></div>}
         <SessionConversation session={session} patientName={patient.name} busy={busy} disabled={historical} modelLabel={MODELS.find(item => item.id === model)?.label || model}
@@ -526,7 +643,7 @@ export default function App() {
         <IntakeCompletion key={session.id} context={buildContext(state, session.id)} disabled={busy || editorDraftCount > 0} historical={historical} composer={session.composer}
           onComposerChange={value => update(previous => ({ ...previous, sessions: previous.sessions.map(item => item.id === session.id ? { ...item, composer: value } : item) }))}
           onManual={openIntakeField} onDiscuss={discussIntakeField} />
-        {error && <div className="error-panel" role="alert"><strong>הפעולה לא הושלמה</strong><p>{error}</p>{failedExpansion && <p>{canRetryExpansion(state, selection, failedExpansion) ? 'ניסיון נוסף יפתח סבב הרחבה חדש לאותו נושא ולאותה הצעה.' : 'התיק השתנה. יש לבחור מחדש הצעת הרחבה מתוך הסיכום המעודכן.'}</p>}{errorCode && <details><summary>פרטי התקלה</summary><p>קוד תקלה: <bdi><code>{errorCode}</code></bdi></p></details>}<div className="button-row"><button className="secondary" disabled={busy || historical || Boolean(failedExpansion && !canRetryExpansion(state, selection, failedExpansion))} onClick={retryFailedAction}>{failedExpansion ? 'ניסיון נוסף לאותה הרחבה' : failedTask === 'turn' ? 'ניסיון נוסף לתגובה' : 'ניסיון נוסף לסיכום'}</button><button className="icon-button" onClick={() => setError('')} aria-label="סגירת הודעת השגיאה"><X size={17} /></button></div></div>}
+        {error && <div className="error-panel" role="alert"><strong>הפעולה לא הושלמה</strong><p>{error}</p>{failedExpansion && <p>{canRetryExpansion(state, selection, failedExpansion) ? 'ניסיון נוסף יפתח סבב הרחבה חדש לאותו נושא ולאותה הצעה.' : 'התיק השתנה. יש לבחור מחדש הצעת הרחבה מתוך הסיכום המעודכן.'}</p>}{errorCode && <details><summary>פרטי התקלה</summary><p>קוד תקלה: <bdi><code>{errorCode}</code></bdi></p></details>}<div className="button-row"><button className="secondary" disabled={busy || historical || Boolean(failedExpansion && !canRetryExpansion(state, selection, failedExpansion))} onClick={() => failedOperationId ? void recoverOperation(failedOperationId) : retryFailedAction()}>{failedOperationId ? 'בדיקת הפעולה השמורה' : failedExpansion ? 'ניסיון נוסף לאותה הרחבה' : failedTask === 'turn' ? 'ניסיון נוסף לתגובה' : 'ניסיון נוסף לסיכום'}</button><button className="icon-button" onClick={() => setError('')} aria-label="סגירת הודעת השגיאה"><X size={17} /></button></div></div>}
         {session.pendingDraft && editorDraftCount > 0 && <div className="notice">יש עריכה ישירה שטרם נשמרה בתיק. יש לשמור או לבטל אותה לפני אישור הסיכום.</div>}
         {session.pendingDraft && <ReviewProposal pending={session.pendingDraft} state={state} session={session} busy={busy || historical || editorDraftCount > 0}
           onApprove={id => { if (busy || historical || hasUnsavedDocumentEdits() || session.composer.trim()) return; if (!update(previous => approveSession(previous, session.id, id))) return; notify('הרשומה והעדכונים אושרו. הגרסאות זמינות בתיק המטופל.'); }}
@@ -546,6 +663,12 @@ export default function App() {
       <div className="intake-completion-editor"><p>כאן עורכים את הגרסה השמורה של האינטייק. הצעות הבינה נשארות לעיון בנפרד. שמירת העריכה יוצרת גרסה חדשה ומחייבת עיון מחדש בהצעה קודמת.</p>
         <DocumentEditor key={`${session.id}-intake-${intakeFieldEditor}`} state={state} update={update} patientId={patient.id} branchId={branch.id} kind="intake" sessionId={session.id} initialFieldId={intakeFieldEditor} onSaved={() => setIntakeFieldEditor(null)} notify={notify} />
       </div>
+    </Modal>}
+    {operationPreview && <Modal title="הפעולה השמורה בשרת" wide onClose={() => setOperationPreview(null)}>
+      <p>{operationPreview.status === 'succeeded' ? 'התיק השתנה מאז שנשלחה הבקשה. התשובה זמינה כאן לעיון, והעריכות החדשות נשארות בתיק.' : apiErrorMessage(operationPreview.errorCode || (operationPreview.status === 'uncertain' ? 'provider_outcome_uncertain' : 'operation_request_failed'))}</p>
+      {operationPreview.response && <div className="operation-preview-text">{'utterance' in operationPreview.response.result ? operationPreview.response.result.utterance : operationPreview.response.result.documents.map(document => `${GOAL_LABELS[document.kind]}\n${document.content}`).join('\n\n')}</div>}
+      <p className="muted small-copy">התשובה אינה מאושרת למסמכי התיק. סגירת ההודעה מהרשימה אינה מוחקת את הפעולה מהשרת.</p>
+      <div className="button-row"><button className="secondary" onClick={() => setOperationPreview(null)}>חזרה לתיק</button><button className="text-button" onClick={() => void closeOperation(operationPreview.id)}>סגירת ההודעה מהרשימה</button></div>
     </Modal>}
     {explanationOpen && <Modal title="איך נוצרה התשובה" wide onClose={() => setExplanationOpen(false)}><ResponseExplainer key={session.id} state={state} session={session} busy={busy} onOpenBackstage={() => { setExplanationOpen(false); setPage('backstage'); }} /></Modal>}
     {accessOpen && <Modal title="מודל השיחה" onClose={closeAccess}><p>כל תשובה חדשה נוצרת מהשיחה ומההקשר של התיק הנבחר.</p><label>המודל לתור הבא<select value={model} onChange={event => { if (busy) cancel(); setModel(event.target.value); }}>{MODELS.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><p className="muted">החלפה שומרת את התיק וההעדפות. פרטי כל הרצה מופיעים מאחורי הקלעים.</p><button className="primary" onClick={closeAccess}>חזרה לשיחה</button></Modal>}

@@ -21,7 +21,8 @@ LoginScreen gates the complete interface. POST /api/access accepts strict {usern
 | CaseWelcome.tsx | Overview from stored material, continue/start choices and new-record entry |
 | ResponseExplainer.tsx, experience-model.ts | On-demand explanation; input context versus output citations; model versus policy/history |
 | NewPatient.tsx | Name/code and optional weekly day/time; separate root and empty session 1 |
-| workspace-sync.ts, workspace-choice.ts | Validated reads, serial saves and explicit reconciliation |
+| workspace-sync.ts, workspace-choice.ts | Validated reads, serial saves, exact-snapshot flush barrier and explicit reconciliation |
+| model-operations.ts, OperationRecovery.tsx | Durable start/poll/recovery, source-context comparison, deduplication and acknowledgement after save |
 | workflow-guards.ts | Unfinished-session guard and same-baseline reconnect check |
 | workspace-state.ts, document-editing.ts | Pure memory comparisons, unsaved-state guards and editor base-version tracking |
 | Backstage.tsx | Architecture, exact prompts/context/results, authored instruction examples, handbook/PDF |
@@ -33,7 +34,7 @@ Domain code owns context selection, provenance, versions and branch/time rules. 
 
 After choosing a patient/session, the clinician sees one quiet invitation to talk with the documentation assistant. The prominent action is **שליחה** (Send); Enter sends and Shift+Enter inserts a newline. **להכנת סיכום** remains secondary, with modest emphasis at the question cap. Each send requests a real model turn, starting with the first reply. Questions resolve one concrete gap grounded in the latest contribution and existing context. Zero to three main questions are permitted. Skipping, stopping or requesting a summary does not require filling fields.
 
-A turn returning action=draft triggers a separate draft request. A deliberate summary/revision can directly request the draft. Provider errors do not trigger automatic paid retries or model switches. Failed operations preserve contributions and offer an explicit retry of the failed operation (reply or summary). A stale-revision rejection occurs before reservation/provider work: within that explicit action only, the unchanged current session may advance once to the server's minimum revision and retry. All quotas and question counters still apply. This creates a new response; it does not retrieve an undelivered previous response.
+A turn returning action=draft triggers a separate draft request. A deliberate summary/revision can directly request the draft. Provider errors do not trigger automatic paid retries or model switches. Failed operations preserve contributions and offer an explicit retry of the failed operation (reply or summary). A stale-revision rejection occurs before reservation/provider work: within that explicit action only, the unchanged current session may advance once to the server's minimum revision and retry. All quotas and question counters still apply. This revision adjustment is distinct from journal recovery, which retrieves an already saved response without another model call.
 
 The result is a pending proposal: five documents, sparse intake patches, a summary and optional follow-ups. Intake is rendered from 32 structured fields. applyTurn stages fields; saveDraft stages the proposal. Neither changes saved documents. A new proposal archives its predecessor.
 
@@ -67,7 +68,7 @@ Changes queue after a short debounce to the workspace API with expectedRevision.
 
 Reconnect compares server state, in-memory work and the page's last confirmed baseline. Clean work can load newer server content; divergent work requires an explicit choice. A safe resume rereads the server and retains compare-and-swap. A transient GET failure does not clear valid authentication or overwrite work. Conflicts/expiry/errors pause writes with clear retry/reconnect/export actions. beforeunload warns when work or a direct editor remains unconfirmed; it is not a backup.
 
-An expired model operation retains its action and state stamp in memory. It resumes after login/reconciliation only if selection, sources, versions and preferences still match. Adopting another server copy cancels that continuation. Cancellation stops the browser wait, not necessarily provider billing. Cancelling an untouched expansion restores the ability to approve the existing proposal.
+A server-accepted operation remains available after disconnect or reload. Fresh login lists pending and terminal unacknowledged operations; opening one waits for or retrieves the existing result. A result applies only when the scoped context still matches and no Trace with that operation ID exists. The resulting workspace must save before the operation is acknowledged. Stale results remain viewable without overwriting newer edits. Cancel stops waiting; it does not cancel accepted work. An expansion rolls back only before an operation may have been accepted.
 
 Explicit JSON export downloads a user-requested file; it is not automatic persistence. Import/reset require confirmation and replace server state too. No legacy browser snapshot is read, migrated or deleted automatically. The server retains the latest complete workspace with full document/proposal histories, not every prior workspace snapshot or every keystroke. The bounded lossless transport preserves content; its limits and validation are documented in apps/api/README.md.
 
@@ -78,3 +79,9 @@ Tests cover approval, scope, budget projection, reconciliation and stale-result 
 Saved manual note edits and current-session intake edits can be approved through the note portal without a new model call. The action is unavailable while any editor is open or the session contains a pending AI proposal, pending fields or unsent composer text. The handler rechecks the exact saved note and intake versions before approval.
 
 The separate Prompt_Workbench_2026-10-16 package contains the authoritative PROMPTS.md and explanatory CONTEXT.md. Backstage links to its generated HTML and Markdown downloads. Prompt synchronization is a build-time process; editing the context explanation does not alter runtime context selection.
+
+## Evidence and recovery display
+
+The explanation dialog shows source anchors for a follow-up and exact excerpts from the bounded incremental evidence map. The map is labeled partial and derivative. Intake gaps display concrete relevance reasons; no mapping automatically writes a field. All sources remain available even when absent from the map.
+
+Before starting inference, `WorkspaceSync.flush` awaits acknowledgement of the exact source snapshot. A coalesced, failed or uncertain save does not count. The chat uses the durable `/api/operations` route; background list refreshes do not generate another response. The recovery panel identifies patient/session and the operation status. A result that became stale opens for inspection, and cannot be silently applied over edits. Recovered drafts still require the clinician's usual approval.

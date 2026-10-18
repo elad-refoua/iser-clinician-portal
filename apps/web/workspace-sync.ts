@@ -102,6 +102,7 @@ export class WorkspaceSync {
   private uncertainWrite = false;
   private active: AbortController | null = null;
   private readonly timeoutMs: number;
+  private barriers: { snapshot: string; resolve: (revision: number) => void; reject: (error: WorkspaceRequestError) => void }[] = [];
 
   constructor(private readonly options: WorkspaceSyncOptions) {
     if (!revisionSchema.safeParse(options.revision).success) throw new WorkspaceRequestError('invalid_workspace_revision');
@@ -118,6 +119,25 @@ export class WorkspaceSync {
   get revision() { return this.currentRevision; }
   get updatedAt() { return this.confirmedAt; }
   getConfirmedState(): PortalState | null { return this.confirmedSnapshot === null ? null : JSON.parse(this.confirmedSnapshot) as PortalState; }
+
+  /** Inference must not start until its exact source snapshot has been acknowledged. */
+  flush(state: PortalState): Promise<number> {
+    if (this.stopped || this.paused) return Promise.reject(new WorkspaceRequestError(this.stopped ? 'workspace_cancelled' : `workspace_${this.paused}`));
+    const snapshot = exportState(state);
+    if (!this.running && !this.uncertainWrite && snapshot === this.confirmedSnapshot) return Promise.resolve(this.currentRevision);
+    const promise = new Promise<number>((resolve, reject) => { this.barriers.push({ snapshot, resolve, reject }); });
+    this.requestSave(state);
+    return promise;
+  }
+
+  private settleBarriers(error?: string) {
+    this.barriers = this.barriers.filter(barrier => {
+      if (error) { barrier.reject(new WorkspaceRequestError(error)); return false; }
+      if (!this.uncertainWrite && barrier.snapshot === this.confirmedSnapshot) { barrier.resolve(this.currentRevision); return false; }
+      if (!this.running && this.pendingSnapshot === null) { barrier.reject(new WorkspaceRequestError('workspace_snapshot_superseded')); return false; }
+      return true;
+    });
+  }
 
   requestSave(state: PortalState): void {
     if (this.stopped) return;
@@ -144,6 +164,7 @@ export class WorkspaceSync {
     this.stopped = true;
     this.pendingSnapshot = null;
     this.active?.abort();
+    this.settleBarriers('workspace_cancelled');
   }
 
   private emit(status: WorkspaceSyncStatus, error?: string) {
@@ -175,6 +196,7 @@ export class WorkspaceSync {
           this.confirmedAt = parsed.data.updatedAt;
           this.confirmedSnapshot = snapshot;
           this.uncertainWrite = false;
+          this.settleBarriers();
           if (this.pendingSnapshot === snapshot) this.pendingSnapshot = null;
           // Expose every acknowledged baseline, including while a newer write is queued.
           // Reconnecting must compare with our latest successful write, not the old load.
@@ -187,11 +209,13 @@ export class WorkspaceSync {
           this.pendingSnapshot ??= snapshot;
           const failure = error instanceof WorkspaceRequestError ? error : new WorkspaceRequestError('workspace_network_error');
           this.paused = failure.status === 409 ? 'conflict' : failure.status === 401 ? 'auth' : 'error';
+          this.settleBarriers(failure.code);
           this.emit(this.paused, failure.code);
         } finally { this.active = null; }
       }
     } finally {
       this.running = false;
+      this.settleBarriers();
       this.start();
     }
   }

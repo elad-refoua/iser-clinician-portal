@@ -11,7 +11,7 @@ export type Route = 'access' | 'models' | 'turn' | 'draft';
 export interface Dependencies { env?: Environment; fetcher?: typeof fetch; quota?: QuotaStore; now?: () => number }
 const accessSchema = z.object({ username: z.string().trim().min(1).max(200), password: z.string().min(8).max(256) }).strict();
 
-async function readBody(request: Request, maxBytes = 100_000) {
+export async function readBody(request: Request, maxBytes = 100_000) {
   if (!(request.headers.get('content-type') ?? '').toLowerCase().startsWith('application/json')) throw new ApiError(415, 'json_required');
   if (Number(request.headers.get('content-length') ?? 0) > maxBytes) throw new ApiError(413, 'request_too_large');
   if (!request.body) throw new ApiError(400, 'invalid_json');
@@ -21,7 +21,7 @@ async function readBody(request: Request, maxBytes = 100_000) {
     try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new ApiError(400, 'invalid_json'); }
   } finally { await reader.cancel().catch(() => undefined); }
 }
-function cors(request: Request, env: Environment) {
+export function cors(request: Request, env: Environment) {
   const headers = new Headers({ 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', Vary: 'Origin' });
   const origin = request.headers.get('origin');
   const allowed = new Set((env.ALLOWED_ORIGINS ?? '').split(',').map(x => x.trim()).filter(Boolean));
@@ -86,7 +86,7 @@ export async function handle(request: Request, route: Route, dependencies: Depen
         providerSent = true;
         const reply = await callProvider(env.OPENROUTER_API_KEY, finalRequest.body, approved.catalog, fetcher);
         actualCost = reply.costMicros;
-        const result = validateResult(normalizeWireResult(reply.raw), route, c);
+        const result = validateResult(normalizeWireResult(reply.raw), route, c, { requireEvidence: true });
         response = { result, model: reply.model, prompt, promptVersion: PROMPT_VERSION, elapsedMs: Math.max(0, now() - started), usage: reply.usage };
       }
       const asked = 'action' in response.result && response.result.action === 'question' ? c.stage === 'intake' ? 'intake' : 'main' : null;

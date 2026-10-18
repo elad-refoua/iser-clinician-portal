@@ -2,7 +2,7 @@
   "artifacts": [
     {
       "manifest": "docs/handbook/2026-10-16/build-manifest.json",
-      "sourceSha256": "571811f20cecec28c3265dcb029a5256daf933249f67a260fb10e7c4db680990",
+      "sourceSha256": "e6bb043b0ce73c34b1a2fb631b2e14ff795a0f627dce78aae6303bc80f3d480b",
       "checks": [
         {
           "path": "docs/handbook/2026-10-16/handbook.md",
@@ -125,7 +125,63 @@
           "matches": true
         },
         {
+          "path": "packages/contracts/operations.ts",
+          "matches": true
+        },
+        {
           "path": "packages/domain/index.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/domain/evidence-map.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/operations.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/operation-store.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/model-operation.ts",
+          "matches": true
+        },
+        {
+          "path": "api/operations.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/model-operations.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/OperationRecovery.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/operation-recovery.css",
+          "matches": true
+        },
+        {
+          "path": "tests/operations.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/operation-store.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/operation-recovery.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/workspace-flush.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/evidence-map.test.ts",
           "matches": true
         },
         {
@@ -329,6 +385,10 @@
           "matches": true
         },
         {
+          "path": ".vercelignore",
+          "matches": true
+        },
+        {
           "path": ".github/workflows/pages.yml",
           "matches": true
         },
@@ -388,7 +448,7 @@
     },
     {
       "manifest": "Prompt_Workbench_2026-10-16/build-manifest.json",
-      "sourceSha256": "a6a9fc4c2252dd879e3b9c9c3aa952eb0669c523ba93c26b2ef6b9e4b4c3164c",
+      "sourceSha256": "3066fbc35210333567a0b26e56df64f0816dbee2a689164c0d675d2805ff5ae4",
       "checks": [
         {
           "path": "Prompt_Workbench_2026-10-16/README.md",
@@ -431,6 +491,6 @@
   ],
   "secretScan": {
     "matches": [],
-    "explicitTestFixtureExclusions": 3
+    "explicitTestFixtureExclusions": 4
   }
 }

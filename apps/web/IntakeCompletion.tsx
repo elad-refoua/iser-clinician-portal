@@ -26,6 +26,7 @@ export default function IntakeCompletion({ context, disabled, historical, compos
     : readiness.phase === 'due' ? 'דוח האינטייק בפגישה 5' : 'השלמות שנותרו אחרי פגישה 5';
   const renderGap = (gap: IntakeGap) => <li key={gap.field.id}>
     <div className="intake-gap-heading"><strong>{gap.label}</strong><span>{fieldStatusLabels[gap.field.status]}</span></div>
+    {gap.relevanceReason && <small>{gap.relevanceReason}</small>}
     <p>{gap.field.remaining?.trim() || (gap.field.status === 'conflict' ? 'יש דיווחים שעדיין לא יושבו.' : gap.field.status === 'partial' ? 'התיאור עדיין חלקי.' : gap.field.status === 'not_assessed' ? 'תועד שהנושא לא נבדק.' : gap.field.status === 'not_recalled' ? 'תועד שהפרט אינו זכור.' : 'עדיין לא נמסר מידע בנושא הזה.')}</p>
     <div className="intake-gap-actions">
       <button className="secondary small" disabled={disabled || historical} onClick={() => onManual(gap.field.id)}><PencilLine size={15} />למילוי ידני</button>

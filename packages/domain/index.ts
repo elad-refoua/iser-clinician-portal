@@ -4,6 +4,7 @@ import { TEXT_LIMITS } from '../contracts/index.js';
 import { emptyIntakeFields, renderIntake, renderLegacyIntake } from '../prompts/intake-schema.js';
 import { renderIntakeReport, renderLegacyIntakeReport } from './intake-report.js';
 import { intakeCompletionFocus, intakeReadiness, isCanonicalIntakeCompletionFocus } from './intake-readiness.js';
+import { deriveEvidenceMap, deriveIntakeAuthority, evidenceItemIssue, evidenceItemSchema, EVIDENCE_LIMITS, fieldUpdateAuthorityIssue, intakeAuthoritySchema, questionAnchorIssue, questionAnchorSchema } from './evidence-map.js';
 export { emptyIntakeFields, renderIntake, intakeFields, intakeSections, fieldStatusLabels } from '../prompts/intake-schema.js';
 export { renderIntakeReport } from './intake-report.js';
 
@@ -175,18 +176,22 @@ export function buildContext(state: PortalState, sessionId: string, stage?: Cont
     return version ? [{ kind, versionId: version.id, content: version.content, sourceIds: version.sourceIds, author: version.author, approved: version.approved, createdAt: version.createdAt, reason: version.reason, ...(version.fields ? { fields: structuredClone(version.fields) } : {}) }] : [];
   });
   const preferences = preferencesAt(state, s.patientId, s.branchId, s.number, asOf, s.id, !nextSession(state, s) && s.status !== 'approved');
-  const pending = (s.pendingFields ?? []).filter(f => f.sourceIds.every(id => ids.has(id)));
+  const intakeAuthority = deriveIntakeAuthority(eligible, sources);
+  const pending = (s.pendingFields ?? []).filter(f => f.sourceIds.every(id => ids.has(id)) && !fieldUpdateAuthorityIssue(f, { documents, sources, intakeAuthority }));
   const workingDraft = s.pendingDraft && atOrBefore(s.pendingDraft.createdAt, asOf)
     && s.pendingDraft.result.documents.every(d => d.sourceIds.every(id => ids.has(id)))
     && s.pendingDraft.result.fieldUpdates.every(f => f.sourceIds.every(id => ids.has(id))) ? structuredClone(s.pendingDraft.result) : undefined;
-  return { patientId: s.patientId, patientName: state.patients.find(p => p.id === s.patientId)!.name, branchId: s.branchId, sessionId: s.id, sessionNumber: s.number, baseRevision: s.revision, asOf, stage: stage ?? (s.intakeActive ? 'intake' : 'main'), questionCount: s.questionCount, intakeCount: s.intakeCount, intakeRound: s.intakeRound ?? 0, branchScope: scope, sources, documents, messages: structuredClone(s.messages.filter(m => atOrBefore(m.at, asOf))), skippedTopics: [...s.skippedTopics], preferences,
+  const context: ContextPacket = { patientId: s.patientId, patientName: state.patients.find(p => p.id === s.patientId)!.name, branchId: s.branchId, sessionId: s.id, sessionNumber: s.number, baseRevision: s.revision, asOf, stage: stage ?? (s.intakeActive ? 'intake' : 'main'), questionCount: s.questionCount, intakeCount: s.intakeCount, intakeRound: s.intakeRound ?? 0, branchScope: scope, sources, documents, messages: structuredClone(s.messages.filter(m => atOrBefore(m.at, asOf))), skippedTopics: [...s.skippedTopics], preferences,
     ...(s.focusGoal ? { focusGoal: s.focusGoal } : {}), ...(s.focusSelection ? { focusSelection: structuredClone(s.focusSelection) } : {}), ...(workingDraft ? { workingDraft, workingDraftMetadata: {
       draftId: s.pendingDraft!.id, createdAt: s.pendingDraft!.createdAt, reviewRevision: s.pendingDraft!.reviewRevision, baseVersionIds: structuredClone(s.pendingDraft!.baseVersionIds), derivative: true as const,
       stale: Boolean(nextSession(state, s) || s.pendingDraft!.reviewRevision !== s.revision || !s.pendingDraft!.preferenceSnapshot
         || preferenceSignature(s.pendingDraft!.preferenceSnapshot) !== preferenceSignature(preferences)
         || goals.some(goal => currentVersion(state, s.patientId, s.branchId, goal, goal === 'note' ? s.id : undefined)?.id !== s.pendingDraft!.baseVersionIds[goal])),
     } } : {}),
-    ...(pending.length ? { pendingIntakeFields: mergeFields(documents.find(d => d.kind === 'intake')?.fields ?? emptyIntakeFields(), pending) } : {}) };
+    ...(pending.length ? { pendingIntakeFields: mergeFields(documents.find(d => d.kind === 'intake')?.fields ?? emptyIntakeFields(), pending) } : {}),
+    ...(intakeAuthority.length ? { intakeAuthority } : {}) };
+  context.evidenceMap = deriveEvidenceMap(state, context);
+  return context;
 }
 
 function compactIntakeText(content: string, fields: IntakeField[] | undefined, preferences: Preference[]): string {
@@ -234,6 +239,13 @@ function mergeFields(base: IntakeField[], updates: FieldUpdate[]): IntakeField[]
 function checkUpdates(context: ContextPacket, updates: FieldUpdate[]) {
   const ids = new Set(context.sources.map(s => s.id));
   if (new Set(updates.map(f => f.id)).size !== updates.length || updates.some(f => !Number.isInteger(f.id) || f.id < 1 || f.id > 32 || new Set(f.sourceIds).size !== f.sourceIds.length || !f.sourceIds.every(id => ids.has(id)) || (f.status !== 'unknown' && f.sourceIds.length === 0) || (f.status === 'unknown' && f.value.trim()))) throw new Error('העדכון מכיל שדה או מקור שאינו שייך להקשר הנוכחי.');
+  if (updates.some(update => fieldUpdateAuthorityIssue(update, context))) throw new Error('העדכון מסתמך על מידע שקדם לעריכה או לשחזור של המטפל. יש לצרף מידע חדש כדי לשנות את השדה.');
+}
+function checkEvidence(context: ContextPacket, result: TurnResult | DraftResult) {
+  if (result.evidenceMap && (!z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment).safeParse(result.evidenceMap).success
+    || result.evidenceMap.some(item => evidenceItemIssue(item, context)))) throw new Error('מיפוי המקורות אינו תואם למידע השמור בהקשר.');
+  if ('action' in result && result.questionAnchor && (!questionAnchorSchema.safeParse(result.questionAnchor).success
+    || questionAnchorIssue(result.questionAnchor, result.action, context))) throw new Error('מקור השאלה אינו תואם להקשר.');
 }
 function accumulateUpdates(previous: FieldUpdate[], updates: FieldUpdate[]): FieldUpdate[] {
   const fields = new Map(previous.map(field => [field.id, structuredClone(field)]));
@@ -311,10 +323,11 @@ export function applyTurn(state: PortalState, sessionId: string, baseRevision: n
   const s = checkRevision(state, sessionId, baseRevision); const context = buildContext(state, sessionId);
   assertCurrentSession(state, s);
   checkUpdates(context, result.fieldUpdates);
+  checkEvidence(context, result);
   if (s.messages.length >= 500) throw new Error('הגענו למגבלת ההודעות בהדגמה. יש לייצא גיבוי לפני המשך העבודה.');
   if (result.action === 'question' && (s.intakeActive ? s.intakeCount >= 2 : s.questionCount >= 3)) throw new Error('הגענו למספר השאלות שנבחר. אפשר לעבור לטיוטה.');
   const next = applyPreferenceUpdates(state, s, result.preferenceUpdates);
-  return updateSession(next, { ...s, pendingFields: accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates), revision: s.revision + 1, closedAt: undefined, status: result.action === 'question' ? 'asking' : 'draft', messages: [...s.messages, { id: uid('message'), role: 'assistant', text: result.utterance, at: now() }], questionCount: s.questionCount + (result.action === 'question' && !s.intakeActive ? 1 : 0), intakeCount: s.intakeCount + (result.action === 'question' && s.intakeActive ? 1 : 0) });
+  return updateSession(next, { ...s, pendingFields: accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates).filter(update => !fieldUpdateAuthorityIssue(update, context)), revision: s.revision + 1, closedAt: undefined, status: result.action === 'question' ? 'asking' : 'draft', messages: [...s.messages, { id: uid('message'), role: 'assistant', text: result.utterance, at: now() }], questionCount: s.questionCount + (result.action === 'question' && !s.intakeActive ? 1 : 0), intakeCount: s.intakeCount + (result.action === 'question' && s.intakeActive ? 1 : 0) });
 }
 export function saveDraft(state: PortalState, sessionId: string, baseRevision: number, result: DraftResult): PortalState {
   const s = checkRevision(state, sessionId, baseRevision);
@@ -323,8 +336,9 @@ export function saveDraft(state: PortalState, sessionId: string, baseRevision: n
   const next = updateSession(applyPreferenceUpdates(state, s, result.preferenceUpdates ?? []), { ...s, closedAt: undefined });
   const context = buildContext(next, sessionId, 'draft');
   checkDraft(context, result);
+  checkEvidence(context, result);
   if ((s.draftHistory?.length ?? 0) + (s.pendingDraft ? 1 : 0) >= 100) throw new Error('הגענו למגבלת גרסאות הטיוטה בפגישה. יש לייצא גיבוי לפני המשך העבודה.');
-  const pendingFields = accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates);
+  const pendingFields = accumulateUpdates(s.pendingFields ?? [], result.fieldUpdates).filter(update => !fieldUpdateAuthorityIssue(update, context));
   const fields = mergeFields(context.documents.find(d => d.kind === 'intake')?.fields ?? emptyIntakeFields(), pendingFields);
   const reviewResult = structuredClone(result);
   // The structured ledger renders the intake so missing information stays explicit.
@@ -436,6 +450,7 @@ const draftResultSchema = z.object({
   fieldUpdates: z.array(fieldSchema.extend({ remaining: z.string().max(5000) })).max(32), rationale: z.string().max(10000), summary: z.string().max(1600).optional(),
   followUps: z.array(z.object({ goal: kind, text: z.string().max(1200), kind: z.enum(['expand', 'next_session']), fieldIds: z.array(z.number().int().min(1).max(32)).max(32) }).strict()).max(3).optional(),
   preferenceUpdates: z.array(preferenceUpdateSchema).max(10).optional(),
+  evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment).optional(),
 }).strict();
 const pendingDraftSchema = z.object({ id: identifier, createdAt: date, baseVersionIds: draftBasesSchema, result: draftResultSchema, fields: z.array(fieldSchema).length(32), reviewRevision: z.number().int().min(0), preferenceSnapshot: z.array(preferenceSchema).max(1000).optional(), approvedAt: date.optional(), approvedVersionIds: z.array(identifier).length(5).optional() }).strict();
 const archiveSchema = z.object({
@@ -502,6 +517,7 @@ export function importState(json: string): PortalState {
         || new Set(draft.result.documents.map(d => d.kind)).size !== 5
         || draft.result.documents.some(doc => new Set(doc.sourceIds).size !== doc.sourceIds.length || doc.sourceIds.some(id => !state.sources.some(source => source.id === id && sourceAllowed(source, session.patientId, scope, draft.createdAt))))
         || draft.result.followUps?.some(item => new Set(item.fieldIds).size !== item.fieldIds.length)) throw new Error('מקור או מבנה של טיוטה ממתינה אינו תקין.');
+      if (draft.result.evidenceMap?.some(item => evidenceItemIssue(item, { patientId: session.patientId, sessionNumber: session.number, branchScope: scope, asOf: draft.createdAt, sources: state.sources }))) throw new Error('מיפוי המקורות בטיוטה אינו תקין.');
       if (draft.preferenceSnapshot && (new Set(draft.preferenceSnapshot.map(p => p.id)).size !== draft.preferenceSnapshot.length || draft.preferenceSnapshot.some(p => {
         const origin = state.sessions.find(s => s.id === p.sessionId);
         const access = p.branchId ? inScope({ branchId: p.branchId, sessionNumber: origin?.number }, scope) : undefined;
@@ -559,15 +575,21 @@ export function importState(json: string): PortalState {
     patientId: identifier, patientName: z.string().max(200), branchId: identifier, sessionId: identifier, sessionNumber: z.number().int().min(1).max(1000),
     baseRevision: z.number().int().min(0), asOf: date, stage: z.enum(['main', 'intake', 'draft']), questionCount: z.number().int().min(0).max(3), intakeCount: z.number().int().min(0).max(2), intakeRound: z.number().int().min(0).max(10).optional(), focusGoal: kind.optional(), focusSelection: focusSelectionSchema.optional(), workingDraft: draftResultSchema.optional(), workingDraftMetadata: workingDraftMetadataSchema.optional(), pendingIntakeFields: z.array(fieldSchema).max(32).optional(),
     sources: archiveSchema.shape.sources, documents: z.array(traceDocument).max(5), messages: archiveSchema.shape.sessions.element.shape.messages, preferences: archiveSchema.shape.preferences,
+    evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.context).optional(),
+    intakeAuthority: z.array(intakeAuthoritySchema).max(32).optional(),
     skippedTopics: z.array(z.string().max(200)).max(100), branchScope: z.array(z.object({ branchId: identifier, throughSession: z.number().int().min(1).max(1000), cutoffAt: date.optional() }).strict()).min(1).max(300),
   }).strict(), response: z.union([
-    z.object({ action: z.enum(['question', 'draft']), utterance: z.string().max(100000), topic: z.string().max(200), rationale: z.string().max(10000), fieldUpdates: z.array(fieldSchema).max(32), preferenceUpdates: z.array(preferenceUpdate).max(1000) }).strict(),
+    z.object({ action: z.enum(['question', 'draft']), utterance: z.string().max(100000), topic: z.string().max(200), rationale: z.string().max(10000), fieldUpdates: z.array(fieldSchema).max(32), preferenceUpdates: z.array(preferenceUpdate).max(1000), evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment).optional(), questionAnchor: questionAnchorSchema.optional() }).strict(),
     draftResultSchema,
   ]), elapsedMs: z.number().min(0), usage: z.object({ input: z.number().min(0), output: z.number().min(0), cost: z.number().min(0).optional() }).strict().optional() }).strict();
   for (const s of state.sessions) for (const trace of s.traces) {
     const check = traceSchema.safeParse(trace);
     if (!check.success) throw new Error('רישום הפעולה בגיבוי אינו תקין.');
     const context = check.data.context;
+    if (context.intakeAuthority && JSON.stringify(context.intakeAuthority) !== JSON.stringify(deriveIntakeAuthority(eligibleVersions(state, s.patientId, s.branchId, s.number, context.asOf)
+      .filter(version => version.sourceIds.every(id => context.sources.some(source => source.id === id)) && (!version.fields || version.fields.every(field => field.sourceIds.every(id => context.sources.some(source => source.id === id))))), context.sources))) throw new Error('סמכות שדות האינטייק ברישום הפעולה אינה תקינה.');
+    if ([...(context.evidenceMap ?? []), ...(context.workingDraft?.evidenceMap ?? []), ...(check.data.response.evidenceMap ?? [])].some(item => evidenceItemIssue(item, context))
+      || ('action' in check.data.response && check.data.response.questionAnchor && questionAnchorIssue(check.data.response.questionAnchor, check.data.response.action, context))) throw new Error('מיפוי המקורות ברישום הפעולה אינו תקין.');
     const scope = scopeFor(state, s.branchId, s.number);
     const ids = new Set(context.sources.map(source => source.id));
     const validFields = (fields: IntakeField[]) => new Set(fields.map(f => f.id)).size === fields.length && fields.every(f => f.sourceIds.every(id => ids.has(id)));

@@ -45,7 +45,7 @@ describe('authoritative editable prompt source', () => {
     const updated = compilePromptSource(source.replace('## תפקיד, שפה וגבולות', '## תפקיד ותיעוד'));
     expect(() => assertPromptParity(updated, original)).toThrow('Prompt source/runtime drift');
     expect(() => assertPromptParity(original, undefined)).toThrow('Prompt source/runtime drift');
-    expect(() => assertPromptParity(original, original.replace('2026-10-18.1', '2026-10-18.99'))).toThrow('Prompt source/runtime drift');
+    expect(() => assertPromptParity(original, original.replace(PROMPT_VERSION, '2099-01-01.99'))).toThrow('Prompt source/runtime drift');
     expect(() => assertPromptParity(original, original.replace(/\n/g, '\r\n'))).not.toThrow();
   });
 

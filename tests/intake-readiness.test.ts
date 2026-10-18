@@ -31,6 +31,19 @@ const question: TurnResult = { action: 'question', utterance: 'Which detail is k
 afterEach(() => { vi.useRealTimers(); clearEditorDrafts(); });
 
 describe('effective intake readiness', () => {
+  it('recognizes a medical discussion block without blocking medication and respects skipped topics', () => {
+    const { state, session } = setup();
+    const context = buildContext(state, session.id);
+    context.preferences.push({ id: 'medical-block', topic: 'מצב רפואי', action: 'block', scope: 'session', patientId: session.patientId, branchId: session.branchId, sessionId: session.id, recordedAt: context.asOf });
+    const readiness = intakeReadiness(context);
+    expect(readiness.gaps.find(gap => gap.field.id === 10)?.canDiscuss).toBe(false);
+    expect(readiness.gaps.find(gap => gap.field.id === 11)?.canDiscuss).toBe(true);
+    expect(isIntakeCompletionFocus(context, intakeCompletionFocus(10))).toBe(false);
+    context.preferences = [];
+    context.skippedTopics = ['מצב רפואי'];
+    expect(intakeReadiness(context).gaps.find(gap => gap.field.id === 10)?.canDiscuss).toBe(false);
+  });
+
   it.each([[3, false, 'early'], [4, true, 'approaching'], [5, true, 'due'], [6, true, 'overdue']] as const)('shows the appropriate panel in session %s', (number, visible, phase) => {
     const { state, session } = setup(number);
     const context = buildContext(state, session.id);
@@ -55,6 +68,7 @@ describe('effective intake readiness', () => {
   it('merges pending fields and rejects stale draft claims after a direct edit', () => {
     let { state, session } = setup();
     state = field(state, session, 6, 'partial', 'Earlier clinician wording', 'Timing missing');
+    vi.advanceTimersByTime(1);
     state = addUserMessage(state, session.id, 'Fictional newly supplied information');
     const sourceId = state.sources.at(-1)!.id;
     state = applyTurn(state, session.id, get(state, session.id).revision, { ...question, fieldUpdates: [{ id: 8, status: 'partial', value: 'Pending course', remaining: 'Onset', sourceIds: [sourceId] }] });

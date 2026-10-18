@@ -1,6 +1,14 @@
 import type { ContextPacket, DraftFollowUp, IntakeField } from '../contracts';
 import { emptyIntakeFields, intakeFields, intakeSections } from '../prompts/intake-schema.js';
 import { intakeTopicMatches } from './intake-report.js';
+import { effectiveIntakeFields, evidenceItemIssue } from './evidence-map.js';
+
+// Discussion preferences have a wider vocabulary than historical report redaction.
+// Keep the latter unchanged so old approved intake renderings remain recognizable.
+function discussionTopicMatches(field: IntakeField, topic: string): boolean {
+  const terms = topic.normalize('NFKC').replace(/[\u0591-\u05C7]/g, '').split(/[^\p{L}\p{N}]+/u);
+  return intakeTopicMatches(field, topic) || (field.id === 10 && terms.some(term => /^(?:ו?[בכלמש]?ה?)?(?:רפואי|רפואית|מחלות)$/u.test(term)));
+}
 
 export interface IntakeGap {
   field: IntakeField;
@@ -9,6 +17,7 @@ export interface IntakeGap {
   canDiscuss: boolean;
   discussionReason?: string;
   lowerPriority: boolean;
+  relevanceReason?: string;
 }
 export interface IntakeReadiness {
   visible: boolean;
@@ -21,17 +30,12 @@ export interface IntakeReadiness {
 
 /** Reads only the already time/branch-scoped context; AI proposals are not approved records. */
 export function intakeReadiness(context: ContextPacket): IntakeReadiness {
-  const ids = new Set(context.sources.map(source => source.id));
-  const fields = new Map(emptyIntakeFields().map(field => [field.id, field]));
-  const apply = (updates: IntakeField[] | undefined) => {
-    for (const field of updates ?? []) {
-      if (fields.has(field.id) && field.sourceIds.every(id => ids.has(id))) fields.set(field.id, structuredClone(field));
-    }
-  };
-  apply(context.documents.find(document => document.kind === 'intake')?.fields);
+  const fields = new Map(effectiveIntakeFields(context, emptyIntakeFields()).map(field => [field.id, field]));
   const freshDraft = context.workingDraft && context.workingDraftMetadata?.stale === false;
-  if (freshDraft) apply(context.workingDraft!.fieldUpdates);
-  apply(context.pendingIntakeFields);
+  const latestSourceId = [...context.messages].reverse().find(message => message.role === 'user' && message.sourceId)?.sourceId;
+  const evidence = (context.evidenceMap ?? []).filter(item => !evidenceItemIssue(item, context));
+  const recentFields = new Set(evidence.filter(item => item.sourceId === latestSourceId).flatMap(item => item.fieldIds));
+  const priorFields = new Set(evidence.filter(item => item.sourceId !== latestSourceId && item.kind !== 'uncertainty' && item.uncertainty !== 'ambiguous').flatMap(item => item.fieldIds));
   const gaps: IntakeGap[] = [];
   let excludedCount = 0;
   for (const field of fields.values()) {
@@ -39,17 +43,26 @@ export function intakeReadiness(context: ContextPacket): IntakeReadiness {
       excludedCount++; continue;
     }
     if (field.status === 'documented' || field.status === 'not_applicable') continue;
-    const blocked = context.preferences.some(preference => preference.action === 'block' && intakeTopicMatches(field, preference.topic));
-    const skipped = context.skippedTopics.some(topic => intakeTopicMatches(field, topic));
+    const blocked = context.preferences.some(preference => preference.action === 'block' && discussionTopicMatches(field, preference.topic));
+    const skipped = context.skippedTopics.some(topic => discussionTopicMatches(field, topic));
     const notRecalled = field.status === 'not_recalled';
+    const canDiscuss = !blocked && !skipped && !notRecalled;
+    const lowerPriority = context.preferences.some(preference => preference.action === 'less' && discussionTopicMatches(field, preference.topic));
+    const recentlyRelevant = (field.status === 'partial' || field.status === 'conflict') && Boolean(latestSourceId)
+      && (field.sourceIds.includes(latestSourceId!) || recentFields.has(field.id));
     gaps.push({ field, label: intakeFields.find(item => item.id === field.id)!.label,
       section: intakeSections.find(section => section.fieldIds.includes(field.id))!.title,
-      canDiscuss: !blocked && !skipped && !notRecalled,
+      canDiscuss,
       ...(blocked ? { discussionReason: 'הנושא חסום לשאלות לפי ההעדפה שלך.' } : skipped ? { discussionReason: 'בחרת לדלג על הנושא בפגישה הזו.' } : notRecalled ? { discussionReason: 'הפרט סומן כלא זכור; לא נבקש אותו שוב.' } : {}),
-      lowerPriority: context.preferences.some(preference => preference.action === 'less' && intakeTopicMatches(field, preference.topic)),
+      lowerPriority,
+      ...(canDiscuss && !lowerPriority && recentlyRelevant ? { relevanceReason: 'עלה בשיתוף האחרון' }
+        : canDiscuss && !lowerPriority && priorFields.has(field.id) ? { relevanceReason: 'נמצא מידע קודם לעיון' } : {}),
     });
   }
-  gaps.sort((left, right) => Number(left.lowerPriority) - Number(right.lowerPriority) || left.field.id - right.field.id);
+  const rank = (gap: IntakeGap) => gap.lowerPriority ? 5 : !gap.canDiscuss ? 4
+    : context.focusSelection?.goal === 'intake' && context.focusSelection.fieldIds.includes(gap.field.id) ? 0
+      : gap.relevanceReason === 'עלה בשיתוף האחרון' ? 1 : gap.relevanceReason === 'נמצא מידע קודם לעיון' ? 2 : 3;
+  gaps.sort((left, right) => rank(left) - rank(right) || left.field.id - right.field.id);
   return { visible: context.sessionNumber >= 4, phase: context.sessionNumber < 4 ? 'early' : context.sessionNumber === 4 ? 'approaching' : context.sessionNumber === 5 ? 'due' : 'overdue',
     fields: [...fields.values()], gaps, excludedCount, hasPendingInformation: Boolean(context.pendingIntakeFields?.length || freshDraft) };
 }

@@ -2,6 +2,8 @@ import { z } from 'zod';
 import type { ContextPacket, DraftResult, ModelRequest, TurnResult } from '../../packages/contracts/index.js';
 import { MODELS, TEXT_LIMITS } from '../../packages/contracts/index.js';
 import { ApiError } from './errors.js';
+import { evidenceItemIssue, evidenceItemSchema, EVIDENCE_LIMITS, fieldUpdateAuthorityIssue, intakeAuthoritySchema, questionAnchorIssue, questionAnchorSchema } from '../../packages/domain/evidence-map.js';
+import { intakeReadiness } from '../../packages/domain/intake-readiness.js';
 
 export interface ValidationDiagnostics {
   stage: 'request' | 'output';
@@ -15,6 +17,7 @@ export class ValidationError extends ApiError {
 // Never log Zod messages, input values, or unrecognized-key names. Paths are schema
 // keys and array indexes only; even an unexpected issue path is redacted.
 const diagnosticKeys = new Set(('requestId model context patientId patientName branchId sessionId sessionNumber baseRevision asOf stage questionCount intakeCount intakeRound focusGoal focusSelection workingDraft pendingIntakeFields workingDraftMetadata draftId createdAt reviewRevision baseVersionIds stale derivative branchScope throughSession cutoffAt preferences skippedTopics sources documents messages kind versionId content fields sourceIds author approved reason id text recordedAt role sourceId at note formulation intake gold supervision goal action scope topic value status remaining fieldUpdates preferenceUpdates rationale summary followUps utterance').split(' '));
+for (const key of ['evidenceMap', 'quote', 'attribution', 'temporalReference', 'fieldIds', 'destinations', 'uncertainty', 'questionAnchor', 'intakeAuthority', 'fieldId', 'retainedSourceIds']) diagnosticKeys.add(key);
 function schemaFailure(status: number, code: string, stage: ValidationDiagnostics['stage'], error: z.ZodError) {
   return new ValidationError(status, code, { stage, issueCount: error.issues.length, issues: error.issues.slice(0, 12).map(issue => ({
     code: issue.code,
@@ -36,7 +39,7 @@ const preference = z.object({ id, ...preferenceCore, sessionId: id.optional(), p
 const source = z.object({ id, patientId: id, branchId: id, sessionId: id.optional(), sessionNumber: z.number().int().min(1).max(1000).optional(), text: z.string().max(TEXT_LIMITS.source), recordedAt: date, kind: z.enum(['clinician', 'manual', 'seed']) }).strict();
 const storedField = field.extend({ value: z.string().max(TEXT_LIMITS.fieldValue), remaining: z.string().max(TEXT_LIMITS.fieldRemaining).optional() });
 const followUp = z.object({ goal, text: z.string().min(1).max(1200), kind: z.enum(['expand', 'next_session']), fieldIds: z.array(z.number().int().min(1).max(32)).max(32) }).strict();
-export const draftSchema = z.object({ documents: z.array(z.object({ kind: goal, content: z.string().max(TEXT_LIMITS.document), sourceIds }).strict()).length(5), fieldUpdates: z.array(storedField.extend({ remaining: z.string().max(TEXT_LIMITS.fieldRemaining) })).max(32), rationale: z.string().max(10000), summary: z.string().max(1600).optional(), followUps: z.array(followUp).max(3).optional(), preferenceUpdates: z.array(z.object(preferenceCore).strict()).max(10).optional() }).strict();
+export const draftSchema = z.object({ documents: z.array(z.object({ kind: goal, content: z.string().max(TEXT_LIMITS.document), sourceIds }).strict()).length(5), fieldUpdates: z.array(storedField.extend({ remaining: z.string().max(TEXT_LIMITS.fieldRemaining) })).max(32), rationale: z.string().max(10000), summary: z.string().max(1600).optional(), followUps: z.array(followUp).max(3).optional(), preferenceUpdates: z.array(z.object(preferenceCore).strict()).max(10).optional(), evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment).optional() }).strict();
 const liveDraftSchema = draftSchema.extend({ documents: z.array(z.object({ kind: goal, content: z.string().max(30000), sourceIds }).strict()).length(5), fieldUpdates: z.array(field).max(32), rationale: z.string().max(1200), summary: z.string().min(1).max(1600), followUps: z.array(followUp).max(3), preferenceUpdates: z.array(z.object(preferenceCore).strict()).max(10) });
 const draftBases = z.object({ note: id.optional(), formulation: id.optional(), intake: id.optional(), gold: id.optional(), supervision: id.optional() }).strict();
 const contextSchema = z.object({
@@ -48,11 +51,13 @@ const contextSchema = z.object({
   workingDraftMetadata: z.object({ draftId: id, createdAt: date, reviewRevision: z.number().int().min(0), baseVersionIds: draftBases, stale: z.boolean(), derivative: z.literal(true) }).strict().optional(),
   branchScope: z.array(z.object({ branchId: id, throughSession: z.number().int().min(1).max(1000), cutoffAt: date.optional() }).strict()).min(1).max(20),
   preferences: z.array(preference).max(50), skippedTopics: z.array(z.string().max(200)).max(50), sources: z.array(source).max(200),
+  evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.context).optional(),
+  intakeAuthority: z.array(intakeAuthoritySchema).max(32).optional(),
   documents: z.array(z.object({ kind: goal, versionId: id, content: z.string().max(TEXT_LIMITS.document), fields: z.array(storedField).max(32).optional(), sourceIds, author: z.enum(['clinician', 'assistant', 'seed']).optional(), approved: z.boolean().optional(), createdAt: date.optional(), reason: z.string().max(2000).optional() }).strict()).max(5),
   messages: z.array(z.object({ id, role: z.enum(['user', 'assistant']), text: z.string().max(16000), sourceId: id.optional(), at: date }).strict()).max(80),
 }).strict();
 export const requestSchema = z.object({ requestId: id, model: z.enum(MODELS.map(m => m.id)), context: contextSchema }).strict();
-export const turnSchema = z.object({ action: z.enum(['question', 'draft']), utterance: z.string().min(1).max(1500), topic: z.string().max(200), rationale: z.string().max(1200), fieldUpdates: z.array(field).max(32), preferenceUpdates: z.array(z.object(preferenceCore).strict()).max(10) }).strict();
+export const turnSchema = z.object({ action: z.enum(['question', 'draft']), utterance: z.string().min(1).max(1500), topic: z.string().max(200), rationale: z.string().max(1200), fieldUpdates: z.array(field).max(32), preferenceUpdates: z.array(z.object(preferenceCore).strict()).max(10), evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment).optional(), questionAnchor: questionAnchorSchema.optional() }).strict();
 const unique = (values: unknown[]) => new Set(values).size === values.length;
 
 export function validateRequest(raw: unknown, task: 'turn' | 'draft'): ModelRequest {
@@ -66,10 +71,16 @@ export function validateRequest(raw: unknown, task: 'turn' | 'draft'): ModelRequ
   if (c.workingDraftMetadata && (!c.workingDraft || Date.parse(c.workingDraftMetadata.createdAt) > Date.parse(c.asOf) || c.workingDraftMetadata.reviewRevision > c.baseRevision)) throw new ApiError(400, 'invalid_draft_metadata');
   const ids = new Set(c.sources.map(s => s.id));
   const sources = new Map(c.sources.map(s => [s.id, s]));
+  if (c.intakeAuthority && (!unique(c.intakeAuthority.map(item => item.fieldId)) || c.intakeAuthority.some(item => Date.parse(item.cutoffAt) > Date.parse(c.asOf)
+    || !unique(item.retainedSourceIds) || item.retainedSourceIds.some(id => !ids.has(id))))) throw new ApiError(400, 'invalid_intake_authority');
   for (const s of c.sources) {
     const scope = c.branchScope.find(b => b.branchId === s.branchId);
     const current = s.sessionId === c.sessionId && s.branchId === c.branchId;
     if (s.patientId !== c.patientId || !scope || (s.sessionNumber !== undefined && (s.sessionNumber > scope.throughSession || s.sessionNumber > c.sessionNumber)) || (current && s.sessionNumber !== c.sessionNumber) || Date.parse(s.recordedAt) > Math.min(Date.parse(c.asOf), scope.cutoffAt ? Date.parse(scope.cutoffAt) : Infinity)) throw new ApiError(400, 'source_outside_context');
+  }
+  for (const item of [...(c.evidenceMap ?? []), ...(c.workingDraft?.evidenceMap ?? [])]) {
+    const issue = evidenceItemIssue(item, c);
+    if (issue) throw new ApiError(400, issue);
   }
   for (const d of c.documents) {
     if (d.createdAt && Date.parse(d.createdAt) > Date.parse(c.asOf)) throw new ApiError(400, 'document_outside_context');
@@ -111,10 +122,27 @@ function questionShape(utterance: string) {
   const imperativeThenQuestion = /^\s*(?:ספר|ספרי|תאר|תארי)\s/u.test(utterance) && clauses.some(match => /^[,;]/u.test(match[0]));
   return { questionMarks: (utterance.match(/[?？]/g) ?? []).length, questionClauses: Math.max(clauses.length, coordinated || imperativeThenQuestion ? 2 : 0), closedClauses: clauses.filter(match => match[1] === 'האם').length };
 }
-export function validateResult(raw: unknown, task: 'turn' | 'draft', c: ContextPacket): TurnResult | DraftResult {
-  const parsed = (task === 'turn' ? turnSchema : liveDraftSchema).safeParse(raw);
+export function validateResult(raw: unknown, task: 'turn' | 'draft', c: ContextPacket, options: { requireEvidence?: boolean } = {}): TurnResult | DraftResult {
+  const schema = task === 'turn'
+    ? options.requireEvidence ? turnSchema.extend({ evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment), questionAnchor: questionAnchorSchema }) : turnSchema
+    : options.requireEvidence ? liveDraftSchema.extend({ evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment) }) : liveDraftSchema;
+  const parsed = schema.safeParse(raw);
   if (!parsed.success) throw schemaFailure(502, 'invalid_model_output', 'output', parsed.error);
   const result = parsed.data as TurnResult | DraftResult;
+  for (const [index, item] of (result.evidenceMap ?? []).entries()) {
+    const issue = evidenceItemIssue(item, c);
+    if (issue) throw ruleFailure(502, issue, 'output', ['evidenceMap', index]);
+  }
+  if ('action' in result && result.questionAnchor) {
+    const issue = questionAnchorIssue(result.questionAnchor, result.action, c);
+    if (issue) throw ruleFailure(502, issue, 'output', ['questionAnchor']);
+    if (result.action === 'question') {
+      const readiness = intakeReadiness({ ...c, preferences: [...c.preferences, ...(result.preferenceUpdates ?? []).map((preference, index) => ({ ...preference, id: `output-${index}` }))] });
+      if (result.questionAnchor.fieldIds.some(id => readiness.gaps.some(gap => gap.field.id === id && !gap.canDiscuss)
+        || !readiness.fields.some(field => field.id === id)
+        || (!readiness.gaps.some(gap => gap.field.id === id) && !result.questionAnchor!.sourceIds.length))) throw ruleFailure(502, 'blocked_question_anchor', 'output', ['questionAnchor', 'fieldIds']);
+    }
+  }
   const effectivePreferences = [...c.preferences, ...(result.preferenceUpdates ?? [])];
   if (c.focusSelection && (c.focusSelection.goal !== c.focusGoal || !unique(c.focusSelection.fieldIds))) throw new ApiError(400, 'invalid_expansion_selection');
   const ids = new Set(c.sources.map(s => s.id));
@@ -123,6 +151,8 @@ export function validateResult(raw: unknown, task: 'turn' | 'draft', c: ContextP
     if (!f.sourceIds.every(s => ids.has(s)) || !unique(f.sourceIds)) throw ruleFailure(502, 'unknown_model_source', 'output', ['fieldUpdates', index, 'sourceIds']);
     if (f.status !== 'unknown' && f.sourceIds.length === 0) throw ruleFailure(502, 'unsourced_field', 'output', ['fieldUpdates', index, 'sourceIds']);
     if (f.status === 'unknown' && f.value.trim()) throw ruleFailure(502, 'unsupported_unknown_value', 'output', ['fieldUpdates', index, 'value']);
+    const authorityIssue = fieldUpdateAuthorityIssue(f, c);
+    if (authorityIssue) throw ruleFailure(502, authorityIssue, 'output', ['fieldUpdates', index, 'sourceIds']);
     if (effectivePreferences.some(p => p.action === 'exclude' && (!p.goal || p.goal === 'intake') && (mentions(f.value, p.topic) || mentions(f.remaining, p.topic)))) throw ruleFailure(502, 'excluded_topic_in_output', 'output', ['fieldUpdates', index]);
   }
   if ('documents' in result) {
@@ -157,7 +187,10 @@ export function responseSchema(task: 'turn' | 'draft') {
     field.extend({ status: z.enum(['unknown']), value: z.enum(['']) }),
     field.extend({ status: status.exclude(['unknown']) }),
   ]);
-  const schema = (task === 'draft' ? liveDraftSchema : turnSchema).extend({ fieldUpdates: z.array(wireField).max(32), preferenceUpdates: z.array(wirePreference).max(10) });
+  const base = task === 'draft' ? liveDraftSchema : turnSchema.extend({ questionAnchor: questionAnchorSchema });
+  const { evidenceMap: _storedEvidence, ...properties } = base.shape;
+  const schema = z.object({ evidenceMap: z.array(evidenceItemSchema).max(EVIDENCE_LIMITS.increment), ...properties,
+    fieldUpdates: z.array(wireField).max(32), preferenceUpdates: z.array(wirePreference).max(10) }).strict();
   // Provider grammars implement different JSON Schema subsets. Keep the wire contract
   // structural; all length, range and provenance constraints still run in validateResult.
   const unsupported = new Set(['$schema', 'minLength', 'maxLength', 'minItems', 'maxItems', 'minimum', 'maximum', 'pattern', 'format']);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ContextPacket } from '../packages/contracts';
-import { buildSystemPrompt, PROMPT_SECTIONS, PROMPT_VERSION } from '../packages/prompts';
+import { buildSystemPrompt, PROMPT_SECTIONS, PROMPT_TEMPLATES, PROMPT_VERSION } from '../packages/prompts';
 
 function context(): ContextPacket {
   return {
@@ -25,7 +25,7 @@ function section(id: string) {
 // These checks protect authored instructions and examples, not live-model behavior.
 describe('contextual interview prompt specification', () => {
   it('ships grounding, visitor explanation, and revision rules in both tasks', () => {
-    expect(PROMPT_VERSION).toBe('2026-10-18.1');
+    expect(PROMPT_VERSION).toBe('2026-10-18.4');
     for (const task of ['turn', 'draft'] as const) {
       const prompt = buildSystemPrompt(context(), task);
       for (const id of ['contextual-question', 'visible-explanation', 'revision', 'intake', 'working-memory']) {
@@ -42,6 +42,46 @@ describe('contextual interview prompt specification', () => {
     expect(policy).toContain('החזר draft גם כשטרם נשאלה שאלה אחת');
     expect(policy).toContain('אם אין שאלה מועילה ומותרת המעוגנת בחומר או בהשלמה שנבחרה, הפק draft');
     expect(policy).toContain('אל תהפוך רקע היסטורי לאירוע בפגישה הנוכחית');
+  });
+
+  it('maps bounded incremental source evidence before selecting a question without treating the map as exhaustive', () => {
+    const evidence = section('evidence');
+    expect(evidence).toContain('אפס עד שמונה פריטים חדשים או מתוקנים');
+    expect(evidence).toContain('קטע רציף מדויק מתוך source.text, עד 600 תווים');
+    expect(evidence).toContain('אין לשנות כתיב, שלילה או הסתייגות');
+    expect(evidence).toContain('לא תהליך חשיבה פנימי, מקור חדש או אישור עובדתי');
+    expect(evidence).toContain('אין לשכפל פריט שכבר מופיע במפה ללא שינוי');
+    expect(evidence).toContain('אין למפות הוראות קיצור, עצירה או בחירת השלמה כעובדות קליניות');
+    expect(section('contextual-question')).toContain('לפני בחירת השאלה מפה את המידע המפורש שכבר נמסר');
+    expect(section('contextual-question')).toContain('היעדרו מהמפה אינו ראיה שהוא חסר בתיק');
+    expect(section('intake')).toContain('שיוך במפה אינו הוכחה שהשדה הושלם');
+    expect(section('intake')).toContain('עבור על כל fieldId');
+    expect(section('intake')).toContain('אין להשאיר שדה unknown רק מפני שהפרט כבר נכתב בשדה אחר');
+  });
+
+  it('preserves speaker attribution, quoted-source limits, and manual authority in evidence mapping', () => {
+    const evidence = section('evidence');
+    for (const attribution of ['clinician_report', 'patient_report_relayed', 'clinician_observation', 'clinician_interpretation', 'unspecified']) {
+      expect(evidence).toContain(attribution);
+    }
+    expect(evidence).toContain('temporalReference הוא ביטוי זמן שמועתק בדיוק מאותו מקור');
+    expect(evidence).toContain('unspecified אינו קביעה שהמידע ודאי');
+    expect(evidence).toContain('לא הוכחה שאלו מילות המטופל המדויקות');
+    expect(evidence).toContain('מפה קודמת אינה גוברת על עריכה ידנית מאוחרת');
+    expect(evidence).toContain('gold דורש סימון ערך בידי המטפל');
+    expect(section('examples')).toContain('אין לייצר ציטוט מדויק של המטופל או להפוך את הקושי כולו ל-not_recalled');
+  });
+
+  it('requires explicit question anchors while retaining stop, skip, and selected-field boundaries', () => {
+    const contract = PROMPT_TEMPLATES.turnContract;
+    expect(contract).toContain('"questionAnchor":{"sourceIds":[],"fieldIds":[]}');
+    expect(contract).toContain('במסלול main נדרש עוגן בפרט מתוך דברי המטפל');
+    expect(contract).toContain('שדה חסר שנבחר ב-focusSelection');
+    expect(contract).toContain('אינה מתירה לשאול על שדה שכבר הושלם, נחסם או דולג');
+    expect(contract).toContain('בעת action=draft החזר questionAnchor עם שני מערכים ריקים');
+    expect(PROMPT_TEMPLATES.draftContract).toContain('אין לצרף questionAnchor במשימת draft');
+    expect(section('contextual-question')).toContain('בקשת סיום, הוראת עריכה, חסימה ודילוג קודמים להשלמת כיסוי');
+    expect(section('contextual-question')).toContain('ולא שדה רק מפני שמספרו מוקדם ברשימה');
   });
 
   it('keeps positive authored questions open, singular, and tied to their fictional inputs', () => {

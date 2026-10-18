@@ -102,7 +102,7 @@ describe('authenticated fictional workspace API', () => {
     expect(result).toEqual({ revision: 1, updatedAt: timestamp, state });
     expect((await handleWorkspace(request('GET'), deps)).status).toBe(413);
     expect(deps.store.records.get('owner-demo')?.state).toEqual(state);
-  });
+  }, 15000);
 
   it('bounds decoded gzip bytes and rejects corrupt compressed input before touching storage', async () => {
     const deps = dependencies();

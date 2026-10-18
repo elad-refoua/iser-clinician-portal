@@ -62,14 +62,17 @@ class TestQuota implements QuotaStore {
     if (result.status === 'done') this.committed = result.revision;
   }
 }
-function provider(result: unknown = turn(), options: { cost?: boolean; error?: boolean; finish?: string; model?: string } = {}) {
+function provider(result: unknown = turn(), options: { cost?: boolean; error?: boolean; finish?: string; model?: string; legacyEvidence?: boolean } = {}) {
   let completions = 0; const bodies: Record<string, unknown>[] = [];
+  const liveResult = !options.legacyEvidence && result && typeof result === 'object'
+    ? { evidenceMap: [], ...('action' in result ? { questionAnchor: { sourceIds: result.action === 'question' ? ['s1'] : [], fieldIds: [] } } : {}), ...result }
+    : result;
   const fetcher = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
     if (String(url).endsWith('/models')) return Response.json({ data: [catalog] });
     completions++;
     bodies.push(JSON.parse(String(init?.body)));
     if (options.error) throw new Error('PRIVATE_UPSTREAM_DETAIL must not leak');
-    return Response.json({ id: 'test-generation', model: options.model ?? catalog.id, choices: [{ finish_reason: options.finish ?? 'stop', message: { content: JSON.stringify(result) } }], usage: { prompt_tokens: 500, completion_tokens: 100, ...(options.cost === false ? {} : { cost: 0.002 }) } });
+    return Response.json({ id: 'test-generation', model: options.model ?? catalog.id, choices: [{ finish_reason: options.finish ?? 'stop', message: { content: JSON.stringify(liveResult) } }], usage: { prompt_tokens: 500, completion_tokens: 100, ...(options.cost === false ? {} : { cost: 0.002 }) } });
   }) as unknown as typeof fetch;
   return { fetcher, bodies, count: () => completions };
 }
@@ -199,6 +202,12 @@ describe('API boundaries', () => {
     const changed = requestBody(); changed.context.patientName = 'דמות אחרת';
     expect(await json(await handle(request('turn', changed), 'turn', deps))).toEqual({ error: 'request_id_conflict' });
     expect(p.count()).toBe(1); expect(p.bodies[0].messages).toHaveLength(2);
+  });
+  it('rejects a new provider response missing evidence fields even if the provider ignores its schema', async () => {
+    const p = provider(turn(), { legacyEvidence: true });
+    const response = await handle(request('turn', requestBody()), 'turn', { env, quota: new TestQuota(), fetcher: p.fetcher, now: () => now });
+    expect(response.status).toBe(502); expect(await json(response)).toEqual({ error: 'invalid_model_output' });
+    expect(p.count()).toBe(1);
   });
   it('retains an uncertain billed reservation and never retries the provider', async () => {
     const quota = new TestQuota(); const p = provider(turn(), { error: true }); const deps = { env, quota, fetcher: p.fetcher, now: () => now };

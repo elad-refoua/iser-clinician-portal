@@ -13,8 +13,8 @@ function context(task: 'turn' | 'draft'): ContextPacket {
 function output(task: 'turn' | 'draft', c: ContextPacket): TurnResult | DraftResult {
   const fieldUpdates = [{ id: 1, status: 'unknown' as const, value: '', remaining: 'Not yet documented', sourceIds: [] }];
   return task === 'draft'
-    ? { ...preparedDraft(c), fieldUpdates, summary: 'Artificial test summary', followUps: [], preferenceUpdates: [] }
-    : { action: 'question', utterance: 'What detail matters?', topic: 'detail', rationale: 'Artificial test', fieldUpdates, preferenceUpdates: [] };
+    ? { ...preparedDraft(c), fieldUpdates, summary: 'Artificial test summary', followUps: [], preferenceUpdates: [], evidenceMap: [] }
+    : { action: 'question', utterance: 'What detail matters?', topic: 'detail', rationale: 'Artificial test', fieldUpdates, preferenceUpdates: [], evidenceMap: [], questionAnchor: { sourceIds: [c.sources.at(-1)!.id], fieldIds: [] } };
 }
 
 describe.each(['turn', 'draft'] as const)('%s provider field schema', task => {

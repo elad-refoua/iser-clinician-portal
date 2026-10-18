@@ -1,6 +1,6 @@
 {
-  "promptVersion": "2026-10-18.1",
-  "sourceSha256": "a6a9fc4c2252dd879e3b9c9c3aa952eb0669c523ba93c26b2ef6b9e4b4c3164c",
+  "promptVersion": "2026-10-18.4",
+  "sourceSha256": "3066fbc35210333567a0b26e56df64f0816dbee2a689164c0d675d2805ff5ae4",
   "sourceFiles": [
     {
       "path": "Prompt_Workbench_2026-10-16/README.md",
@@ -8,11 +8,11 @@
     },
     {
       "path": "Prompt_Workbench_2026-10-16/PROMPTS.md",
-      "sha256": "aa211d618615a4efca3b123e813f6b5d9743812cc09db8292c9a0dee5f53b070"
+      "sha256": "fd2fc9687df0680ef16ee4962619c05085de48b62d05a3ef4fcd93d9d8033067"
     },
     {
       "path": "Prompt_Workbench_2026-10-16/CONTEXT.md",
-      "sha256": "9f5132a97f9870f18e69f7054013fa9e2d8aa8534c19164fe861eeb3a122a760"
+      "sha256": "e9209acea83f85c4ba05ff689dad636a36e5093d5d3fe0389e9d33fc15cb06bf"
     }
   ],
   "outputs": [
@@ -22,23 +22,23 @@
     },
     {
       "path": "apps/web/public/prompts.md",
-      "sha256": "aa211d618615a4efca3b123e813f6b5d9743812cc09db8292c9a0dee5f53b070"
+      "sha256": "fd2fc9687df0680ef16ee4962619c05085de48b62d05a3ef4fcd93d9d8033067"
     },
     {
       "path": "apps/web/public/context-management.md",
-      "sha256": "9f5132a97f9870f18e69f7054013fa9e2d8aa8534c19164fe861eeb3a122a760"
+      "sha256": "e9209acea83f85c4ba05ff689dad636a36e5093d5d3fe0389e9d33fc15cb06bf"
     },
     {
       "path": "apps/web/public/turn-prompt-example.txt",
-      "sha256": "0302df5993f68f7639e4e7c54d92c31529e2a23111c6f7e1b45df90c3d03cae0"
+      "sha256": "4ef117813a586ffcf03574d866e6e4975d1994bf6f984e26ba565ed8f92849bd"
     },
     {
       "path": "apps/web/public/draft-prompt-example.txt",
-      "sha256": "80cfa98b0087de67c930070bb5a191113bfcbaf6b252bd5cda6201188ef8fcb5"
+      "sha256": "54384c193c05bb6925e10c5f75749844fcef343cfdca4b4f1b3d40cf0f4d8bc5"
     },
     {
       "path": "apps/web/public/prompt-workbench.html",
-      "sha256": "c8b536e124982f1283867ff4e4275f42169f795b1f5c10c4d6bb58a042e03e03"
+      "sha256": "a7baa5c427b9a15cc27b027ea65c7d4a042ac4ef6500c271af53048e67667258"
     }
   ]
 }
