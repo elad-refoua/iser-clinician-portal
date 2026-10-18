@@ -70,6 +70,8 @@
 
 לאחר קידום הפריסה אומתה גם הכתובת הקבועה `https://iser-clinician-api.vercel.app/`: כניסה, פתיחת תיק הבדיקה מהשרת, שיחה ב־390×844 וב־844×390, לשוניות הפורטל ופרט האינטייק הידני. אין גלישה נראית; כל שש הפגישות המאושרות נשמרו. ראיות: `mobile-stable-api-smoke.json` והצילומים התואמים.
 
+לאחר הצלחת GitHub Pages CI מס׳ `39105379273` עבור `d8b96ce`, אומתה גם הכתובת הציבורית `https://elad-refoua.github.io/iser-clinician-portal/`. הכניסה ופתיחת המאגר דרך ה־API פעלו, השיחה התאימה ל־390×844 ול־844×390, וכל לשוניות התיק נשארו נגישות. נפתחו שש הפגישות המאושרות והפרט הידני מהשרת. הצילומים נבדקו חזותית. ראיות: `mobile-github-pages-smoke.json`, `mobile-github-pages-390.png` ו־`mobile-github-pages-844.png`. דפדפן הבדיקה המבודד נסגר בסיום.
+
 ### תקלה שנמצאה בשער השחרור ונפתרה
 
 פריסת הביניים `https://iser-clinician-9kz7lxgcx-elad-refouas-projects.vercel.app/` נעצרה בפתיחת המאגר: הכניסה החזירה 200 אך `GET /api/workspace` החזיר 503. ניסיון חוזר דרך הממשק וכן בדיקה בהקשר דפדפן מבודד חדש נתנו אותה תוצאה. לא נמצאו שגיאות JavaScript בהקשר החדש. הראיות נשמרו ב־`mobile-final-workspace-error.json`, `mobile-final-fresh-context.json` והצילומים התואמים.
