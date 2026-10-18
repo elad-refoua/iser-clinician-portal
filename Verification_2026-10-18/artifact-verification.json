@@ -2,7 +2,7 @@
   "artifacts": [
     {
       "manifest": "docs/handbook/2026-10-16/build-manifest.json",
-      "sourceSha256": "9c278d2d5e0138d3bbb439e5a25d86947cc9976a2f3751a308503d48e060f1d8",
+      "sourceSha256": "571811f20cecec28c3265dcb029a5256daf933249f67a260fb10e7c4db680990",
       "checks": [
         {
           "path": "docs/handbook/2026-10-16/handbook.md",
@@ -114,10 +114,6 @@
         },
         {
           "path": "tests/legacy-intake-traces.test.ts",
-          "matches": true
-        },
-        {
-          "path": "Verification_2026-10-18/PROMPT_EXPERIENCE_RECOMMENDATIONS.md",
           "matches": true
         },
         {

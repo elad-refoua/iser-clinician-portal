@@ -9,7 +9,7 @@
 - אתר: [מרווח בגיטהאב](https://elad-refoua.github.io/iser-clinician-portal/)
 - שרת וגרסת אירוח נוספת: [Vercel](https://iser-clinician-api.vercel.app/)
 - ספר הפעלה: [מדריך באתר](https://elad-refoua.github.io/iser-clinician-portal/handbook.html), [PDF](https://elad-refoua.github.io/iser-clinician-portal/handbook.pdf)
-- בדיקות עדכניות: [מובייל](Verification_2026-10-18/MOBILE_QA.md), [Sonnet בתיק ארוך](Verification_2026-10-18/LONG_CASE_QA.md), [סקירה עצמאית](Verification_2026-10-18/INDEPENDENT_RELEASE_REVIEW.md) ו־[המלצות לפרומפטים ולחוויה](Verification_2026-10-18/PROMPT_EXPERIENCE_RECOMMENDATIONS.md). מצב המימוש והמשך העבודה נמצאים ב־[נקודת ההמשך](Implementation_2026-10-18/CONTINUE_HERE.md) וב־[יומן העבודה](Implementation_2026-10-18/progress.md). בדיקות קודמות נשמרות ב־`Verification_2026-10-16/`.
+- בדיקות עדכניות: [מובייל](Verification_2026-10-18/MOBILE_QA.md), [Sonnet בתיק ארוך](Verification_2026-10-18/LONG_CASE_QA.md) ו־[סקירה עצמאית](Verification_2026-10-18/INDEPENDENT_RELEASE_REVIEW.md). מצב המימוש והמשך העבודה נמצאים ב־[נקודת ההמשך](Implementation_2026-10-18/CONTINUE_HERE.md) וב־[יומן העבודה](Implementation_2026-10-18/progress.md). בדיקות קודמות נשמרות ב־`Verification_2026-10-16/`.
 
 ## פתיחת תיק ושמירה בין מכשירים
 

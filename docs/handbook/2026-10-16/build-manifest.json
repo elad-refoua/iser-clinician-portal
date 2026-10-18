@@ -1,8 +1,8 @@
 {
-  "version": "2026-10-18.1",
+  "version": "2026-10-18.2",
   "promptVersion": "2026-10-18.1",
-  "sourceSha256": "9c278d2d5e0138d3bbb439e5a25d86947cc9976a2f3751a308503d48e060f1d8",
-  "generatedAt": "2026-10-18T06:43:23.674Z",
+  "sourceSha256": "571811f20cecec28c3265dcb029a5256daf933249f67a260fb10e7c4db680990",
+  "generatedAt": "2026-10-18T07:15:54.325Z",
   "sourceFiles": [
     {
       "path": "docs/handbook/2026-10-16/handbook.md",
@@ -10,11 +10,11 @@
     },
     {
       "path": "docs/handbook/2026-10-16/metadata.json",
-      "sha256": "d7afaf159414f855cd6dae7af0fb259366d18ab473c6082af70cbfe0c6e7b082"
+      "sha256": "5b30be0c3e0db8b82b2917a7f3aebcd6cf70dbb8e9e45157f2a8e3f33fa99fbe"
     },
     {
       "path": "docs/handbook/2026-10-16/release-evidence.md",
-      "sha256": "d5559f5cecf7461ff0de7d86fe577053f6eb85f9656e6e9c84303dd809b57121"
+      "sha256": "7f533ca80490d6bd48dc33ab04961ca645f44c9cbfe868701d2f6238b6ec91c7"
     },
     {
       "path": "Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md",
@@ -115,10 +115,6 @@
     {
       "path": "tests/legacy-intake-traces.test.ts",
       "sha256": "11af774869354a33028729e10127d90466b5526c2cf3e2d424f3ce2c10b6b8fb"
-    },
-    {
-      "path": "Verification_2026-10-18/PROMPT_EXPERIENCE_RECOMMENDATIONS.md",
-      "sha256": "455529d78d260b81483a0b13b101a2f2dc3125c672852d65fabb8ee9785a1513"
     },
     {
       "path": "Verification_2026-10-16/PORTAL_DESIGN_SKILLS_RESEARCH.md",
@@ -358,7 +354,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "80bc7b3fb64ddb6d2ccf8d1569ab2da578738adec424f292f29c699f3528b8d9"
+      "sha256": "6c630b8a3fa75c9f811923e83d753a3d3fee486c6c2396e443109c938acf2ce2"
     },
     {
       "path": "apps/api/README.md",
@@ -374,7 +370,7 @@
     },
     {
       "path": "scripts/build-handbook.ts",
-      "sha256": "2ace2a1f3fbd9410cb99c2635243c51b568feab797880e449bdb20527d9104bd"
+      "sha256": "f99edfe01978631d9315803a60ca5461446cda0532c1fa435a23285a0689e2c9"
     },
     {
       "path": "docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf",
@@ -384,11 +380,11 @@
   "outputs": [
     {
       "path": "apps/web/public/handbook.html",
-      "sha256": "e62b38f822b6dcbbf71febf9e14a0fef8dc1165185ab86189a9618e526563f6f"
+      "sha256": "74e9e52d490e5aa0c8fa95ff356fcd31a4fcd1827d1e215447eb37ef94d6416f"
     },
     {
       "path": "apps/web/public/handbook.pdf",
-      "sha256": "9e121aa68c708fcb11c4afdf16e34b83eb9f6739020dbd9f9104f27d2b2eca9d"
+      "sha256": "64e92d2c56ba41c99aa5823244e34921b695dd36b0e9b89e559900dcb3a7f310"
     }
   ],
   "localArtifactChecks": {
