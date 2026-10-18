@@ -1,48 +1,48 @@
 [
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/handbook.html",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/handbook.html",
     "status": 200,
-    "sha256": "e62b38f822b6dcbbf71febf9e14a0fef8dc1165185ab86189a9618e526563f6f",
+    "sha256": "74e9e52d490e5aa0c8fa95ff356fcd31a4fcd1827d1e215447eb37ef94d6416f",
     "matches": true
   },
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/handbook.pdf",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/handbook.pdf",
     "status": 200,
-    "sha256": "9e121aa68c708fcb11c4afdf16e34b83eb9f6739020dbd9f9104f27d2b2eca9d",
+    "sha256": "64e92d2c56ba41c99aa5823244e34921b695dd36b0e9b89e559900dcb3a7f310",
     "matches": true
   },
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/prompt-workbench-guide.md",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/prompt-workbench-guide.md",
     "status": 200,
     "sha256": "ed319831dee8d3ad3bd1cca397e7d0e78c75d0971933867d07ed1cba696be535",
     "matches": true
   },
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/prompts.md",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/prompts.md",
     "status": 200,
     "sha256": "aa211d618615a4efca3b123e813f6b5d9743812cc09db8292c9a0dee5f53b070",
     "matches": true
   },
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/context-management.md",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/context-management.md",
     "status": 200,
     "sha256": "9f5132a97f9870f18e69f7054013fa9e2d8aa8534c19164fe861eeb3a122a760",
     "matches": true
   },
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/turn-prompt-example.txt",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/turn-prompt-example.txt",
     "status": 200,
     "sha256": "0302df5993f68f7639e4e7c54d92c31529e2a23111c6f7e1b45df90c3d03cae0",
     "matches": true
   },
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/draft-prompt-example.txt",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/draft-prompt-example.txt",
     "status": 200,
     "sha256": "80cfa98b0087de67c930070bb5a191113bfcbaf6b252bd5cda6201188ef8fcb5",
     "matches": true
   },
   {
-    "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/prompt-workbench.html",
+    "url": "https://iser-clinician-shyo9a2qo-elad-refouas-projects.vercel.app/prompt-workbench.html",
     "status": 200,
     "sha256": "c8b536e124982f1283867ff4e4275f42169f795b1f5c10c4d6bb58a042e03e03",
     "matches": true

@@ -2,13 +2,13 @@
   {
     "url": "https://elad-refoua.github.io/iser-clinician-portal/handbook.html",
     "status": 200,
-    "sha256": "e62b38f822b6dcbbf71febf9e14a0fef8dc1165185ab86189a9618e526563f6f",
+    "sha256": "74e9e52d490e5aa0c8fa95ff356fcd31a4fcd1827d1e215447eb37ef94d6416f",
     "matches": true
   },
   {
     "url": "https://elad-refoua.github.io/iser-clinician-portal/handbook.pdf",
     "status": 200,
-    "sha256": "9e121aa68c708fcb11c4afdf16e34b83eb9f6739020dbd9f9104f27d2b2eca9d",
+    "sha256": "64e92d2c56ba41c99aa5823244e34921b695dd36b0e9b89e559900dcb3a7f310",
     "matches": true
   },
   {
@@ -50,13 +50,13 @@
   {
     "url": "https://iser-clinician-api.vercel.app/handbook.html",
     "status": 200,
-    "sha256": "e62b38f822b6dcbbf71febf9e14a0fef8dc1165185ab86189a9618e526563f6f",
+    "sha256": "74e9e52d490e5aa0c8fa95ff356fcd31a4fcd1827d1e215447eb37ef94d6416f",
     "matches": true
   },
   {
     "url": "https://iser-clinician-api.vercel.app/handbook.pdf",
     "status": 200,
-    "sha256": "9e121aa68c708fcb11c4afdf16e34b83eb9f6739020dbd9f9104f27d2b2eca9d",
+    "sha256": "64e92d2c56ba41c99aa5823244e34921b695dd36b0e9b89e559900dcb3a7f310",
     "matches": true
   },
   {
