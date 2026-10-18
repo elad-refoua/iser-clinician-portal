@@ -25,6 +25,9 @@ const sourceFiles = [
   'packages/domain/intake-readiness.ts', 'tests/intake-readiness.test.ts', 'tests/proposal-diff.test.ts',
   'tests/prompt-authoring.test.ts', 'tests/prompts.test.ts',
   'tests/native-server-imports.test.ts',
+  'tests/provider-runtime.test.ts', 'tests/long-case-fixture.ts', 'tests/api-budget.test.ts',
+  'tests/legacy-intake-traces.test.ts',
+  'Verification_2026-10-18/PROMPT_EXPERIENCE_RECOMMENDATIONS.md',
   'Verification_2026-10-16/PORTAL_DESIGN_SKILLS_RESEARCH.md',
   'packages/contracts/index.ts', 'packages/domain/index.ts',
   'packages/domain/intake-report.ts', 'packages/transport/workspace.ts',
@@ -68,7 +71,7 @@ const dynamicPrompt = (task: 'turn' | 'draft') => {
 const statuses: Record<string, string> = {
   documented: 'יש מידע מפורש המספיק לתיאור השדה.',
   partial: 'יש מידע, אך חלק נשאר פתוח ומופיע ב־remaining.',
-  unknown: 'הנושא לא הוזכר; אין כאן ממצא שלילי.',
+  unknown: 'אין מידע על השדה, לרבות אמירה שלא נמסר מידע; אין כאן ממצא שלילי או ראיה שלא נבדק.',
   not_assessed: 'נמסר במפורש שהנושא לא נבדק.',
   not_recalled: 'נמסר במפורש שהפרט אינו זכור כעת.',
   conflict: 'מקורות אינם מתיישבים והפער טרם הוכרע.',
@@ -86,7 +89,8 @@ const adopterSetup = readme.slice(adopterStart + '## התקנת עותק עצמ�
   .replace(/\]\((?![a-z][a-z0-9+.-]*:|#)([^)]+)\)/gi, (_match, path: string) => `](${meta.repository}/blob/main/${path})`);
 const links = [
   ['תוכנית האב', 'Planning_2026-10-16/MASTER_PLAN_HE.md'],
-  ['המשך עבודה ומצב ביצוע', 'Implementation_2026-10-16/CONTINUE_HERE.md'],
+  ['המשך עבודה ומצב ביצוע', 'Implementation_2026-10-18/CONTINUE_HERE.md'],
+  ['המלצות לפרומפטים ולחוויה', 'Verification_2026-10-18/PROMPT_EXPERIENCE_RECOMMENDATIONS.md'],
   ['README הממשק', 'apps/web/README.md'], ['README השרת', 'apps/api/README.md'],
   ['README ההוראות', 'packages/prompts/README.md'], ['לוגיקת הדומיין', 'packages/domain/index.ts'],
   ['כל הפרומפטים לעריכה', 'Prompt_Workbench_2026-10-16/PROMPTS.md'], ['ניהול ההקשר בנפרד', 'Prompt_Workbench_2026-10-16/CONTEXT.md'],

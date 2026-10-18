@@ -49,6 +49,8 @@ The next session cannot open while current conversation/proposal work is unfinis
 
 ## Patient portal and editing
 
+On phones, document and backstage tabs wrap so all destinations remain visible. The header wraps at landscape/tablet widths; primary icon controls and the password-visibility target are at least 44 CSS pixels. Intake-editor save controls use normal flow on narrow or short viewports so they do not cover the focused field. Model waiting text changes after 20 seconds without claiming provider progress or successful saving; cancellation still stops waiting rather than promising provider cancellation. These controls are covered in the dated mobile browser report, with physical-device testing explicitly outside that report's scope.
+
 The portal is always available outside chat. It shows session notes, cumulative intake/formulation/learning/supervision, full sources, version history and archived proposals. Inherited versions remain readable; restoration is restricted to the active branch, while direct editing creates a new active-branch version.
 
 Direct editors use an observable page-memory cache: navigation retains the edit and approval detects it. Save creates a manual source and full version. Cancel discards that unsaved edit. Reload can lose an unsaved editor buffer, as stated in the UI. Composer text belongs to persisted session state. Export includes saved versions and conversations, not unfinished editor buffers or credentials.

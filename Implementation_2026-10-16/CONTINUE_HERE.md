@@ -1,5 +1,7 @@
 # Published release checkpoint — 2026-10-16
 
+> Latest work: [18 October continuity checkpoint](../Implementation_2026-10-18/CONTINUE_HERE.md). This file preserves the 16 October release evidence; its budget and mobile-coverage limits are historical.
+
 ## Current state: case-assistant release published and verified
 
 The eight requests in [CASE_ASSISTANT_PLAN.md](CASE_ASSISTANT_PLAN.md) are implemented and published: understandable proposal explanations, actual document diffs, intake completion from session 4, grounded questioning across the case, clearer compact hierarchy, editable prompt/context package, sourced design research, and multi-agent verification/documentation/publication. Release checks passed within the coverage and limitations below.

@@ -1,0 +1,16 @@
+{
+  "context": "brand-new isolated browser context, no interception or CSS overrides",
+  "statuses": [
+    {
+      "url": "https://iser-clinician-9kz7lxgcx-elad-refouas-projects.vercel.app/api/access",
+      "status": 200
+    },
+    {
+      "url": "https://iser-clinician-9kz7lxgcx-elad-refouas-projects.vercel.app/api/workspace",
+      "status": 503
+    }
+  ],
+  "errors": [],
+  "welcomeVisible": false,
+  "failureVisible": true
+}

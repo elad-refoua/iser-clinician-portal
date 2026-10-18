@@ -1,0 +1,39 @@
+{
+  "url": "https://iser-clinician-u3uezmlk4-elad-refouas-projects.vercel.app/api/turn",
+  "status": 200,
+  "model": "anthropic/claude-sonnet-5.5",
+  "elapsedMs": 6713,
+  "usage": {
+    "input": 23091,
+    "output": 488,
+    "cost": 0.051062
+  },
+  "result": {
+    "action": "draft",
+    "utterance": "אנסח טיוטה עם העומס בעבודה, ההפסקה והחזרת המילים, תגובתו לכך ובקשתו להמשך.",
+    "topic": "סיכום פגישה ראשונה",
+    "rationale": "תוארו העומס מאז המעבר לצוות חדש, ההתערבות, תגובתו של נועם והמשך שביקש. אין פער מהותי שמצדיק שאלה נוספת.",
+    "fieldUpdates": [
+      {
+        "id": 8,
+        "value": "נועם סיפר על עומס בעבודה מאז מעבר לצוות חדש. תיאר שהוא חוזר הביתה וממשיך לחשוב על המשימות.",
+        "status": "partial",
+        "sourceIds": [
+          "source-1a972bbd-c1c9-49eb-94d2-85792d0ac844"
+        ],
+        "remaining": "מועד תחילת הקושי ומהלכו לא נמסרו."
+      },
+      {
+        "id": 6,
+        "value": "עומס בעבודה מאז מעבר לצוות חדש, והמשך מחשבות על המשימות לאחר החזרה הביתה, כפי שתיאר נועם.",
+        "status": "partial",
+        "sourceIds": [
+          "source-1a972bbd-c1c9-49eb-94d2-85792d0ac844"
+        ],
+        "remaining": "היקף, תדירות והשפעה על התפקוד לא נמסרו."
+      }
+    ],
+    "preferenceUpdates": []
+  },
+  "errors": []
+}

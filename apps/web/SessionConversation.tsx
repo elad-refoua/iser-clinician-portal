@@ -38,12 +38,20 @@ export default function SessionConversation({ session, patientName, busy, disabl
   const followsLatest = useRef(true);
   const lastSession = useRef(session.id);
   const [hasUnread, setHasUnread] = useState(false);
+  const [longWait, setLongWait] = useState(false);
   const hasMessages = session.messages.length > 0;
   const canSend = !busy && !disabled && Boolean(session.composer.trim());
   const hasUserText = session.messages.some(message => message.role === 'user' && message.text.trim());
   const lastMessage = session.messages.at(-1);
   const isQuestion = session.status === 'asking' && lastMessage?.role === 'assistant';
   const readyToSummarize = !session.composer.trim() && (session.intakeActive ? session.intakeCount >= 2 : session.questionCount >= 3);
+
+  useEffect(() => {
+    setLongWait(false);
+    if (!busy) return;
+    const timer = window.setTimeout(() => setLongWait(true), 20000);
+    return () => window.clearTimeout(timer);
+  }, [busy, session.id]);
 
   useEffect(() => {
     const input = textarea.current;
@@ -111,7 +119,7 @@ export default function SessionConversation({ session, patientName, busy, disabl
         <span id={helpId} className="chat-keyboard"><bdi>Enter</bdi> לשליחה · <bdi>Shift + Enter</bdi> לשורה חדשה</span>
       </div>
     </form>
-    {busy ? <div className="chat-waiting" role="status"><LoaderCircle size={16} className="chat-spinner" aria-hidden="true" /><span>ממתינים לתשובת <bdi>{modelLabel}</bdi>…</span><button type="button" onClick={onCancel}>ביטול ההמתנה</button></div>
+    {busy ? <div className="chat-waiting" role="status"><LoaderCircle size={16} className="chat-spinner" aria-hidden="true" /><span>{longWait ? <>עדיין ממתינים לתשובת <bdi>{modelLabel}</bdi>. עיבוד תיק ארוך עשוי לקחת יותר זמן.</> : <>ממתינים לתשובת <bdi>{modelLabel}</bdi>…</>}</span><button type="button" onClick={onCancel}>ביטול ההמתנה</button></div>
       : <div className="chat-quiet-actions">
         {(hasUserText || session.composer.trim()) && session.status !== 'approved' && <button type="button" className={`chat-finish${readyToSummarize ? ' chat-finish-ready' : ''}`} disabled={disabled} onClick={onPrepare}>להכנת סיכום</button>}
         {isQuestion && !session.composer.trim() && <button type="button" disabled={disabled} onClick={onSkip}>לדלג על השאלה</button>}

@@ -9,6 +9,8 @@ const modelSchema = z.object({ id: z.string(), canonical_slug: z.string().option
 export type CatalogModel = z.infer<typeof modelSchema>;
 export interface ApprovedModel { id: string; label: string; available: boolean; reason?: string; promptPerMillion?: number; outputPerMillion?: number; supportedParameters?: string[]; catalog?: CatalogModel }
 let catalogCache: { at: number; entries: ApprovedModel[] } | undefined;
+// Leave time for catalogue lookup, reservation and finalization inside Vercel's duration.
+export const PROVIDER_TIMEOUT_MS = 180_000;
 
 export async function getModels(fetcher: typeof fetch = fetch, now = Date.now()): Promise<ApprovedModel[]> {
   if (fetcher === fetch && catalogCache && now - catalogCache.at < 60000) return catalogCache.entries;
@@ -80,7 +82,7 @@ export class ProviderError extends ApiError { constructor(code: string, public c
 export async function callProvider(key: string, body: Record<string, unknown>, expectedModel: CatalogModel, fetcher: typeof fetch = fetch): Promise<ProviderReply> {
   let parsed: z.infer<typeof envelopeSchema>;
   try {
-    const response = await fetcher('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'X-OpenRouter-Title': 'Fictional clinician demo' }, body: JSON.stringify(body), signal: AbortSignal.timeout(55000), redirect: 'error' });
+    const response = await fetcher('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'X-OpenRouter-Title': 'Fictional clinician demo' }, body: JSON.stringify(body), signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS), redirect: 'error' });
     if (!response.ok) {
       // Classify upstream failures without logging prompts, credentials or upstream free text.
       let category = 'unclassified';

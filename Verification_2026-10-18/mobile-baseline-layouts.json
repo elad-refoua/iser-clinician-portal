@@ -1,0 +1,201 @@
+[
+  {
+    "label": "login",
+    "width": 320,
+    "height": 740,
+    "scrollWidth": 320,
+    "overflow": []
+  },
+  {
+    "label": "login",
+    "width": 375,
+    "height": 812,
+    "scrollWidth": 375,
+    "overflow": []
+  },
+  {
+    "label": "login",
+    "width": 390,
+    "height": 844,
+    "scrollWidth": 390,
+    "overflow": []
+  },
+  {
+    "label": "login",
+    "width": 430,
+    "height": 932,
+    "scrollWidth": 430,
+    "overflow": []
+  },
+  {
+    "label": "login",
+    "width": 844,
+    "height": 390,
+    "scrollWidth": 844,
+    "overflow": []
+  },
+  {
+    "label": "welcome",
+    "width": 320,
+    "height": 740,
+    "scrollWidth": 320,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 320,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "welcome",
+    "width": 375,
+    "height": 812,
+    "scrollWidth": 375,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 375,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "welcome",
+    "width": 390,
+    "height": 844,
+    "scrollWidth": 390,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 390,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "welcome",
+    "width": 430,
+    "height": 932,
+    "scrollWidth": 430,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 430,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "welcome",
+    "width": 923,
+    "height": 427,
+    "scrollWidth": 923,
+    "overflow": [
+      {
+        "tag": "BUTTON",
+        "cls": "settings-button",
+        "label": "הגדרות המערכת",
+        "x": -1,
+        "width": 30
+      },
+      {
+        "tag": "DIV",
+        "cls": "modal-header",
+        "label": "מכירים את התיק, ואז מתחילים",
+        "x": -23,
+        "width": 812
+      },
+      {
+        "tag": "DIV",
+        "cls": "modal-body",
+        "label": "בוחרים דמות, קוראים מה כבר קרה, ואז כותבים על הפגישה שזה עתה הסתי",
+        "x": -23,
+        "width": 812
+      }
+    ]
+  },
+  {
+    "label": "session",
+    "width": 320,
+    "height": 740,
+    "scrollWidth": 320,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 320,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "session",
+    "width": 375,
+    "height": 812,
+    "scrollWidth": 375,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 375,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "session",
+    "width": 390,
+    "height": 844,
+    "scrollWidth": 390,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 390,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "session",
+    "width": 430,
+    "height": 932,
+    "scrollWidth": 430,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 430,
+        "width": 1
+      }
+    ]
+  },
+  {
+    "label": "session",
+    "width": 923,
+    "height": 427,
+    "scrollWidth": 923,
+    "overflow": [
+      {
+        "tag": "BUTTON",
+        "cls": "settings-button",
+        "label": "הגדרות המערכת",
+        "x": -1,
+        "width": 30
+      }
+    ]
+  }
+]

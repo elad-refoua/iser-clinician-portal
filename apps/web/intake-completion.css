@@ -10,4 +10,5 @@
 .intake-gap-actions { margin-top: .65rem; }
 .intake-completion details > summary { display: flex; gap: .5rem; cursor: pointer; padding: .75rem 0; font-weight: 600; }
 .intake-completion-editor .document-footer { position: sticky; bottom: 0; padding: .8rem; background: #fff; border-top: 1px solid #dde7e0; }
+@media (max-width: 760px), (max-height: 600px) { .intake-completion-editor .document-footer { position: static; } }
 @media (max-width: 600px) { .intake-completion { padding: 1rem; } .intake-completion > header { flex-direction: column; gap: .4rem; } .intake-gap-actions { align-items: stretch; flex-direction: column; } }

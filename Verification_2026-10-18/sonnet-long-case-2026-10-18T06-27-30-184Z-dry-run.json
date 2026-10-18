@@ -1,0 +1,62 @@
+{
+  "runId": "f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+  "startedAt": "2026-10-18T06:27:30.184Z",
+  "mode": "dry-run",
+  "candidate": null,
+  "assessmentPair": true,
+  "fictionalOnly": true,
+  "workspaceWrites": false,
+  "retries": 0,
+  "requestId": "request-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+  "model": "anthropic/claude-sonnet-5.5",
+  "localPromptVersion": "2026-10-18.1",
+  "requestBytes": 159727,
+  "sourceCount": 9,
+  "sourceIds": [
+    "history-1-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "history-2-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "history-3-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "history-4-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "history-5-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "history-6-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "history-7-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "history-8-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "current-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d"
+  ],
+  "requestSha256": "bcfc5cc557778978443b658d46415ac9001c5cc0421213c2250179cc76d9ac6b",
+  "contextSha256": "1f05e341aaa919bf6e780d3866d28b7df1b47f5740314da2fe0a631e7e44e9cd",
+  "promptSha256": "ba99d1a2ad47c52916723cc88fcd9dd403666505b298519446f14f6b2e7447ff",
+  "inputTokenBound": 221740,
+  "outputTokenAllowance": 6000,
+  "estimatedReservationUSD": 0.56348,
+  "previousCapUSD": 0.25,
+  "minimumRequiredAtOldOutputFloorUSD": 0.51358,
+  "previousCapWouldReject": true,
+  "actualUsage": null,
+  "assessmentExpectation": {
+    "sourceId": "history-1-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+    "sourceFact": "לא נמסר מידע רפואי. טיפול תרופתי לא בדקתי.",
+    "field10": {
+      "status": "unknown-or-absent",
+      "reason": "No medical information was supplied; this does not establish that the topic was not assessed."
+    },
+    "field11": {
+      "status": "not_assessed",
+      "sourceId": "history-1-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+      "reason": "The clinician explicitly says medication was not checked."
+    }
+  },
+  "sentinels": {
+    "beginning": {
+      "sourceId": "history-1-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+      "fact": "בפגישה הראשונה מסר כי עבר טיפול קצר של שישה מפגשים בשנת 2023. לדבריו הטיפול הסתיים בגלל מעבר עיר."
+    },
+    "ending": {
+      "sourceId": "current-f043a3fa-2f4c-449c-98bd-a7efa7fe8c2d",
+      "fact": "בפגישה הנוכחית מסר שביום חמישי דחה פעם אחת בדיקת הודעות עבודה בעשר דקות, בזמן ארוחה עם אחותו. לדבריו היה מרוצה מאותו רגע, אך אין בידיו מידע על שינוי ביתר השבוע."
+    }
+  },
+  "manualReview": "Check that intake preserves six sessions in 2023 ending because of relocation; the current note preserves Thursday, a ten-minute delay, dinner with his sister, and uncertainty about the rest of the week. Surface matches below are only navigation aids, not a semantic pass.",
+  "outcome": "dry-run-ready",
+  "finishedAt": "2026-10-18T06:27:30.611Z"
+}

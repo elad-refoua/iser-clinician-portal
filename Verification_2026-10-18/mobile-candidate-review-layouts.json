@@ -1,0 +1,80 @@
+{
+  "summary": "מוצעת רשומה חדשה לפגישה 1. מסמכים חדשים בתיק: אינטייק, המשגה, לקראת הדרכה וחומרי למידה.",
+  "layouts": [
+    {
+      "label": "proposal",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": [
+        {
+          "tag": "INPUT",
+          "cls": "sr-only",
+          "label": "ייבוא הדגמה בדיונית",
+          "x": 320,
+          "width": 1
+        }
+      ]
+    },
+    {
+      "label": "proposal",
+      "width": 375,
+      "height": 812,
+      "scrollWidth": 375,
+      "overflow": [
+        {
+          "tag": "INPUT",
+          "cls": "sr-only",
+          "label": "ייבוא הדגמה בדיונית",
+          "x": 375,
+          "width": 1
+        }
+      ]
+    },
+    {
+      "label": "proposal",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "overflow": [
+        {
+          "tag": "INPUT",
+          "cls": "sr-only",
+          "label": "ייבוא הדגמה בדיונית",
+          "x": 390,
+          "width": 1
+        }
+      ]
+    },
+    {
+      "label": "proposal",
+      "width": 430,
+      "height": 932,
+      "scrollWidth": 430,
+      "overflow": [
+        {
+          "tag": "INPUT",
+          "cls": "sr-only",
+          "label": "ייבוא הדגמה בדיונית",
+          "x": 430,
+          "width": 1
+        }
+      ]
+    },
+    {
+      "label": "proposal",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "overflow": [
+        {
+          "tag": "INPUT",
+          "cls": "sr-only",
+          "label": "ייבוא הדגמה בדיונית",
+          "x": 844,
+          "width": 1
+        }
+      ]
+    }
+  ]
+}

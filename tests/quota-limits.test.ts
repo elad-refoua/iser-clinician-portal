@@ -33,7 +33,7 @@ describe('trial spending limits', () => {
     const args = command.slice(10);
     expect(args).toEqual([
       input.payloadHash, input.now, input.micros,
-      20_000_000, 10_000_000, 250_000, 100, 120_000, 2,
+      20_000_000, 10_000_000, 2_000_000, 100, 300_000, 2,
       input.codeId, input.revision, input.questionCount, input.intakeCount, input.intakeRound,
     ]);
     expect(reservation.day).toBe(day);

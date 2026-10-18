@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import type { Branch, ContextPacket, DocumentVersion, DraftFollowUp, DraftResult, FieldUpdate, Goal, IntakeField, Patient, PendingDraft, PortalState, Preference, PreferenceCancellation, Session, Source, TurnResult } from '../contracts';
 import { TEXT_LIMITS } from '../contracts/index.js';
-import { emptyIntakeFields, renderIntake } from '../prompts/intake-schema.js';
-import { renderIntakeReport } from './intake-report.js';
+import { emptyIntakeFields, renderIntake, renderLegacyIntake } from '../prompts/intake-schema.js';
+import { renderIntakeReport, renderLegacyIntakeReport } from './intake-report.js';
 import { intakeCompletionFocus, intakeReadiness, isCanonicalIntakeCompletionFocus } from './intake-readiness.js';
 export { emptyIntakeFields, renderIntake, intakeFields, intakeSections, fieldStatusLabels } from '../prompts/intake-schema.js';
 export { renderIntakeReport } from './intake-report.js';
@@ -192,7 +192,9 @@ export function buildContext(state: PortalState, sessionId: string, stage?: Cont
 function compactIntakeText(content: string, fields: IntakeField[] | undefined, preferences: Preference[]): string {
   if (!fields || fields.length !== 32 || new Set(fields.map(field => field.id)).size !== 32) return content;
   // Remove only an exact renderer-produced suffix. Any independently authored text stays.
-  for (const rendered of [renderIntake(fields), renderIntakeReport(fields, preferences)]) {
+  // Old trace snapshots used the previous status label. Recognize that exact
+  // canonical rendering too, without normalizing arbitrary clinician-authored text.
+  for (const rendered of [renderIntake(fields), renderIntakeReport(fields, preferences), renderLegacyIntake(fields), renderLegacyIntakeReport(fields, preferences)]) {
     if (content.endsWith(rendered)) return `${content.slice(0, -rendered.length)}פרטי האינטייק המלאים, מצבם ומקורותיהם מופיעים בשדות המובנים בחבילת ההקשר.`;
   }
   return content;

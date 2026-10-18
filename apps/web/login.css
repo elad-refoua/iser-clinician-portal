@@ -43,7 +43,7 @@
 .login-password-group { display: flex; flex-direction: column; gap: 9px; }
 .login-password-field { display: block; position: relative; }
 .login-password-field input { padding-right: 46px; }
-.login-password-toggle { position: absolute; right: 3px; top: 2px; width: 42px; height: 44px; border-radius: 6px; color: #627b6e; padding: 0; }
+.login-password-toggle { position: absolute; right: 3px; top: 2px; width: 44px; height: 44px; border-radius: 6px; color: #627b6e; padding: 0; }
 .login-password-toggle:hover:not(:disabled) { background: #edf4ef; }
 .login-submit { width: 100%; min-height: 49px; margin-top: 4px; }
 .login-error { margin: -5px 0 0; padding: 10px 12px; border-radius: 6px; background: #fff3eb; color: #884c32; font-size: 13px; line-height: 1.75; overflow-wrap: anywhere; }

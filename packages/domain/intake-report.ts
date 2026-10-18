@@ -1,5 +1,5 @@
 import type { IntakeField, Preference } from '../contracts';
-import { intakeFields, renderIntake } from '../prompts/intake-schema.js';
+import { intakeFields, renderIntake, renderLegacyIntake } from '../prompts/intake-schema.js';
 
 const normalize = (text: string) => text.normalize('NFKC').replace(/[\u0591-\u05C7]/g, '').toLowerCase().trim();
 const labelGroups = [
@@ -27,9 +27,17 @@ export function intakeTopicMatches(field: IntakeField, topic: string): boolean {
 
 /** Redacts a report copy only; the structured ledger and source history remain unchanged. */
 export function renderIntakeReport(fields: IntakeField[], preferences: Preference[]): string {
+  return renderIntake(reportFields(fields, preferences));
+}
+
+/** Historical recognition only; this does not rewrite a stored document or field. */
+export function renderLegacyIntakeReport(fields: IntakeField[], preferences: Preference[]): string {
+  return renderLegacyIntake(reportFields(fields, preferences));
+}
+
+function reportFields(fields: IntakeField[], preferences: Preference[]): IntakeField[] {
   const exclusions = preferences.filter(pref => pref.action === 'exclude' && (!pref.goal || pref.goal === 'intake'));
-  const reportFields = fields.map(field => exclusions.some(pref => intakeTopicMatches(field, pref.topic))
+  return fields.map(field => exclusions.some(pref => intakeTopicMatches(field, pref.topic))
     ? { ...field, value: 'תוכן השדה הוחרג מתוצר זה לבקשת המטפל.', remaining: '', sourceIds: [] }
     : field);
-  return renderIntake(reportFields);
 }

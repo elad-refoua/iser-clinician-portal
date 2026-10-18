@@ -1,0 +1,440 @@
+{
+  "artifacts": [
+    {
+      "manifest": "docs/handbook/2026-10-16/build-manifest.json",
+      "sourceSha256": "9c278d2d5e0138d3bbb439e5a25d86947cc9976a2f3751a308503d48e060f1d8",
+      "checks": [
+        {
+          "path": "docs/handbook/2026-10-16/handbook.md",
+          "matches": true
+        },
+        {
+          "path": "docs/handbook/2026-10-16/metadata.json",
+          "matches": true
+        },
+        {
+          "path": "docs/handbook/2026-10-16/release-evidence.md",
+          "matches": true
+        },
+        {
+          "path": "Verification_2026-10-16/AI_SYSTEMS_RESEARCH.md",
+          "matches": true
+        },
+        {
+          "path": "docs/handbook/2026-10-16/handbook.css",
+          "matches": true
+        },
+        {
+          "path": "packages/prompts/index.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/prompts/intake-schema.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/prompts/authored.generated.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/prompts/template.ts",
+          "matches": true
+        },
+        {
+          "path": "Prompt_Workbench_2026-10-16/README.md",
+          "matches": true
+        },
+        {
+          "path": "Prompt_Workbench_2026-10-16/PROMPTS.md",
+          "matches": true
+        },
+        {
+          "path": "Prompt_Workbench_2026-10-16/CONTEXT.md",
+          "matches": true
+        },
+        {
+          "path": "scripts/prompt-source.ts",
+          "matches": true
+        },
+        {
+          "path": "scripts/sync-prompts.ts",
+          "matches": true
+        },
+        {
+          "path": "scripts/build-prompt-workbench.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/IntakeCompletion.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/intake-completion.css",
+          "matches": true
+        },
+        {
+          "path": "apps/web/proposal-diff.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/domain/intake-readiness.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/intake-readiness.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/proposal-diff.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/prompt-authoring.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/prompts.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/native-server-imports.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/provider-runtime.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/long-case-fixture.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/api-budget.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/legacy-intake-traces.test.ts",
+          "matches": true
+        },
+        {
+          "path": "Verification_2026-10-18/PROMPT_EXPERIENCE_RECOMMENDATIONS.md",
+          "matches": true
+        },
+        {
+          "path": "Verification_2026-10-16/PORTAL_DESIGN_SKILLS_RESEARCH.md",
+          "matches": true
+        },
+        {
+          "path": "packages/contracts/index.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/domain/index.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/domain/intake-report.ts",
+          "matches": true
+        },
+        {
+          "path": "packages/transport/workspace.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/App.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/Documents.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/Backstage.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/ui.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/NewPatient.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/workspace-sync.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/workspace-choice.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/workspace-state.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/document-editing.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/LoginScreen.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/CaseWelcome.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/ResponseExplainer.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/experience-model.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/SessionConversation.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/ReviewProposal.tsx",
+          "matches": true
+        },
+        {
+          "path": "apps/web/workflow-guards.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/api-errors.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/model-retry.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/chat-workflow.css",
+          "matches": true
+        },
+        {
+          "path": "apps/web/patient-portal.css",
+          "matches": true
+        },
+        {
+          "path": "tests/staged-records.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/context-budget.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/context-integrity.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/workflow-guards.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/document-editing.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/server-only-workflow.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/session-conversation.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/workspace-sync.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/workspace.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/model-retry.test.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/web/login.css",
+          "matches": true
+        },
+        {
+          "path": "apps/web/experience.css",
+          "matches": true
+        },
+        {
+          "path": "apps/web/styles.css",
+          "matches": true
+        },
+        {
+          "path": "tests/api.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/quota-limits.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/wire-field-schema.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/experience-model.test.ts",
+          "matches": true
+        },
+        {
+          "path": "tests/prompt-behavior.test.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/handler.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/auth.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/errors.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/quota.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/provider.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/validation.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/workspace.ts",
+          "matches": true
+        },
+        {
+          "path": "apps/api/workspace-store.ts",
+          "matches": true
+        },
+        {
+          "path": "api/workspace.ts",
+          "matches": true
+        },
+        {
+          "path": "vercel.json",
+          "matches": true
+        },
+        {
+          "path": ".github/workflows/pages.yml",
+          "matches": true
+        },
+        {
+          "path": "vite.config.ts",
+          "matches": true
+        },
+        {
+          "path": "vitest.config.ts",
+          "matches": true
+        },
+        {
+          "path": "package.json",
+          "matches": true
+        },
+        {
+          "path": "package-lock.json",
+          "matches": true
+        },
+        {
+          "path": ".env.example",
+          "matches": true
+        },
+        {
+          "path": "README.md",
+          "matches": true
+        },
+        {
+          "path": "apps/api/README.md",
+          "matches": true
+        },
+        {
+          "path": "apps/web/README.md",
+          "matches": true
+        },
+        {
+          "path": "packages/prompts/README.md",
+          "matches": true
+        },
+        {
+          "path": "scripts/build-handbook.ts",
+          "matches": true
+        },
+        {
+          "path": "docs/handbook/2026-10-16/assets/NotoSansHebrew.ttf",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/handbook.html",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/handbook.pdf",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "manifest": "Prompt_Workbench_2026-10-16/build-manifest.json",
+      "sourceSha256": "a6a9fc4c2252dd879e3b9c9c3aa952eb0669c523ba93c26b2ef6b9e4b4c3164c",
+      "checks": [
+        {
+          "path": "Prompt_Workbench_2026-10-16/README.md",
+          "matches": true
+        },
+        {
+          "path": "Prompt_Workbench_2026-10-16/PROMPTS.md",
+          "matches": true
+        },
+        {
+          "path": "Prompt_Workbench_2026-10-16/CONTEXT.md",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/prompt-workbench-guide.md",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/prompts.md",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/context-management.md",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/turn-prompt-example.txt",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/draft-prompt-example.txt",
+          "matches": true
+        },
+        {
+          "path": "apps/web/public/prompt-workbench.html",
+          "matches": true
+        }
+      ]
+    }
+  ],
+  "secretScan": {
+    "matches": [],
+    "explicitTestFixtureExclusions": 3
+  }
+}

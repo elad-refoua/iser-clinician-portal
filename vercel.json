@@ -4,7 +4,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "regions": ["fra1"],
-  "functions": { "api/*.ts": { "maxDuration": 60 } },
+  "functions": { "api/*.ts": { "maxDuration": 240 } },
   "headers": [{
     "source": "/(.*)",
     "headers": [

@@ -1,0 +1,25 @@
+{
+  "transportTest": "Browser held outbound request for25seconds; provider request and response are real.",
+  "waiting": {
+    "text": "עדיין ממתינים לתשובת Sonnet 5.5. עיבוד תיק ארוך עשוי לקחת יותר זמן.ביטול ההמתנה",
+    "cancelDisabled": false,
+    "width": 354
+  },
+  "url": "https://iser-clinician-u3uezmlk4-elad-refouas-projects.vercel.app/api/turn",
+  "status": 200,
+  "model": "anthropic/claude-sonnet-5.5",
+  "elapsedMs": 3080,
+  "usage": {
+    "input": 25493,
+    "output": 215,
+    "cost": 0.053136
+  },
+  "result": {
+    "action": "question",
+    "utterance": "נועם אמר שהפעם שם לב למשהו אחר, ואז עצר. מה אמר או תיאר לאחר העצירה?",
+    "topic": "המשך דבריו של נועם אחרי העצירה",
+    "rationale": "תיארת שנועם חזר לרגע שבו השתתק מול רשימת המשימות, אמר שהפעם שם לב למשהו אחר ועצר. לא תואר מה אמר או עשה אחרי העצירה, ולכן השאלה מתמקדת בכך.",
+    "fieldUpdates": [],
+    "preferenceUpdates": []
+  }
+}

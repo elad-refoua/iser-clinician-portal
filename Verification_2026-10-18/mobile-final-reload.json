@@ -1,0 +1,23 @@
+{
+  "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app/",
+  "landscapeEditor": {
+    "value": "בדיקת הקלדה זמנית במצב אופקי — ללא שמירה",
+    "footerPosition": "static",
+    "dialogWidth": 812
+  },
+  "reloadRequiresLogin": true,
+  "passwordEye": {
+    "width": 44,
+    "height": 44
+  },
+  "sessions": [
+    "פגישה 6 · מאושרת",
+    "פגישה 5 · מאושרת",
+    "פגישה 4 · מאושרת",
+    "פגישה 3 · מאושרת",
+    "פגישה 2 · מאושרת",
+    "פגישה 1 · מאושרת"
+  ],
+  "manualFieldRestored": true,
+  "cancelledTemporaryEditsAbsent": true
+}

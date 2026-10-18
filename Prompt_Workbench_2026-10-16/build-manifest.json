@@ -1,6 +1,6 @@
 {
-  "promptVersion": "2026-10-16.13",
-  "sourceSha256": "1e963fe80d97fa61460c116ffa970c2b84652587851d9972a0681082e54cdb51",
+  "promptVersion": "2026-10-18.1",
+  "sourceSha256": "a6a9fc4c2252dd879e3b9c9c3aa952eb0669c523ba93c26b2ef6b9e4b4c3164c",
   "sourceFiles": [
     {
       "path": "Prompt_Workbench_2026-10-16/README.md",
@@ -8,11 +8,11 @@
     },
     {
       "path": "Prompt_Workbench_2026-10-16/PROMPTS.md",
-      "sha256": "9d8f50b533ee8568edfa174fa7d30c78cf7c629478a0f9cc2c6e4a8e92f33b1c"
+      "sha256": "aa211d618615a4efca3b123e813f6b5d9743812cc09db8292c9a0dee5f53b070"
     },
     {
       "path": "Prompt_Workbench_2026-10-16/CONTEXT.md",
-      "sha256": "efcb5e55b2d0eb7d5bc38a26effb639cd23df1ab51c685c757f4d95960ebcd54"
+      "sha256": "9f5132a97f9870f18e69f7054013fa9e2d8aa8534c19164fe861eeb3a122a760"
     }
   ],
   "outputs": [
@@ -22,23 +22,23 @@
     },
     {
       "path": "apps/web/public/prompts.md",
-      "sha256": "9d8f50b533ee8568edfa174fa7d30c78cf7c629478a0f9cc2c6e4a8e92f33b1c"
+      "sha256": "aa211d618615a4efca3b123e813f6b5d9743812cc09db8292c9a0dee5f53b070"
     },
     {
       "path": "apps/web/public/context-management.md",
-      "sha256": "efcb5e55b2d0eb7d5bc38a26effb639cd23df1ab51c685c757f4d95960ebcd54"
+      "sha256": "9f5132a97f9870f18e69f7054013fa9e2d8aa8534c19164fe861eeb3a122a760"
     },
     {
       "path": "apps/web/public/turn-prompt-example.txt",
-      "sha256": "60095505c2b9563a4159bdc8ed678e93f5abcc3c7f5986bac58413a921656b80"
+      "sha256": "0302df5993f68f7639e4e7c54d92c31529e2a23111c6f7e1b45df90c3d03cae0"
     },
     {
       "path": "apps/web/public/draft-prompt-example.txt",
-      "sha256": "64a3f4a45d2027ae68d46d596e31edde5f5eacf42d3638ad8460a9981ca4fc2e"
+      "sha256": "80cfa98b0087de67c930070bb5a191113bfcbaf6b252bd5cda6201188ef8fcb5"
     },
     {
       "path": "apps/web/public/prompt-workbench.html",
-      "sha256": "5a968f2024b384ce4524f025adf3b439d3a984b5ab0186f678f096f5c2b08093"
+      "sha256": "c8b536e124982f1283867ff4e4275f42169f795b1f5c10c4d6bb58a042e03e03"
     }
   ]
 }

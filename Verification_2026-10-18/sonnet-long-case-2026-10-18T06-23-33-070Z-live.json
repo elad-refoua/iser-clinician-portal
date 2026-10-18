@@ -1,0 +1,205 @@
+{
+  "runId": "795e76b4-319e-4190-957a-976c86ec2e4a",
+  "startedAt": "2026-10-18T06:23:33.070Z",
+  "mode": "live",
+  "candidate": "https://iser-clinician-u3uezmlk4-elad-refouas-projects.vercel.app",
+  "fictionalOnly": true,
+  "workspaceWrites": false,
+  "retries": 0,
+  "requestId": "request-795e76b4-319e-4190-957a-976c86ec2e4a",
+  "model": "anthropic/claude-sonnet-5.5",
+  "localPromptVersion": "2026-10-16.13",
+  "requestBytes": 159704,
+  "sourceCount": 9,
+  "sourceIds": [
+    "history-1-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "history-2-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "history-3-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "history-4-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "history-5-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "history-6-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "history-7-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "history-8-795e76b4-319e-4190-957a-976c86ec2e4a",
+    "current-795e76b4-319e-4190-957a-976c86ec2e4a"
+  ],
+  "requestSha256": "aa20b198df8d34cd74117b91eff2bfdb0eef4fb07e2e64a815966ed3486d847a",
+  "contextSha256": "b8c8085ae35c6231e8f61db5fa0dd0c6781065d6f0fb7761c19675312fbb3dd4",
+  "promptSha256": "952f2d713d7ce0359525834b43cf7749dca5f72b5b39b35e71e72a2cae249c0d",
+  "inputTokenBound": 220549,
+  "outputTokenAllowance": 6000,
+  "estimatedReservationUSD": 0.561098,
+  "previousCapUSD": 0.25,
+  "minimumRequiredAtOldOutputFloorUSD": 0.511198,
+  "previousCapWouldReject": true,
+  "actualUsage": {
+    "input": 85310,
+    "output": 2942,
+    "cost": 0.20004
+  },
+  "sentinels": {
+    "beginning": {
+      "sourceId": "history-1-795e76b4-319e-4190-957a-976c86ec2e4a",
+      "fact": "בפגישה הראשונה מסר כי עבר טיפול קצר של שישה מפגשים בשנת 2023. לדבריו הטיפול הסתיים בגלל מעבר עיר."
+    },
+    "ending": {
+      "sourceId": "current-795e76b4-319e-4190-957a-976c86ec2e4a",
+      "fact": "בפגישה הנוכחית מסר שביום חמישי דחה פעם אחת בדיקת הודעות עבודה בעשר דקות, בזמן ארוחה עם אחותו. לדבריו היה מרוצה מאותו רגע, אך אין בידיו מידע על שינוי ביתר השבוע."
+    }
+  },
+  "manualReview": "Check that intake preserves six sessions in 2023 ending because of relocation; the current note preserves Thursday, a ten-minute delay, dinner with his sister, and uncertainty about the rest of the week. Surface matches below are only navigation aids, not a semantic pass.",
+  "accessHttpStatus": 200,
+  "httpStatus": 200,
+  "elapsedMs": 25332,
+  "serverElapsedMs": 24860,
+  "returnedModel": "anthropic/claude-sonnet-5.5",
+  "returnedPromptVersion": "2026-10-16.13",
+  "serverContextPreserved": true,
+  "output": {
+    "documents": [
+      {
+        "kind": "note",
+        "content": "בפגישה מסר שביום חמישי דחה פעם אחת בדיקת הודעות עבודה בעשר דקות, בזמן ארוחה עם אחותו. לדבריו היה מרוצה מאותו רגע. לדבריו אין בידיו מידע על שינוי ביתר השבוע. המטפל ביקש ממנו לתאר מה היה באותו רגע; תוכן התיאור לא נמסר ולכן אינו מתועד כאן.\n\nרקע מפגישות קודמות (לא אירוע היום): בפגישה 1 נמסר על טיפול קצר בשנת 2023 ועל קושי להיפרד מהודעות עבודה בערב. בפגישה 8 הוזכר מפגש מתוכנן עם אחותו.",
+        "sourceIds": [
+          "current-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-8-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ]
+      },
+      {
+        "kind": "formulation",
+        "content": "לא נמסרה היום השערה או המשגה מטעם המטפל, ולכן לא נוספה המשגה. נשמרת הפרדה בין עובדות שדווחו לבין השערות; אין להסיק דפוס או שינוי מהדיווחים. הרגע מיום חמישי תואר כאירוע בודד, ללא מידע על שאר השבוע.",
+        "sourceIds": [
+          "current-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ]
+      },
+      {
+        "kind": "intake",
+        "content": "",
+        "sourceIds": []
+      },
+      {
+        "kind": "gold",
+        "content": "לא סומן היום רגע, ניסוח או פעולה כבעלי ערך ללמידה. לא נוסף פריט.",
+        "sourceIds": []
+      },
+      {
+        "kind": "supervision",
+        "content": "לא נמסרו היום אי־ודאות, שאלה, תגובה אישית או דילמה להדרכה. לא נוסף תוכן.",
+        "sourceIds": []
+      }
+    ],
+    "fieldUpdates": [
+      {
+        "id": 5,
+        "value": "לפי הפגישה הראשונה, פנה ביוזמתו בגלל קושי להיפרד מהודעות עבודה בערב.",
+        "status": "documented",
+        "sourceIds": [
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": ""
+      },
+      {
+        "id": 6,
+        "value": "קושי להיפרד מהודעות עבודה בערב (פגישה 1). בפגישה 2 תיאר בדיקה חוזרת של הודעות עבודה לפני ארוחת ערב.",
+        "status": "documented",
+        "sourceIds": [
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-2-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": ""
+      },
+      {
+        "id": 8,
+        "value": "בפגישה 1 דווח קושי להיפרד מהודעות עבודה בערב; בפגישה 2 בדיקה חוזרת לפני ארוחת ערב. בפגישה 4 סיפר שלעתים מצליח להישאר בארוחה עם חבר בלי להוציא טלפון (ללא תדירות או הערכה שיטתית). בפגישה 9 דיווח שביום חמישי דחה פעם אחת בדיקת הודעות בעשר דקות בזמן ארוחה עם אחותו, והיה מרוצה מאותו רגע; אין בידיו מידע על שינוי ביתר השבוע.",
+        "status": "partial",
+        "sourceIds": [
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-2-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-4-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "current-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": "התחלה, תדירות והתפתחות לאורך זמן, ותיאור המטופל של הרגע מיום חמישי"
+      },
+      {
+        "id": 9,
+        "value": "טיפול קצר של שישה מפגשים בשנת 2023, שהסתיים בגלל מעבר עיר, לדברי המטופל.",
+        "status": "partial",
+        "sourceIds": [
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": "היסטוריה פסיכיאטרית וגישת הטיפול הקודם"
+      },
+      {
+        "id": 10,
+        "value": "בפגישה הראשונה לא נמסר מידע רפואי.",
+        "status": "not_assessed",
+        "sourceIds": [
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": "רקע רפואי לא נמסר"
+      },
+      {
+        "id": 11,
+        "value": "בפגישה הראשונה לא נמסר מידע תרופתי.",
+        "status": "not_assessed",
+        "sourceIds": [
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": "טיפול תרופתי לא נמסר"
+      },
+      {
+        "id": 14,
+        "value": "מפגש מתוכנן עם אחותו הוזכר בפגישה 8; ביום חמישי היה בארוחה עם אחותו (פגישה 9).",
+        "status": "partial",
+        "sourceIds": [
+          "history-8-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "current-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": "מסגרת משפחתית ומערכות יחסים"
+      },
+      {
+        "id": 16,
+        "value": "הודעות עבודה מוזכרות כקשורות לערבים; בפגישה 6 סיפר על ערב עמוס במיוחד בעבודה והבחין בין בקשה דחופה לבין תחושת חובה כללית לענות מיד.",
+        "status": "partial",
+        "sourceIds": [
+          "history-1-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-6-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": "תפקיד, מקום עבודה ותפקוד תעסוקתי"
+      },
+      {
+        "id": 17,
+        "value": "בפגישה 3 תיאר מחשבה שאם לא יענה במהירות יאכזב עמית. בפגישה 4 לעתים נשאר בארוחה עם חבר בלי להוציא טלפון. בפגישה 5 תיאר רצון להשאיר יותר זמן למפגשים עם קרובים. בפגישה 9 ארוחה עם אחותו.",
+        "status": "partial",
+        "sourceIds": [
+          "history-3-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-4-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "history-5-795e76b4-319e-4190-957a-976c86ec2e4a",
+          "current-795e76b4-319e-4190-957a-976c86ec2e4a"
+        ],
+        "remaining": "תפקוד חברתי רחב ותדירות"
+      },
+      {
+        "id": 22,
+        "value": "",
+        "status": "unknown",
+        "sourceIds": [],
+        "remaining": "הערכת סיכון לא נמסרה; בפגישה 8 צוין במפורש שלא נמסרה הערכת סיכון. היעדר מידע אינו הערכה."
+      }
+    ],
+    "rationale": "נמסרו הדחייה בעשר דקות בארוחה עם האחות והבקשה לשמור היסטוריה מפורשת באינטייק. השדות עודכנו ממקורות הפגישות הקודמות, ותיאור המטופל של הרגע לא נמסר ונשאר חסר.",
+    "summary": "הרשומה מתעדת את הדחייה החד־פעמית של בדיקת הודעות ביום חמישי ואת היעדר מידע על שאר השבוע, עם ההיסטוריה כרקע בלבד. האינטייק מקבל את ההיסטוריה המפורשת: טיפול קודם, סיבת הפנייה, מהלך הקושי, עבודה וקשרים. המשגה, חומרי למידה והכנה להדרכה נותרו ללא תוכן חדש כי לא נמסר. נשארו חסרים, בין היתר, רקע רפואי ותרופתי, הערכת סיכון, ותיאור המטופל של הרגע מיום חמישי. ההצעות ממתינות לעיון ולאישור.",
+    "followUps": [],
+    "preferenceUpdates": []
+  },
+  "surfaceChecks": {
+    "year2023": true,
+    "sixSessions": true,
+    "relocation": true,
+    "thursday": true,
+    "tenMinutes": true,
+    "sister": true
+  },
+  "outcome": "received-review-required",
+  "finishedAt": "2026-10-18T06:23:59.023Z"
+}

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { longCaseRequest } from './long-case-fixture';
 import type { ContextPacket, DraftResult, TurnResult } from '../packages/contracts/index.js';
 import { handle } from '../apps/api/handler.js';
 import { authenticate, digest, issueToken } from '../apps/api/auth.js';
@@ -187,7 +188,8 @@ describe('API boundaries', () => {
     expect(prepared.body.provider).toMatchObject({ require_parameters: true, allow_fallbacks: false, max_price: { prompt: 2, completion: 10, request: 0 } });
     expect(prepared.body.reasoning).toEqual({ effort: 'low', exclude: true });
     expect(prepared.micros).toBeGreaterThan(50000);
-    expect(() => prepareProviderRequest(catalog, 'draft', 'x'.repeat(100000), {}, schema)).toThrow('request_budget_exceeded');
+    expect(prepareProviderRequest(catalog, 'draft', 'x'.repeat(100000), {}, schema).outputTokens).toBe(6000);
+    expect(() => prepareProviderRequest(catalog, 'draft', 'x'.repeat(970000), {}, schema)).toThrow('request_budget_exceeded');
   });
   it('sends once, finalizes actual usage, refuses completed and conflicting IDs', async () => {
     const quota = new TestQuota(); const p = provider(); const deps = { env, quota, fetcher: p.fetcher, now: () => now };
@@ -268,6 +270,34 @@ describe('API boundaries', () => {
     }
     const p = provider(); const response = await handle(request('models'), 'models', { env, fetcher: p.fetcher, now: () => now });
     const data = await json(response); expect(data.liveReady).toBe(false); expect(data.readiness.quota).toBe(false); expect(JSON.stringify(data)).not.toContain(env.OPENROUTER_API_KEY);
+  });
+  it('allows a full long-case Sonnet draft once and still enforces remaining daily and total balances before inference', async () => {
+    const body = longCaseRequest();
+    const result: DraftResult = {
+      documents: ['note', 'formulation', 'intake', 'gold', 'supervision'].map(kind => ({ kind: kind as any, content: 'פלט בדיקה בדיוני בלבד.', sourceIds: [] })),
+      fieldUpdates: [], rationale: 'בדיקת עומס.', summary: 'טיוטת בדיקה.', followUps: [], preferenceUpdates: [],
+    };
+    for (const exhausted of ['daily', 'total'] as const) {
+      const quota = new TestQuota();
+      quota[exhausted] = (exhausted === 'daily' ? LIMITS.dailyMicros : LIMITS.totalMicros) - 1_000_000;
+      const before = quota[exhausted];
+      const p = provider(result);
+      const response = await handle(request('draft', body), 'draft', { env, quota, fetcher: p.fetcher, now: () => now });
+      expect(response.status).toBe(429);
+      expect(await json(response)).toEqual({ error: `${exhausted}_budget_exceeded` });
+      expect(p.count()).toBe(0);
+      expect(quota[exhausted]).toBe(before);
+      expect(quota.records.size).toBe(0);
+    }
+    const quota = new TestQuota(); const p = provider(result);
+    const response = await handle(request('draft', body), 'draft', { env, quota, fetcher: p.fetcher, now: () => now });
+    expect(response.status).toBe(200);
+    expect(p.count()).toBe(1);
+    expect(p.bodies[0].max_tokens).toBe(6000);
+    expect(JSON.parse((p.bodies[0].messages as { content: string }[])[1].content)).toEqual(body.context);
+    expect(quota.records.get(body.requestId)!.amount).toBeGreaterThan(250_000);
+    expect(quota.total).toBe(2000);
+    expect(quota.daily).toBe(2000);
   });
   it('checks catalog capabilities and refuses untrusted Redis response details', async () => {
     const fetcher = vi.fn(async () => Response.json({ data: [{ ...catalog, supported_parameters: ['temperature'] }] })) as unknown as typeof fetch;

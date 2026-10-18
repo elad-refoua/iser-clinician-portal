@@ -7,6 +7,8 @@ import { prepareProviderRequest, type CatalogModel } from '../apps/api/provider'
 import { responseSchema, validateRequest } from '../apps/api/validation';
 import { LIMITS } from '../apps/api/quota';
 import type { DraftResult } from '../packages/contracts';
+import { MAX_MODEL_REQUEST_BYTES } from '../packages/contracts';
+import { longCaseRequest } from './long-case-fixture';
 
 // Public catalogue prices observed on 2026-10-16; no provider requests in this suite.
 const model: CatalogModel = { id: 'anthropic/claude-sonnet-5.5', context_length: 1_000_000,
@@ -19,7 +21,20 @@ function active(patientIndex = 0) {
 }
 
 describe('lossless bounded model requests', () => {
-  it('keeps first drafts and their regeneration usable for every seeded case under the unchanged cap', () => {
+  it('gives a near-maximum accepted Hebrew case a full Sonnet draft without dropping source, document or pending-draft content', () => {
+    const request = longCaseRequest();
+    const before = JSON.stringify(request);
+    expect(Buffer.byteLength(before, 'utf8')).toBe(MAX_MODEL_REQUEST_BYTES - 128);
+    validateRequest(request, 'draft');
+    const prepared = prepareProviderRequest(model, 'draft', buildSystemPrompt(request.context, 'draft'), request.context, responseSchema('draft'));
+    expect(prepared.micros).toBeGreaterThan(250_000);
+    expect(prepared.micros).toBeLessThanOrEqual(2_000_000);
+    expect(prepared.outputTokens).toBe(6000);
+    const messages = prepared.body.messages as { role: string; content: string }[];
+    expect(JSON.parse(messages[1].content)).toEqual(request.context);
+    expect(JSON.stringify(request)).toBe(before);
+  });
+  it('keeps first drafts and their regeneration usable for every seeded case under the request cap', () => {
     for (let patient = 0; patient < 3; patient++) {
       let { state, session } = active(patient);
       const original = buildContext(state, session.id, 'draft');
@@ -62,20 +77,20 @@ describe('lossless bounded model requests', () => {
     expect(compact.workingDraft!.fieldUpdates).toEqual(context.workingDraft.fieldUpdates);
   });
 
-  it('adapts output capacity but never drops below the useful draft floor or changes the financial cap', () => {
-    const prepared = prepareProviderRequest(model, 'draft', 'x'.repeat(65_000), {}, {});
+  it('adapts output capacity but never drops below the useful draft floor or exceeds the authorized request cap', () => {
+    const prepared = prepareProviderRequest(model, 'draft', 'x'.repeat(940_000), {}, {});
     expect(prepared.outputTokens).toBeGreaterThanOrEqual(3500);
     expect(prepared.outputTokens).toBeLessThan(6000);
-    expect(prepared.micros).toBeLessThanOrEqual(250000);
-    expect(() => prepareProviderRequest(model, 'draft', 'x'.repeat(100_000), {}, {})).toThrow('request_budget_exceeded');
+    expect(prepared.micros).toBeLessThanOrEqual(2_000_000);
+    expect(() => prepareProviderRequest(model, 'draft', 'x'.repeat(970_000), {}, {})).toThrow('request_budget_exceeded');
     expect(() => prepareProviderRequest({ ...model, context_length: 10_000 }, 'draft', 'x'.repeat(2000), {}, {})).toThrow('model_context_limit');
     expect(() => prepareProviderRequest({ ...model, top_provider: { max_completion_tokens: 3499 } }, 'draft', '', {}, {})).toThrow('model_output_limit');
-    expect(LIMITS.requestMicros).toBe(250000);
+    expect(LIMITS.requestMicros).toBe(2_000_000);
   });
 
   it('pins final output capacity to the reservation even when the final prompt is shorter', () => {
-    const initial = prepareProviderRequest(model, 'draft', 'x'.repeat(65_000), {}, {});
-    const final = prepareProviderRequest(model, 'draft', 'x'.repeat(64_990), {}, {}, initial.outputTokens);
+    const initial = prepareProviderRequest(model, 'draft', 'x'.repeat(940_000), {}, {});
+    const final = prepareProviderRequest(model, 'draft', 'x'.repeat(939_990), {}, {}, initial.outputTokens);
     expect(final.outputTokens).toBe(initial.outputTokens);
     expect(final.micros).toBeLessThanOrEqual(initial.micros);
   });

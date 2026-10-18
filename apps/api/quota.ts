@@ -1,7 +1,7 @@
 import { digest } from './auth.js';
 import { ApiError, boundedJson, type Environment } from './errors.js';
 
-export const LIMITS = { totalMicros: 20_000_000, dailyMicros: 10_000_000, requestMicros: 250_000, dailyCalls: 100, globalConcurrency: 2, leaseMs: 120_000 } as const;
+export const LIMITS = { totalMicros: 20_000_000, dailyMicros: 10_000_000, requestMicros: 2_000_000, dailyCalls: 100, globalConcurrency: 2, leaseMs: 300_000 } as const;
 export interface ReservationInput { codeId: string; sessionKey: string; requestId: string; payloadHash: string; micros: number; now: number; revision: number; questionCount: number; intakeCount: number; intakeRound: number }
 export interface Reservation { requestKey: string; day: string; sessionKey: string; questionCount: number; intakeCount: number; intakeRound: number }
 export interface QuotaStore {

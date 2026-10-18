@@ -48,7 +48,7 @@ export const intakeSections: Array<{ title: string; fieldIds: number[] }> = [
 ];
 
 export const fieldStatusLabels: Record<FieldStatus, string> = {
-  documented: 'תועד', partial: 'תועד חלקית', unknown: 'לא הוזכר',
+  documented: 'תועד', partial: 'תועד חלקית', unknown: 'לא נמסר מידע',
   not_assessed: 'לא נבדק', not_recalled: 'לא זכור', conflict: 'קיימת סתירה',
   not_applicable: 'לא רלוונטי',
 };
@@ -58,6 +58,19 @@ export function emptyIntakeFields(): IntakeField[] {
 }
 
 export function renderIntake(fields: IntakeField[]): string {
+  return renderIntakeWithLabels(fields, fieldStatusLabels);
+}
+
+/** Canonical pre-2026-10-18 format, only for recognizing saved historical reports. */
+export function renderLegacyIntake(fields: IntakeField[]): string {
+  return renderIntakeWithLabels(fields, {
+    documented: 'תועד', partial: 'תועד חלקית', unknown: 'לא הוזכר',
+    not_assessed: 'לא נבדק', not_recalled: 'לא זכור', conflict: 'קיימת סתירה',
+    not_applicable: 'לא רלוונטי',
+  });
+}
+
+function renderIntakeWithLabels(fields: IntakeField[], statusLabels: Record<FieldStatus, string>): string {
   const byId = new Map(fields.map(field => [field.id, field]));
   return intakeSections.map(section => {
     const items = section.fieldIds.map(id => {
@@ -66,7 +79,7 @@ export function renderIntake(fields: IntakeField[]): string {
       const status = field?.status ?? 'unknown';
       const value = field?.value.trim() || 'לא נמסר מידע בשדה זה.';
       const remaining = field?.remaining?.trim();
-      return `### ${id}. ${label}\nמצב: ${fieldStatusLabels[status]}\n${value}${remaining ? `\nלהשלמה: ${remaining}` : ''}`;
+      return `### ${id}. ${label}\nמצב: ${statusLabels[status]}\n${value}${remaining ? `\nלהשלמה: ${remaining}` : ''}`;
     });
     return `## ${section.title}\n\n${items.join('\n\n')}`;
   }).join('\n\n');

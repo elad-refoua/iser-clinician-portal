@@ -1,0 +1,70 @@
+{
+  "css": "Local tab wrapping overlay; final published recheck required.",
+  "tabs": [
+    {
+      "text": "איך המערכת עובדת",
+      "rect": {
+        "left": 245.328125,
+        "right": 372,
+        "width": 126.671875,
+        "height": 44
+      }
+    },
+    {
+      "text": "הוראות לעוזר",
+      "rect": {
+        "left": 150.15625,
+        "right": 241.328125,
+        "width": 91.171875,
+        "height": 44
+      }
+    },
+    {
+      "text": "מה העוזר יודע",
+      "rect": {
+        "left": 50.96875,
+        "right": 146.15625,
+        "width": 95.1875,
+        "height": 44
+      }
+    },
+    {
+      "text": "מה קרה בתור",
+      "rect": {
+        "left": 279.90625,
+        "right": 372,
+        "width": 92.09375,
+        "height": 44
+      }
+    },
+    {
+      "text": "בדיקת הוראות",
+      "rect": {
+        "left": 179.46875,
+        "right": 275.90625,
+        "width": 96.4375,
+        "height": 44
+      }
+    }
+  ],
+  "linkResults": [
+    {
+      "label": "פרומפטים וניהול הקשר",
+      "url": "https://iser-clinician-u3uezmlk4-elad-refouas-projects.vercel.app/prompt-workbench.html",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "label": "ספר ההפעלה",
+      "url": "https://iser-clinician-u3uezmlk4-elad-refouas-projects.vercel.app/handbook.html",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "label": "הורדת PDF",
+      "url": "https://iser-clinician-u3uezmlk4-elad-refouas-projects.vercel.app/handbook.pdf",
+      "status": 200,
+      "contentType": "application/pdf"
+    }
+  ]
+}

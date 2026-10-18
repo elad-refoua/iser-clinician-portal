@@ -1,0 +1,48 @@
+{
+  "runId": "719f54df-b9a9-4418-93e6-a34877883852",
+  "startedAt": "2026-10-18T06:22:34.324Z",
+  "mode": "dry-run",
+  "candidate": null,
+  "fictionalOnly": true,
+  "workspaceWrites": false,
+  "retries": 0,
+  "requestId": "request-719f54df-b9a9-4418-93e6-a34877883852",
+  "model": "anthropic/claude-sonnet-5.5",
+  "localPromptVersion": "2026-10-16.13",
+  "requestBytes": 159704,
+  "sourceCount": 9,
+  "sourceIds": [
+    "history-1-719f54df-b9a9-4418-93e6-a34877883852",
+    "history-2-719f54df-b9a9-4418-93e6-a34877883852",
+    "history-3-719f54df-b9a9-4418-93e6-a34877883852",
+    "history-4-719f54df-b9a9-4418-93e6-a34877883852",
+    "history-5-719f54df-b9a9-4418-93e6-a34877883852",
+    "history-6-719f54df-b9a9-4418-93e6-a34877883852",
+    "history-7-719f54df-b9a9-4418-93e6-a34877883852",
+    "history-8-719f54df-b9a9-4418-93e6-a34877883852",
+    "current-719f54df-b9a9-4418-93e6-a34877883852"
+  ],
+  "requestSha256": "fd9686ea15631fdb40b3072ecc8824fea291b7c7f95635f239b2ea4f05fcb937",
+  "contextSha256": "f3a73c221f3dcc62a289f8bbebc44007bdc9131a7e0190afe9c5a495f232cbb8",
+  "promptSha256": "fd902d8c9cb28eeeb16058e532b06a080525f408d05295dda764281926e4b6fd",
+  "inputTokenBound": 220549,
+  "outputTokenAllowance": 6000,
+  "estimatedReservationUSD": 0.561098,
+  "previousCapUSD": 0.25,
+  "minimumRequiredAtOldOutputFloorUSD": 0.511198,
+  "previousCapWouldReject": true,
+  "actualUsage": null,
+  "sentinels": {
+    "beginning": {
+      "sourceId": "history-1-719f54df-b9a9-4418-93e6-a34877883852",
+      "fact": "בפגישה הראשונה מסר כי עבר טיפול קצר של שישה מפגשים בשנת 2023. לדבריו הטיפול הסתיים בגלל מעבר עיר."
+    },
+    "ending": {
+      "sourceId": "current-719f54df-b9a9-4418-93e6-a34877883852",
+      "fact": "בפגישה הנוכחית מסר שביום חמישי דחה פעם אחת בדיקת הודעות עבודה בעשר דקות, בזמן ארוחה עם אחותו. לדבריו היה מרוצה מאותו רגע, אך אין בידיו מידע על שינוי ביתר השבוע."
+    }
+  },
+  "manualReview": "Check that intake preserves six sessions in 2023 ending because of relocation; the current note preserves Thursday, a ten-minute delay, dinner with his sister, and uncertainty about the rest of the week. Surface matches below are only navigation aids, not a semantic pass.",
+  "outcome": "dry-run-ready",
+  "finishedAt": "2026-10-18T06:22:35.012Z"
+}

@@ -1,0 +1,21 @@
+{
+  "test": "Outbound model request held before network then cancelled. No provider inference was invoked by this test. A test-listener cleanup error occurred after cancellation; reconnect verified the UI result.",
+  "userTextPreserved": true,
+  "waitingRemoved": true,
+  "composerEnabled": true,
+  "viewport": {
+    "label": "cancelled",
+    "width": 390,
+    "height": 844,
+    "scrollWidth": 390,
+    "overflow": [
+      {
+        "tag": "INPUT",
+        "cls": "sr-only",
+        "label": "ייבוא הדגמה בדיונית",
+        "x": 390,
+        "width": 1
+      }
+    ]
+  }
+}

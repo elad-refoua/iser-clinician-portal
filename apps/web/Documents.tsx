@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, CalendarDays, Check, ChevronDown, FileText, History, MessageCircle, PencilLine, Save, ScanText, X } from 'lucide-react';
 import { GOAL_LABELS, TEXT_LIMITS, type DocumentVersion, type FieldStatus, type Goal, type IntakeField, type PendingDraft, type PortalState, type Session } from '../../packages/contracts';
-import { acceptProposal, approveSession, buildContext, currentVersion, documentHistory, editDocument, emptyIntakeFields, intakeFields, intakeSections, pendingDraftIsCurrent, rejectProposal, renderIntake, restoreVersion } from '../../packages/domain';
+import { acceptProposal, approveSession, buildContext, currentVersion, documentHistory, editDocument, emptyIntakeFields, fieldStatusLabels as statuses, intakeFields, intakeSections, pendingDraftIsCurrent, rejectProposal, renderIntake, restoreVersion } from '../../packages/domain';
 import { renderIntakeReport } from '../../packages/domain/intake-report';
 import { CopyButton, dateLabel, DocumentDiff, DocumentText, Modal, navigateTabs, SourceViewer, timeLabel, VersionMeta } from './ui';
 import { scheduleLabel } from './NewPatient';
@@ -10,7 +10,6 @@ import { editorDrafts, writeEditorDraft, removeEditorDraft, subscribeEditorDraft
 export { clearEditorDrafts, hasUnsavedDocumentEdits, subscribeEditorDrafts, getEditorDraftCount } from './document-editing';
 import './patient-portal.css';
 
-const statuses: Record<FieldStatus, string> = { documented: 'תועד', partial: 'תועד חלקית', unknown: 'לא הוזכר', not_assessed: 'לא נבדק', not_recalled: 'לא זכור', conflict: 'קיימת סתירה', not_applicable: 'לא רלוונטי' };
 const goals: Goal[] = ['note', 'intake', 'formulation', 'supervision', 'gold'];
 type Update = (operation: (state: PortalState) => PortalState) => boolean;
 

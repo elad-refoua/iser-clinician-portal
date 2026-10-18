@@ -9,7 +9,7 @@
 - אתר: [מרווח בגיטהאב](https://elad-refoua.github.io/iser-clinician-portal/)
 - שרת וגרסת אירוח נוספת: [Vercel](https://iser-clinician-api.vercel.app/)
 - ספר הפעלה: [מדריך באתר](https://elad-refoua.github.io/iser-clinician-portal/handbook.html), [PDF](https://elad-refoua.github.io/iser-clinician-portal/handbook.pdf)
-- תוצאות בדיקות השמירה, השיחה והמסירה מתועדות ב־[ראיות המהדורה](Verification_2026-10-16/SERVER_CHAT_BROWSER_CHECKS.md); בדיקות מוקדמות נשמרות בנפרד ב־[ארכיון המסירה](Verification_2026-10-16/RELEASE_CHECKS.md). מצב המימוש והמשך העבודה מתעדכנים ב־[יומן העבודה](Implementation_2026-10-16/progress.md).
+- בדיקות עדכניות: [מובייל](Verification_2026-10-18/MOBILE_QA.md), [Sonnet בתיק ארוך](Verification_2026-10-18/LONG_CASE_QA.md), [סקירה עצמאית](Verification_2026-10-18/INDEPENDENT_RELEASE_REVIEW.md) ו־[המלצות לפרומפטים ולחוויה](Verification_2026-10-18/PROMPT_EXPERIENCE_RECOMMENDATIONS.md). מצב המימוש והמשך העבודה נמצאים ב־[נקודת ההמשך](Implementation_2026-10-18/CONTINUE_HERE.md) וב־[יומן העבודה](Implementation_2026-10-18/progress.md). בדיקות קודמות נשמרות ב־`Verification_2026-10-16/`.
 
 ## פתיחת תיק ושמירה בין מכשירים
 
@@ -78,7 +78,7 @@ npm run preview
 
 צרו Fork של מאגר זה בחשבון GitHub שלכם ושכפלו את ה־Fork לפיתוח. ב־Vercel בחרו **Add New → Project**, ייבאו את המאגר שלכם, והשאירו **Root Directory בשורש המאגר** — לא `apps/web` ולא `api`. בחרו שם פרויקט זמין משלכם והגדירו את ענף הייצור לפי המאגר, כאן `main`. שמות וחשבונות מקומיים מקובץ `.vercel` של מחשב אחר אינם חלק מההתקנה. [תיעוד ייבוא Vercel](https://vercel.com/docs/git).
 
-`vercel.json` מגדיר Vite, פקודת `npm run build`, תוצר `dist`, אזור `fra1` ו־60 שניות לפונקציות `api/*.ts`. בחרו Node.js 24 בהגדרות הפרויקט. אין להגדיר `PAGES_BASE` בפרויקט Vercel: שם הממשק מוגש בשורש `/`. הגדרות Production צריכות לאפשר גישה ציבורית ל־API מהדפדפן, תוך השארת קוד הגישה של האפליקציה פעיל.
+`vercel.json` מגדיר Vite, פקודת `npm run build`, תוצר `dist`, אזור `fra1` ו־240 שניות לפונקציות `api/*.ts`. בחרו Node.js 24 והפעילו Fluid Compute בהגדרות הפרויקט כדי לתמוך במשך זה. קריאת המודל מוגבלת ל־180 שניות, ומשאירה זמן לאימות ולסגירת קבלת העלות. אין להגדיר `PAGES_BASE` בפרויקט Vercel: שם הממשק מוגש בשורש `/`. הגדרות Production צריכות לאפשר גישה ציבורית ל־API מהדפדפן, תוך השארת קוד הגישה של האפליקציה פעיל. [משך פונקציות ב־Vercel](https://vercel.com/docs/functions/configuring-functions/duration).
 
 ### 2. Redis וסודות שרת
 

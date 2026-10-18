@@ -1,0 +1,235 @@
+{
+  "url": "https://iser-clinician-lj6don85i-elad-refouas-projects.vercel.app",
+  "browserVersion": "Chrome/155.0.8059.79",
+  "emulation": "Chromium CSS viewport; not a physical mobile device. No stylesheet injection or response replacement.",
+  "layouts": [
+    {
+      "label": "session",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": []
+    },
+    {
+      "label": "session",
+      "width": 375,
+      "height": 812,
+      "scrollWidth": 375,
+      "overflow": []
+    },
+    {
+      "label": "session",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "overflow": []
+    },
+    {
+      "label": "session",
+      "width": 430,
+      "height": 932,
+      "scrollWidth": 430,
+      "overflow": []
+    },
+    {
+      "label": "session",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "overflow": []
+    },
+    {
+      "label": "portal",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": []
+    },
+    {
+      "label": "portal",
+      "width": 375,
+      "height": 812,
+      "scrollWidth": 375,
+      "overflow": []
+    },
+    {
+      "label": "portal",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "overflow": []
+    },
+    {
+      "label": "portal",
+      "width": 430,
+      "height": 932,
+      "scrollWidth": 430,
+      "overflow": []
+    },
+    {
+      "label": "portal",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "overflow": []
+    },
+    {
+      "label": "אינטייק",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": []
+    },
+    {
+      "label": "המשגה",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": []
+    },
+    {
+      "label": "לקראת הדרכה",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": []
+    },
+    {
+      "label": "חומרי למידה",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": []
+    },
+    {
+      "label": "backstage",
+      "width": 320,
+      "height": 740,
+      "scrollWidth": 320,
+      "overflow": []
+    },
+    {
+      "label": "backstage",
+      "width": 375,
+      "height": 812,
+      "scrollWidth": 375,
+      "overflow": []
+    },
+    {
+      "label": "backstage",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "overflow": []
+    },
+    {
+      "label": "backstage",
+      "width": 430,
+      "height": 932,
+      "scrollWidth": 430,
+      "overflow": []
+    },
+    {
+      "label": "backstage",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "overflow": []
+    }
+  ],
+  "tabs": [
+    {
+      "text": "רשומות הפגישות",
+      "rect": {
+        "left": 189.421875,
+        "right": 302,
+        "width": 112.578125,
+        "height": 44
+      }
+    },
+    {
+      "text": "אינטייק",
+      "rect": {
+        "left": 123.96875,
+        "right": 185.421875,
+        "width": 61.453125,
+        "height": 44
+      }
+    },
+    {
+      "text": "המשגה",
+      "rect": {
+        "left": 59.75,
+        "right": 119.96875,
+        "width": 60.21875,
+        "height": 44
+      }
+    },
+    {
+      "text": "לקראת הדרכה",
+      "rect": {
+        "left": 205.53125,
+        "right": 302,
+        "width": 96.46875,
+        "height": 44
+      }
+    },
+    {
+      "text": "חומרי למידה",
+      "rect": {
+        "left": 113.484375,
+        "right": 201.53125,
+        "width": 88.046875,
+        "height": 44
+      }
+    }
+  ],
+  "edit": {
+    "value": "טקסט בדיקה זמני בדיוני — מבוטל ללא שמירה",
+    "footerPosition": "static",
+    "bodyWidth": 300,
+    "bodyScrollWidth": 300,
+    "statusOptions": [
+      {
+        "value": "documented",
+        "label": "תועד"
+      },
+      {
+        "value": "partial",
+        "label": "תועד חלקית"
+      },
+      {
+        "value": "unknown",
+        "label": "לא נמסר מידע"
+      },
+      {
+        "value": "not_assessed",
+        "label": "לא נבדק"
+      },
+      {
+        "value": "not_recalled",
+        "label": "לא זכור"
+      },
+      {
+        "value": "conflict",
+        "label": "קיימת סתירה"
+      },
+      {
+        "value": "not_applicable",
+        "label": "לא רלוונטי"
+      }
+    ]
+  },
+  "controls": [
+    {
+      "label": "פתיחת פגישה חדשה",
+      "width": 44,
+      "height": 44
+    },
+    {
+      "label": "הגדרות המערכת",
+      "width": 44,
+      "height": 44
+    }
+  ]
+}

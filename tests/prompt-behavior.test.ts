@@ -25,7 +25,7 @@ function section(id: string) {
 // These checks protect authored instructions and examples, not live-model behavior.
 describe('contextual interview prompt specification', () => {
   it('ships grounding, visitor explanation, and revision rules in both tasks', () => {
-    expect(PROMPT_VERSION).toBe('2026-10-16.13');
+    expect(PROMPT_VERSION).toBe('2026-10-18.1');
     for (const task of ['turn', 'draft'] as const) {
       const prompt = buildSystemPrompt(context(), task);
       for (const id of ['contextual-question', 'visible-explanation', 'revision', 'intake', 'working-memory']) {
@@ -146,6 +146,20 @@ describe('contextual interview prompt specification', () => {
     expect(intake).toContain('בכל מצב אחר חייב להיות לפחות sourceId קיים אחד, גם ב-not_assessed וב-not_recalled');
     expect(intake).toContain('אי־זכירת הניסוח המדויק אינה אי־זכירת תוכן שכבר תואר');
     expect(intake).toContain('שדה שלא השתנה אינו נכלל ב-fieldUpdates');
+  });
+
+  it('distinguishes explicitly unprovided information from an explicitly unperformed assessment', () => {
+    const intake = section('intake');
+    expect(intake).toContain('unknown = אין מידע לתיאור השדה, לרבות כשהמטפל אמר במפורש שהמידע לא נמסר');
+    expect(intake).toContain('not_assessed = המטפל אמר במפורש שלא בדק');
+    expect(intake).toContain('בלי אמירה מפורשת שלא נבדק הנושא, אין לסמן not_assessed');
+    expect(intake).toContain('אמירה שלא נמסר מידע חדש אינה מוחקת אותו ואינה הופכת את השדה ל-unknown');
+    const example = section('examples').split('\n').find(line => line.startsWith('הבחנת מצבי מידע:'))!;
+    expect(example).toContain('״לא נמסר מידע רפואי או תרופתי״');
+    expect(example).toContain('שדות 10 ו-11 נשארים unknown עם value ריק');
+    expect(example).toContain('אין להסיק שלא בוצעה בדיקה');
+    expect(example).toContain('״לא בדקתי רקע רפואי או טיפול תרופתי״ תומך ב-not_assessed');
+    expect(example).toContain('כאשר השדה לא השתנה, אין צורך להחזיר אותו ב-fieldUpdates');
   });
 
   it('requires fresh source-checked summaries while retaining earlier prose as an editing target', () => {

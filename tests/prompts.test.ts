@@ -76,7 +76,7 @@ describe('prompt assembly and intake schema', () => {
     expect(intakeSections).toHaveLength(9);
     expect(intakeSections.flatMap(section => section.fieldIds).sort((a, b) => a - b)).toEqual(intakeFields.map(field => field.id));
     const report = renderIntake(emptyIntakeFields());
-    expect((report.match(/לא הוזכר/g) ?? []).length).toBe(32);
+    expect((report.match(/^מצב: לא נמסר מידע$/gm) ?? []).length).toBe(32);
     expect(report).not.toContain('לא נבדק');
     expect(report).not.toContain('לא רלוונטי');
   });
